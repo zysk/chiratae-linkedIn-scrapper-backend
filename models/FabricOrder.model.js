@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import OrderStatus from "../helpers/OrderStatus";
+import { OrderStatus } from "../helpers/OrderStatus";
 
 let FabricOrder = mongoose.Schema(
     {

@@ -1,5 +1,5 @@
 import express from "express";
-import { login, registerUser } from "../controllers/users.controller";
+import { getUsers, login, registerOtherUsers, registerUser } from "../controllers/users.controller";
 
 let router = express.Router();
 
@@ -7,5 +7,9 @@ let router = express.Router();
 router.post("/register", registerUser);
 
 router.post("/login", login);
+
+router.post("/registerOtherUsers", registerOtherUsers);
+
+router.get("/getUsers", getUsers);
 
 export default router;

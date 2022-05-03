@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { CONFIG } from "./Config";
 
 export const generateAccessJwt = async (obj) => {
     return jwt.sign(
@@ -7,7 +8,7 @@ export const generateAccessJwt = async (obj) => {
             // exp: Math.floor(Date.now() / 1000) + (7200)            //valid for 2 hr
             exp: Math.floor(Date.now() / 1000) + 604800, //valid for 7 days
         },
-        process.env.jwt_access_token_secret
+        CONFIG.JWT_ACCESS_TOKEN_SECRET
     );
 };
 
@@ -17,6 +18,6 @@ export const generateRefreshJwt = async (obj) => {
             ...obj,
             exp: Math.floor(Date.now() / 1000) + 604800, //7 days
         },
-        process.env.jwt_access_token_secret
+        CONFIG.JWT_ACCESS_TOKEN_SECRET
     );
 };

@@ -11,8 +11,11 @@ import usersRouter from "./routes/users.routes";
 import indexRouter from "./routes/index.routes";
 import fabricRouter from "./routes/Fabric.routes";
 import productRouter from "./routes/product.routes";
+import fabricOrderRouter from "./routes/FabricOrder.routes";
 
+import cors from "cors";
 const app = express();
+app.use(cors());
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) {
         console.log(err);
@@ -30,6 +33,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/fabric", fabricRouter);
+app.use("/fabricOrder", fabricOrderRouter);
+
 app.use("/product", productRouter);
 app.use(errorHandler);
 
