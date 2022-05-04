@@ -35,7 +35,7 @@ export const registerUser = async (req, res, next) => {
 };
 export const login = async (req, res, next) => {
     try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        let UserExistCheck = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] });
         if (!UserExistCheck) throw new Error(`${ErrorMessages.INVALID_USER}`);
         console.log(UserExistCheck);
         console.log(req.body);
@@ -77,6 +77,24 @@ export const registerOtherUsers = async (req, res, next) => {
         await new Users(req.body).save();
 
         res.status(200).json({ message: `${req.body.role} Created`, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const updateUser = async (req, res, next) => {
+    try {
+        await Users.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const deleteUser = async (req, res, next) => {
+    try {
+        let productObj = await Users.findByIdAndRemove(req.params.id).exec();
+        res.status(200).json({ data: productObj, success: true });
     } catch (error) {
         console.error(error);
         next(error);

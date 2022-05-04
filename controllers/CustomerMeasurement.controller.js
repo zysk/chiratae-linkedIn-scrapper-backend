@@ -1,8 +1,9 @@
 import CustomerMeasurement from "../models/CustomerMeasurement.model";
+import MeasurementProduct from "../models/MeasurementProduct.model";
 import User from "../models/users.model";
 export const addCustomerMeasurement = async (req, res, next) => {
     try {
-        const existCheck = await CustomerMeasurement.findOne({ customerId: req.body.customerId });
+        const existCheck = await CustomerMeasurement.findOne({ customerId: req.body.customerId, measurementProductId: req.body.measurementProductId });
         if (existCheck) throw new Error("Measurement Already Exists");
         await new CustomerMeasurement(req.body).save();
         res.status(200).json({ message: "CustomerMeasurement Created Successfully", success: true });
@@ -13,14 +14,28 @@ export const addCustomerMeasurement = async (req, res, next) => {
 };
 export const getAllCustomerMeasurements = async (req, res, next) => {
     try {
-        let CustomerMeasurements = await CustomerMeasurement.find().lean().exec();
+        let CustomerMeasurements = await CustomerMeasurement.find({ customerId: req.params.id }).lean().exec();
         for (let el of CustomerMeasurements) {
             let tempObj = await User.findById(el.customerId).exec();
             if (tempObj) {
                 el.customer = tempObj.name;
             }
+            let tempMeasurementProductObj = await MeasurementProduct.findById(el.measurementProductId).exec();
+            if (tempMeasurementProductObj) {
+                el.measurementProduct = tempMeasurementProductObj.name;
+            }
         }
         res.status(200).json({ data: CustomerMeasurements, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getById = async (req, res, next) => {
+    try {
+        let CustomerMeasurements = await CustomerMeasurement.findById(req.params.id).lean().exec();
+        res.status(200).json({ message: "Customer Measurement", data: CustomerMeasurements, success: true });
     } catch (error) {
         console.error(error);
         next(error);

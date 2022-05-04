@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 let MeasurementProduct = mongoose.Schema(
     {
         name: String,
-        productIdArr: [
+        price: Number,
+        detailsArr: [
             {
-                productId: String,
+                name: String,
             },
         ],
-        price: Number,
     },
     { timestamps: true }
 );

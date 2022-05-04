@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 let Product = mongoose.Schema(
     {
         name: String,
-        price: Number,
-        detailsArr: [
+        productIdArr: [
             {
-                name: String,
+                productId: String,
             },
         ],
+        price: Number,
     },
     { timestamps: true }
 );

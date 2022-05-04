@@ -5,6 +5,7 @@ let router = express.Router();
 router.post("/newFabric", addFabric);
 
 router.get("/getAllFabric", getAllFabrics);
+// router.get("/getById", get);
 
 router.patch("/updateById/:id", updateFabric);
 

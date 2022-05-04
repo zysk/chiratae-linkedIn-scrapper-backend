@@ -24,6 +24,16 @@ export const getAllFabrics = async (req, res, next) => {
     }
 };
 
+export const getById = async (req, res, next) => {
+    try {
+        let Fabric = await Fabric.findById(req.params.id).lean().exec();
+        res.status(200).json({ message: "Fabric ", data: Fabric, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
 export const updateFabric = async (req, res, next) => {
     try {
         let fabric = await Fabric.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
