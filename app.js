@@ -13,6 +13,7 @@ import fabricRouter from "./routes/Fabric.routes";
 import productRouter from "./routes/product.routes";
 import fabricOrderRouter from "./routes/FabricOrder.routes";
 import customerMeasurementRouter from "./routes/CustomerMeasurement.routes";
+import MeasurementProductRouter from "./routes/MeasurementProduct.routes";
 
 import cors from "cors";
 const app = express();
@@ -39,6 +40,8 @@ app.use("/fabricOrder", fabricOrderRouter);
 
 app.use("/product", productRouter);
 app.use("/customerMeasurement", customerMeasurementRouter);
+app.use("/MeasurementProduct", MeasurementProductRouter);
+
 app.use(errorHandler);
 
 export default app;

@@ -1,5 +1,5 @@
 import express from "express";
-import { addCustomerMeasurement, deleteCustomerMeasurement, getAllCustomerMeasurements, updateCustomerMeasurement } from "../controllers/CustomerMeasurement";
+import { addCustomerMeasurement, deleteCustomerMeasurement, getAllCustomerMeasurements, updateCustomerMeasurement } from "../controllers/CustomerMeasurement.controller";
 const router = express.Router();
 
 router.post("/", addCustomerMeasurement);
