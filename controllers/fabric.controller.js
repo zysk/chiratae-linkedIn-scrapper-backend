@@ -1,4 +1,5 @@
 import Fabric from "../models/Fabric.model";
+import FabricStockModel from "../models/FabricStock.model";
 export const addFabric = async (req, res, next) => {
     try {
         await new Fabric(req.body).save();
@@ -10,7 +11,12 @@ export const addFabric = async (req, res, next) => {
 };
 export const getAllFabrics = async (req, res, next) => {
     try {
-        let fabrics = await Fabric.find().exec();
+        let fabrics = await Fabric.find().lean().exec();
+        for (let el of fabrics) {
+            console.log(el);
+            let stockObj = await FabricStockModel.findOne({ fabricId: el._id }).exec();
+            if (stockObj) el.stock = stockObj.Stock;
+        }
         res.status(200).json({ data: fabrics, success: true });
     } catch (error) {
         console.error(error);

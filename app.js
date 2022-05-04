@@ -12,6 +12,7 @@ import indexRouter from "./routes/index.routes";
 import fabricRouter from "./routes/Fabric.routes";
 import productRouter from "./routes/product.routes";
 import fabricOrderRouter from "./routes/FabricOrder.routes";
+import customerMeasurementRouter from "./routes/CustomerMeasurement.routes";
 
 import cors from "cors";
 const app = express();
@@ -25,8 +26,9 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 });
 
 app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
+app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -36,6 +38,7 @@ app.use("/fabric", fabricRouter);
 app.use("/fabricOrder", fabricOrderRouter);
 
 app.use("/product", productRouter);
+app.use("/customerMeasurement", customerMeasurementRouter);
 app.use(errorHandler);
 
 export default app;

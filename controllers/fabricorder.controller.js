@@ -48,7 +48,7 @@ export const deliverFabricOrder = async (req, res, next) => {
         for (let el of fabricOrder.fabricArr) {
             let fabricStockExist = await FabricStock.findOne({ fabricId: el.fabricId }).exec();
             if (fabricStockExist) {
-                await FabricStock.findByIdAndUpdate(fabricStockExist._id, { Stock: { $inc: el.quantity } }).exec();
+                await FabricStock.findByIdAndUpdate(fabricStockExist._id, { $inc: { Stock: el.quantity } }).exec();
             } else {
                 await new FabricStock({ fabricId: el.fabricId, Stock: el.quantity }).save();
             }

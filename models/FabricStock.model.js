@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 let FabricStock = mongoose.Schema(
     {
-        FabricId: String,
+        fabricId: String,
         Stock: Number,
     },
     { timestamps: true }

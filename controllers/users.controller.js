@@ -1,6 +1,7 @@
 import { UserList } from "../Builders/user.builder";
 import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
+import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { generateAccessJwt } from "../helpers/Jwt";
 import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/users.model";
@@ -14,6 +15,16 @@ export const registerUser = async (req, res, next) => {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
         req.body.password = await encryptPassword(req.body.password);
+        if (req.body.profilePicture) {
+            req.body.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
+        }
+        if (req.body.frontPicture) {
+            let temp = await storeFileAndReturnNameBase64(req.body.frontPicture);
+            console.log(temp);
+        }
+        if (req.body.backPicture) {
+            req.body.backPicture = await storeFileAndReturnNameBase64(req.body.backPicture);
+        }
         await new Users(req.body).save();
 
         res.status(200).json({ message: "User Created", success: true });
