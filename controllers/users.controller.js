@@ -3,6 +3,7 @@ import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { generateAccessJwt } from "../helpers/Jwt";
+import { generateUid } from "../helpers/utils";
 import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/users.model";
 
@@ -16,15 +17,32 @@ export const registerUser = async (req, res, next) => {
         }
         req.body.password = await encryptPassword(req.body.password);
         if (req.body.profilePicture) {
-            req.body.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
+            try {
+                req.body.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
+            } catch (error) {
+                console.error(error);
+                req.body.profilePicture = "";
+            }
         }
         if (req.body.frontPicture) {
-            let temp = await storeFileAndReturnNameBase64(req.body.frontPicture);
-            console.log(temp);
+            try {
+                req.body.frontPicture = await storeFileAndReturnNameBase64(req.body.frontPicture);
+            } catch (error) {
+                console.error(error);
+                req.body.frontPicture = "";
+            }
         }
         if (req.body.backPicture) {
-            req.body.backPicture = await storeFileAndReturnNameBase64(req.body.backPicture);
+            try {
+                req.body.backPicture = await storeFileAndReturnNameBase64(req.body.backPicture);
+            } catch (error) {
+                console.error(error);
+                req.body.backPicture = "";
+            }
         }
+
+        req.body.uid = await generateUid();
+
         await new Users(req.body).save();
 
         res.status(200).json({ message: "User Created", success: true });
@@ -42,7 +60,7 @@ export const login = async (req, res, next) => {
         let passwordCheck = await comparePassword(UserExistCheck.password, req.body.password);
         if (!passwordCheck) throw new Error(ErrorMessages.INVALID_PASSWORD);
 
-        let token = await generateAccessJwt({ userId: UserExistCheck._id, role: UserExistCheck.role, user: { name: UserExistCheck.name, email: UserExistCheck.email, phone: UserExistCheck.phone } });
+        let token = await generateAccessJwt({ userId: UserExistCheck._id, role: UserExistCheck.role, user: { name: UserExistCheck.name, email: UserExistCheck.email, phone: UserExistCheck.phone, _id: UserExistCheck._id } });
         res.status(200).json({ message: "User Logged In", token, success: true });
     } catch (error) {
         console.error(error);
@@ -73,7 +91,33 @@ export const registerOtherUsers = async (req, res, next) => {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
         if (req.body.role == rolesObj.ADMIN) throw new Error(ErrorMessages.INVALID_USER);
+        if (req.body.profilePicture) {
+            try {
+                req.body.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
+            } catch (error) {
+                console.error(error);
+                req.body.profilePicture = "";
+            }
+        }
+        if (req.body.frontPicture) {
+            try {
+                req.body.frontPicture = await storeFileAndReturnNameBase64(req.body.frontPicture);
+            } catch (error) {
+                console.error(error);
+                req.body.frontPicture = "";
+            }
+        }
+        if (req.body.backPicture) {
+            try {
+                req.body.backPicture = await storeFileAndReturnNameBase64(req.body.backPicture);
+            } catch (error) {
+                console.error(error);
+                req.body.backPicture = "";
+            }
+        }
         req.body.password = await encryptPassword(req.body.password);
+        req.body.uid = await generateUid();
+        console.log(req.body);
         await new Users(req.body).save();
 
         res.status(200).json({ message: `${req.body.role} Created`, success: true });
@@ -95,6 +139,17 @@ export const deleteUser = async (req, res, next) => {
     try {
         let productObj = await Users.findByIdAndRemove(req.params.id).exec();
         res.status(200).json({ data: productObj, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getSpecificCustomer = async (req, res, next) => {
+    try {
+        console.log(req.query);
+        let user = await Users.findOne({ role: rolesObj.CUSTOMER, $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
+        res.status(200).json({ message: "Customer", data: user, success: true });
     } catch (error) {
         console.error(error);
         next(error);

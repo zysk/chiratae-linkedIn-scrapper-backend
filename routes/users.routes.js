@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteUser, getUsers, login, registerOtherUsers, registerUser, updateUser } from "../controllers/users.controller";
+import { deleteUser, getSpecificCustomer, getUsers, login, registerOtherUsers, registerUser, updateUser } from "../controllers/users.controller";
 
 let router = express.Router();
 
@@ -18,4 +18,5 @@ router.patch("/updateById/:id", updateUser);
 
 router.delete("/deleteById/:id", deleteUser);
 
+router.get("/getSpecificCustomer", getSpecificCustomer);
 export default router;

@@ -5,6 +5,7 @@ let Product = mongoose.Schema(
         productIdArr: [
             {
                 productId: String,
+                fabricLength: Number,
             },
         ],
         price: Number,

@@ -8,6 +8,7 @@ let User = mongoose.Schema(
         phone: Number,
         password: String,
         height: String,
+        uid: String,
         age: String,
         customerId: String,
         profilePicture: String,
