@@ -42,6 +42,14 @@ export const getAllOrders = async (req, res, next) => {
             if (tempObj) {
                 el.customer = tempObj.name;
             }
+            if (el.salesId) {
+                let tempSalesObj = await Users.findById(el.salesId).lean().exec();
+                if (tempObj) {
+                    el.sales = tempSalesObj.name;
+                }
+            } else {
+                el.sales = "mft";
+            }
             for (let el of el.finalOrderProductArr) {
                 for (let elx of el.productIdArr) {
                     let tempfabricObj = await Fabric.findById(elx.fabricId).lean().exec();
