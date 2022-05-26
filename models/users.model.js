@@ -18,6 +18,12 @@ let User = mongoose.Schema(
         experience: String,
         city: String,
         address: String,
+        productIdArr: [
+            {
+                ///for pattern cutter
+                productId: String,
+            },
+        ],
         role: {
             type: String,
             default: rolesObj.CUSTOMER,

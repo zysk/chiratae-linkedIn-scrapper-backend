@@ -79,7 +79,57 @@ export const updateOrderStatusToFabricCollector = async (req, res, next) => {
         })
             .lean()
             .exec();
-        res.status(200).json({ message: "Order Transfered to fabric collector", success: true });
+        res.status(200).json({ message: `${req.body.orderStatus}`, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const updateOrderImages = async (req, res, next) => {
+    try {
+        let orderObj = await Order.findById(req.body.orderId).lean().exec();
+        if (!orderObj) throw new Error("Order Not found");
+        if (req.body.patternImage) {
+            try {
+                req.body.patternImage = await storeFileAndReturnNameBase64(req.body.patternImage);
+            } catch (error) {
+                console.error(error);
+                req.body.patternImage = "";
+            }
+        }
+        if (req.body.jobCardImage) {
+            try {
+                req.body.jobCardImage = await storeFileAndReturnNameBase64(req.body.jobCardImage);
+            } catch (error) {
+                console.error(error);
+                req.body.jobCardImage = "";
+            }
+        }
+        await Order.findByIdAndUpdate(req.body.orderId, req.body);
+        res.status(200).json({ message: "Uploaded", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const allocateOrderToPatternCutter = async (req, res, next) => {
+    try {
+        let orderObj = await Order.findById(req.body.orderId).lean().exec();
+        if (!orderObj) throw new Error("Order Not found");
+
+        if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus || el.statusChangedByRole === req.body.role)) throw new Error("You have already updated this status");
+
+        let temp = await Order.findByIdAndUpdate(req.body.orderId, {
+            $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
+            orderStatus: req.body.orderStatus,
+            finalOrderProductArr: req.body.finalOrderProductArr,
+            patternCutterIdArr: req.body.patternCutterIdArr,
+        })
+            .lean()
+            .exec();
+        res.status(200).json({ message: "Uploaded", success: true });
     } catch (error) {
         console.error(error);
         next(error);

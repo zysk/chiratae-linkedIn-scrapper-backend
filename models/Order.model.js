@@ -55,6 +55,15 @@ let Order = mongoose.Schema(
             type: String,
             default: MainOrderStatus.TRANSFERED_TO_FABRICCUTTER,
         },
+        patternCutterIdArr: [
+            {
+                patternCutterId: String,
+                assignToTrims: {
+                    type: Boolean,
+                    default: false,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );
