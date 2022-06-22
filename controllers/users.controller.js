@@ -9,7 +9,7 @@ import Users from "../models/users.model";
 
 export const registerUser = async (req, res, next) => {
     try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }, { uid: new RegExp(`^${req.body.uid}`) }] });
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
 
         if (!ValidateEmail(req.body.email)) {
@@ -41,7 +41,7 @@ export const registerUser = async (req, res, next) => {
             }
         }
 
-        req.body.uid = await generateUid();
+        // req.body.uid = await generateUid();
 
         await new Users(req.body).save();
 
@@ -84,7 +84,7 @@ export const getUsers = async (req, res, next) => {
 
 export const registerOtherUsers = async (req, res, next) => {
     try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }, { uid: new RegExp(`^${req.body.uid}`) }] });
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
 
         if (!ValidateEmail(req.body.email)) {
@@ -116,7 +116,6 @@ export const registerOtherUsers = async (req, res, next) => {
             }
         }
         req.body.password = await encryptPassword(req.body.password);
-        req.body.uid = await generateUid();
         console.log(req.body);
         await new Users(req.body).save();
 
@@ -153,5 +152,14 @@ export const getSpecificCustomer = async (req, res, next) => {
     } catch (error) {
         console.error(error);
         next(error);
+    }
+};
+
+export const getById = async (req, res, next) => {
+    try {
+        const user = await Users.findById(req.params.id).exec();
+        res.status(200).json({ message: "User", data: user, success: true });
+    } catch (error) {
+        console.error(error);
     }
 };

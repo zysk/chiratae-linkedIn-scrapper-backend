@@ -1,13 +1,22 @@
 import mongoose from "mongoose";
 let CustomerMeasurement = mongoose.Schema(
     {
-        customerId: String,
-        productId: String,
-        measurementProductId: String,
+        customerId: {
+            type: mongoose.Schema.Types.ObjectId,
+        },
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+        },
+        measurementProductId: {
+            type: mongoose.Schema.Types.ObjectId,
+        },
         detailsArr: [
             {
                 name: String,
                 value: String,
+                detailId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                },
             },
         ],
     },

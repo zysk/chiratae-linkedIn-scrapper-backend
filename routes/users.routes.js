@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteUser, getSpecificCustomer, getUsers, login, registerOtherUsers, registerUser, updateUser } from "../controllers/users.controller";
+import { deleteUser, getSpecificCustomer, getUsers, login, registerOtherUsers, registerUser, updateUser, getById } from "../controllers/users.controller";
 
 let router = express.Router();
 
@@ -14,7 +14,7 @@ router.get("/getUsers", getUsers);
 
 router.patch("/updateById/:id", updateUser);
 
-// router.get("/getById/:id", getById);
+router.get("/getById/:id", getById);
 
 router.delete("/deleteById/:id", deleteUser);
 

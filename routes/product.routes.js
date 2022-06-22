@@ -10,5 +10,5 @@ router.patch("/updateById/:id", updateProduct);
 
 router.delete("/deleteById/:id", deleteProduct);
 
-router.get("/getAllProductsWithMeasurement", getAllProductsWithMeasurement);
+router.get("/getAllProductsWithMeasurement/:id", getAllProductsWithMeasurement);
 export default router;
