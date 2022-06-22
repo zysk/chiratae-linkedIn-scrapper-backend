@@ -79,7 +79,7 @@ export const updateOrderStatusToFabricCollector = async (req, res, next) => {
         console.log(req.body);
         let orderObj = await Order.findById(req.body.orderId).lean().exec();
         if (!orderObj) throw new Error("Order Not Found");
-        if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus || el.statusChangedByRole === req.body.role)) throw new Error("You have already updated this status");
+        if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus)) throw new Error("You have already updated this status");
 
         let temp = await Order.findByIdAndUpdate(req.body.orderId, {
             $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
