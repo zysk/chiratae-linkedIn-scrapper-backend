@@ -36,6 +36,9 @@ let Order = mongoose.Schema(
                 productName: String,
                 productIdArr: [
                     {
+                        jobCardImage1: String,
+                        jobCardImage2: String,
+                        patternImage: String,
                         fabricLength: Number,
                         fabricId: String,
                         measurementProductId: String,
@@ -59,6 +62,26 @@ let Order = mongoose.Schema(
             {
                 patternCutterId: String,
                 assignToTrims: {
+                    type: Boolean,
+                    default: false,
+                },
+            },
+        ],
+        tailorIdArr: [
+            {
+                tailorId: String,
+                productId: String,
+                isCompleted: {
+                    type: Boolean,
+                    default: false,
+                },
+            },
+        ],
+        qcIdArr: [
+            {
+                qcId: String,
+                productId: String,
+                isCompleted: {
                     type: Boolean,
                     default: false,
                 },

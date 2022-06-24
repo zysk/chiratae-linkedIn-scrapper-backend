@@ -44,7 +44,6 @@ export const getTailors = async (req, res, next) => {
     }
 };
 
-
 export const updateTailor = async (req, res, next) => {
     try {
         await Tailor.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
@@ -74,3 +73,13 @@ export const getSpecificTailor = async (req, res, next) => {
         next(error);
     }
 };
+
+// export const getTailorWithProductId = async (req, res, next) => {
+//     try {
+//         let tailorArr = await Tailor.find({ "productArr.productId": req.params.productId }).exec();
+//         res.status(200).json({ message: "Product", data: tailorArr, success: true });
+//     } catch (error) {
+//         console.error(error);
+//         next(error);
+//     }
+// };
