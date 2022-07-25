@@ -4,10 +4,9 @@ import Users from "../models/users.model";
 import Fabric from "../models/Fabric.model";
 import CustomerMeasurements from "../models/CustomerMeasurement.model";
 import Tailor from "../models/Tailor.model";
+import tailorOrders from "../models/tailorOrders";
 import MeasurementProduct from "../models/MeasurementProduct.model";
 import QualityControlChecks from "../models/QualityControlChecks.model";
-import TailorOrders from "../models/tailorOrders";
-import QcOrders from "../models/QcOrders";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -261,11 +260,10 @@ export const allocateOrderToTailor = async (req, res, next) => {
         let temp = await Order.findByIdAndUpdate(req.body.orderId, {
             $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
             orderStatus: req.body.orderStatus,
+            tailorIdArr: req.body.tailorIdArr,
         })
             .lean()
             .exec();
-
-        await TailorOrders.insertMany(req.body.tailorArr);
         res.status(200).json({ message: "Order Status Updated", success: true });
     } catch (error) {
         console.error(error);
@@ -294,7 +292,6 @@ export const allocateOrderToQC = async (req, res, next) => {
     }
 };
 
-<<<<<<< HEAD
 
 
 
@@ -305,39 +302,39 @@ export const getTailorsAvialabilityByDate = async (req, res, next) => {
         let searchDateStartTime = searchDate.setHours(0, 0, 0, 0)
         let searchDateEndTime = searchDate.setHours(23, 59, 59)
 
-        let tailorsArr = await Tailor.find().exec();
+        let tailorsArr = await Tailor.find().lean().exec();
 
 
         for (const el of tailorsArr) {
-
+            let tailorOrdersCount = await tailorOrders.find({ tailorId: el._id, completionDate: { $and: [{ $gte: searchDateStartTime }, { $lte: searchDateEndTime }] } }).count().exec()
+            console.log(tailorOrdersCount)
+            el.ordersCount = tailorOrdersCount
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
         // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
-        // res.status(200).json({ message: "Tailor", data: tailorObj, success: true });
-=======
-export const getTailorOrdersByOrderId = async (req, res, next) => {
-    try {
-        const orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
-        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
->>>>>>> 065a7cc77f61f3e67ed5110f6322e85caf05044e
+        res.status(200).json({ message: "Tailor", data: tailorsArr, success: true });
     } catch (error) {
         console.error(error);
         next(error);
     }
 };
-<<<<<<< HEAD
 
-=======
->>>>>>> 065a7cc77f61f3e67ed5110f6322e85caf05044e
+
+export const getTailorOrdersByOrderId = async (req, res, next) => {
+
+    try {
+
+        let orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+
+
+
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+
+    } catch (error) {
+
+        console.error(error);
+
+        next(error);
+
+    }
+
+};
