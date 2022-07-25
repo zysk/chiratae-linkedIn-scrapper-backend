@@ -290,3 +290,41 @@ export const allocateOrderToQC = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+
+export const getTailorsAvialabilityByDate = async (req, res, next) => {
+    try {
+        console.log(req.query);
+        let searchDate = new Date(req.query.search)
+        let searchDateStartTime = searchDate.setHours(0, 0, 0, 0)
+        let searchDateEndTime = searchDate.setHours(23, 59, 59)
+
+        let tailorsArr = await Tailor.find().exec();
+
+
+        for (const el of tailorsArr) {
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
+        // res.status(200).json({ message: "Tailor", data: tailorObj, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
