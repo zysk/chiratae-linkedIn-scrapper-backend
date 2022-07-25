@@ -296,7 +296,8 @@ export const allocateOrderToQC = async (req, res, next) => {
 
 export const getTailorOrdersByOrderId = async (req, res, next) => {
     try {
-        const orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+        let orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+
         res.status(200).json({ message: "orderArr", data: orderArr, success: true });
     } catch (error) {
         console.error(error);

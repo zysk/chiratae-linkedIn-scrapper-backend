@@ -15,5 +15,5 @@ router.patch("/allocatePatternCutter", allocateOrderToPatternCutter);
 router.patch("/allocateOrderToTailor", allocateOrderToTailor);
 router.patch("/allocateOrderToQC", allocateOrderToQC);
 
-router.get("getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
+router.get("/getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
 export default router;
