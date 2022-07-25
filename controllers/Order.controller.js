@@ -6,6 +6,8 @@ import CustomerMeasurements from "../models/CustomerMeasurement.model";
 import Tailor from "../models/Tailor.model";
 import MeasurementProduct from "../models/MeasurementProduct.model";
 import QualityControlChecks from "../models/QualityControlChecks.model";
+import TailorOrders from "../models/tailorOrders";
+import QcOrders from "../models/QcOrders";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -259,10 +261,11 @@ export const allocateOrderToTailor = async (req, res, next) => {
         let temp = await Order.findByIdAndUpdate(req.body.orderId, {
             $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
             orderStatus: req.body.orderStatus,
-            tailorIdArr: req.body.tailorIdArr,
         })
             .lean()
             .exec();
+
+        await TailorOrders.insertMany(req.body.tailorArr);
         res.status(200).json({ message: "Order Status Updated", success: true });
     } catch (error) {
         console.error(error);
@@ -291,6 +294,7 @@ export const allocateOrderToQC = async (req, res, next) => {
     }
 };
 
+<<<<<<< HEAD
 
 
 
@@ -322,9 +326,18 @@ export const getTailorsAvialabilityByDate = async (req, res, next) => {
 
         // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
         // res.status(200).json({ message: "Tailor", data: tailorObj, success: true });
+=======
+export const getTailorOrdersByOrderId = async (req, res, next) => {
+    try {
+        const orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+>>>>>>> 065a7cc77f61f3e67ed5110f6322e85caf05044e
     } catch (error) {
         console.error(error);
         next(error);
     }
 };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 065a7cc77f61f3e67ed5110f6322e85caf05044e
