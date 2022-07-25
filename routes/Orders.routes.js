@@ -1,5 +1,5 @@
 import express from "express";
-import { addOrder, getById, getAllOrders, updateOrderImages, updateOrderStatusToFabricCollector, allocateOrderToPatternCutter, allocateOrderToTailor, allocateOrderToQC, getTailorOrdersByOrderId, getTailorsAvialabilityByDate } from "../controllers/Order.controller";
+import { addOrder, getById, getAllOrders, updateOrderImages, updateOrderStatusToFabricCollector, allocateOrderToPatternCutter, allocateOrderToTailor, allocateOrderToQC, getTailorOrdersByOrderId, getTailorsAvialabilityByDate, getCustomerOrderByDate } from "../controllers/Order.controller";
 const router = express.Router();
 
 router.post("/", addOrder);
@@ -15,6 +15,7 @@ router.patch("/allocatePatternCutter", allocateOrderToPatternCutter);
 router.patch("/allocateOrderToTailor", allocateOrderToTailor);
 router.patch("/allocateOrderToQC", allocateOrderToQC);
 router.get("/getTailorsAvialabilityByDate", getTailorsAvialabilityByDate);
+router.get("/getCustomerOrderByDate", getCustomerOrderByDate);
 
 router.get("getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
 export default router;
