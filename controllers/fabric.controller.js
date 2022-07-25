@@ -26,8 +26,12 @@ export const getAllFabrics = async (req, res, next) => {
 
 export const getById = async (req, res, next) => {
     try {
-        let Fabric = await Fabric.findById(req.params.id).lean().exec();
-        res.status(200).json({ message: "Fabric ", data: Fabric, success: true });
+        let fabrics = await Fabric.findById(req.params.id).lean().exec();
+        if (fabrics) {
+            let stockObj = await FabricStockModel.findOne({ fabricId: Fabric._id }).exec();
+            if (stockObj) fabrics.stock = stockObj.Stock;
+        }
+        res.status(200).json({ message: "Fabric ", data: fabrics, success: true });
     } catch (error) {
         console.error(error);
         next(error);

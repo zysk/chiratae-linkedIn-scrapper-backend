@@ -16,10 +16,12 @@ import customerMeasurementRouter from "./routes/CustomerMeasurement.routes";
 import MeasurementProductRouter from "./routes/MeasurementProduct.routes";
 import OrderRouter from "./routes/Orders.routes";
 import TailorRouter from "./routes/Tailor.routes";
-
+import QualityControlRouter from "./routes/QualityControlChecks.routes";
 import cors from "cors";
+
 const app = express();
 app.use(cors());
+
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) {
         console.log(err);
@@ -45,6 +47,7 @@ app.use("/customerMeasurement", customerMeasurementRouter);
 app.use("/MeasurementProduct", MeasurementProductRouter);
 app.use("/Order", OrderRouter);
 app.use("/Tailor", TailorRouter);
+app.use("/QualityControl", QualityControlRouter);
 
 app.use(errorHandler);
 

@@ -5,6 +5,7 @@ import Fabric from "../models/Fabric.model";
 import CustomerMeasurements from "../models/CustomerMeasurement.model";
 import Tailor from "../models/Tailor.model";
 import MeasurementProduct from "../models/MeasurementProduct.model";
+import QualityControlChecks from "../models/QualityControlChecks.model";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -37,9 +38,18 @@ export const addOrder = async (req, res, next) => {
                     throw new Error(`Please add measurement for ${elx.name}`);
                 }
                 elx.detailsArr = customerMeasurementObj.detailsArr;
+                let qualityCheckArr = await QualityControlChecks.find({ "productArr.productId": elx.measurementProductId }).exec();
+                if (!qualityCheckArr || qualityCheckArr.length == 0) throw new Error(`Please add quality check for ${elx.name}`);
+                // console.log(qualityCheckArr, "qualityCheckArr");
+                elx.qualityChecksArr = qualityCheckArr.map((el) => {
+                    return {
+                        qualityCheckId: el._id,
+                        qualityCheckName: el.name,
+                    };
+                });
             }
         }
-        console.log(JSON.stringify(req.body.finalOrderProductArr, null, 2));
+        // console.log(JSON.stringify(req.body.finalOrderProductArr, null, 2));
 
         await new Order(req.body).save();
         res.status(200).json({ message: "Ordered Successfully", success: true });
@@ -101,6 +111,64 @@ export const getAllOrders = async (req, res, next) => {
         }
         console.log(JSON.stringify(orders[orders.length - 2], null, 2));
         res.status(200).json({ data: orders, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getById = async (req, res, next) => {
+    try {
+        let orderObj = await Order.findById(req.params.id).lean().exec();
+        if (orderObj) {
+            let tempFabricArr = [];
+            let tempObj = await Users.findById(orderObj.customerId).lean().exec();
+            if (tempObj) {
+                orderObj.customer = tempObj.name;
+            }
+            if (orderObj.salesId) {
+                let tempSalesObj = await Users.findById(orderObj.salesId).lean().exec();
+                if (tempObj) {
+                    orderObj.sales = tempSalesObj.name;
+                }
+            } else {
+                orderObj.sales = "mft";
+            }
+            for (let elz of orderObj.finalOrderProductArr) {
+                for (let elx of elz.productIdArr) {
+                    let tempfabricObj = await Fabric.findById(elx.fabricId).lean().exec();
+                    if (tempfabricObj) {
+                        let productFabricIndex = tempFabricArr.findIndex((ely) => `${ely._id}` == `${tempfabricObj._id}`);
+                        if (productFabricIndex != -1) {
+                            tempFabricArr[productFabricIndex].fabricLength += elx.fabricLength;
+                        } else {
+                            tempFabricArr.push({ ...tempfabricObj, fabricLength: elx.fabricLength });
+                        }
+                    }
+                }
+                console.log(orderObj.tailorIdArr, "@@@");
+                if (orderObj.tailorIdArr) {
+                    console.log("INSIDE 1");
+                    for (let elx of orderObj.tailorIdArr) {
+                        console.log(elx);
+                        let tempObj = await Tailor.findById(elx.tailorId).exec();
+                        console.log(tempObj, "SMP");
+                        if (tempObj) {
+                            elx.tailorObj = tempObj;
+                        }
+                        let tempProductObj = await MeasurementProduct.findById(elx.productId).exec();
+                        console.log(tempProductObj);
+                        if (tempProductObj) {
+                            elx.productObj = tempProductObj;
+                        }
+                    }
+                }
+            }
+
+            // console.log(tempFabricArr);
+            orderObj.fabricArr = tempFabricArr;
+        }
+        res.status(200).json({ data: orderObj, success: true });
     } catch (error) {
         console.error(error);
         next(error);

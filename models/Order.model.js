@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { MainOrderStatus } from "../helpers/OrderStatus";
 import User from "./users.model";
-// import Product
 let Order = mongoose.Schema(
     {
         customerId: {
@@ -43,6 +42,16 @@ let Order = mongoose.Schema(
                         fabricId: String,
                         measurementProductId: String,
                         name: String,
+                        qualityChecksArr: [
+                            {
+                                qualityCheckId: String,
+                                qualityCheckName: String,
+                                checked: {
+                                    type: Boolean,
+                                    default: false,
+                                },
+                            },
+                        ],
                         detailsArr: [
                             {
                                 name: String,
@@ -71,6 +80,7 @@ let Order = mongoose.Schema(
             {
                 tailorId: String,
                 productId: String,
+                completionDate: Date,
                 isCompleted: {
                     type: Boolean,
                     default: false,
