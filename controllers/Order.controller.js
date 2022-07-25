@@ -6,6 +6,8 @@ import CustomerMeasurements from "../models/CustomerMeasurement.model";
 import Tailor from "../models/Tailor.model";
 import MeasurementProduct from "../models/MeasurementProduct.model";
 import QualityControlChecks from "../models/QualityControlChecks.model";
+import TailorOrders from "../models/tailorOrders";
+import QcOrders from "../models/QcOrders";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -259,10 +261,11 @@ export const allocateOrderToTailor = async (req, res, next) => {
         let temp = await Order.findByIdAndUpdate(req.body.orderId, {
             $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
             orderStatus: req.body.orderStatus,
-            tailorIdArr: req.body.tailorIdArr,
         })
             .lean()
             .exec();
+
+        await TailorOrders.insertMany(req.body.tailorArr);
         res.status(200).json({ message: "Order Status Updated", success: true });
     } catch (error) {
         console.error(error);
@@ -285,6 +288,16 @@ export const allocateOrderToQC = async (req, res, next) => {
             .lean()
             .exec();
         res.status(200).json({ message: "Order Status Updated", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getTailorOrdersByOrderId = async (req, res, next) => {
+    try {
+        const orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
     } catch (error) {
         console.error(error);
         next(error);
