@@ -9,7 +9,10 @@ import QualityControlChecks from "../models/QualityControlChecks.model";
 import TailorOrders from "../models/tailorOrders";
 import QcOrders from "../models/QcOrders";
 import InhouseOrders from "../models/InhouseOrders";
+import AlterationOrders from "../models/AlterationOrders";
+
 import { rolesObj } from "../helpers/Constants";
+import { MainOrderStatus } from "../helpers/OrderStatus";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -326,6 +329,17 @@ export const getQcOrders = async (req, res, next) => {
     }
 };
 
+export const getAlterationOrders = async (req, res, next) => {
+    try {
+        let orderArr = await AlterationOrders.find({ alterationTailorId: req.params.id }).lean().exec();
+
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
 export const TransferOrderInhouse = async (req, res, next) => {
     try {
         console.log(req.body);
@@ -347,7 +361,7 @@ export const TransferOrderInhouse = async (req, res, next) => {
             qcId: req.body.qcId,
         };
         await new InhouseOrders(qcObj).save();
-        res.status(200).json({ message: "Order transfered to qc", success: true });
+        res.status(200).json({ message: "Order transfered to in house", success: true });
     } catch (error) {
         console.error(error);
         next(error);
@@ -357,6 +371,26 @@ export const TransferOrderInhouse = async (req, res, next) => {
 export const getInhouseOrders = async (req, res, next) => {
     try {
         let orderArr = await InhouseOrders.find().lean().exec();
+        for (let el of orderArr) {
+            let orderObj = await Order.findById(el.orderId).lean().exec();
+            if (orderObj) {
+                let tempObj = await Users.findById(orderObj.customerId).lean().exec();
+                if (tempObj) {
+                    orderObj.customer = tempObj.name;
+                }
+                if (el.salesId) {
+                    let tempSalesObj = await Users.findById(orderObj.salesId).lean().exec();
+                    if (tempObj) {
+                        orderObj.sales = tempSalesObj.name;
+                    } else {
+                        orderObj.sales = "mft";
+                    }
+                } else {
+                    orderObj.sales = "mft";
+                }
+                el.orderObj = orderObj;
+            }
+        }
 
         res.status(200).json({ message: "orderArr", data: orderArr, success: true });
     } catch (error) {
@@ -414,6 +448,58 @@ export const getCustomerOrderByDate = async (req, res, next) => {
         }
         // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
         res.status(200).json({ message: "Customer order", data: customerArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const markOrderAsCompleted = async (req, res, next) => {
+    try {
+        console.log(req.body);
+        let orderObj = await Order.findById(req.body.orderId).lean().exec();
+        if (!orderObj) throw new Error("Order not Found");
+
+        let inhouseOrderUpdatedObj = await InhouseOrders.findByIdAndUpdate(req.body.inhouseOrderId, { isCompleted: true, orderStatus: MainOrderStatus.DELIVERED }).exec();
+        if (!inhouseOrderUpdatedObj) throw new Error("Unable to update");
+
+        res.status(200).json({ message: "Customer order", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const TransferToAlterationTailor = async (req, res, next) => {
+    try {
+        console.log(req.body);
+        let orderObj = await Order.findById(req.body.orderId).lean().exec();
+        if (!orderObj) throw new Error("Order Not found");
+
+        if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus)) throw new Error("You have already updated this status");
+
+        await Order.findByIdAndUpdate(req.body.orderId, {
+            $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
+            orderStatus: req.body.orderStatus,
+        })
+            .lean()
+            .exec();
+
+        let inhouseOrderUpdatedObj = await InhouseOrders.findByIdAndUpdate(req.body.inhouseOrderId, { isCompleted: false, orderStatus: MainOrderStatus.TRANSFERED_TO_ALTERATION_TAILOR }).exec();
+        if (!inhouseOrderUpdatedObj) throw new Error("Unable to update");
+
+        let qcObj = {
+            ...req.body,
+            orderId: req.body.orderId,
+            productObj: req.body.productObj,
+            tailorId: req.body.tailorId,
+            qcId: req.body.qcId,
+            alterationTailorId: req.body.alterationTailorId,
+            orderStatus: MainOrderStatus.TRANSFERED_TO_ALTERATION_TAILOR,
+            notes: req.body.notes,
+        };
+        await new AlterationOrders(qcObj).save();
+        res.status(200).json({ message: "Order transfered to Alteration tailor", success: true });
     } catch (error) {
         console.error(error);
         next(error);

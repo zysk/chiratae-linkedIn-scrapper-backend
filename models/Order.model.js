@@ -42,6 +42,24 @@ let Order = mongoose.Schema(
                         fabricId: String,
                         measurementProductId: String,
                         name: String,
+                        orderStatus: {
+                            type: String,
+                            default: MainOrderStatus.TRANSFERED_TO_FABRICCUTTER,
+                        },
+                        orderStatusArr: [
+                            {
+                                status: {
+                                    type: String,
+                                    default: MainOrderStatus.TRANSFERED_TO_FABRICCUTTER,
+                                },
+                                statusChangedByRole: String,
+                                statusChangedBy: String,
+                                statusChangedAt: {
+                                    type: Date,
+                                    default: new Date(),
+                                },
+                            },
+                        ],
                         qualityChecksArr: [
                             {
                                 qualityCheckId: String,

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import { MainOrderStatus } from "../helpers/OrderStatus";
-let InhouseOrders = mongoose.Schema(
+let AlterationOrders = mongoose.Schema(
     {
         orderId: {
             type: mongoose.SchemaTypes.ObjectId,
@@ -32,13 +31,17 @@ let InhouseOrders = mongoose.Schema(
                 },
             ],
         },
-        orderStatus: {
-            type: String,
-            default: MainOrderStatus.TRANSFERED_TO_IN_HOUSE,
-        },
-        isCompleted: {
+        orderStatus: String,
+        isCompeleted: {
             type: Boolean,
             default: false,
+        },
+        inhouseOrderId: {
+            type: mongoose.SchemaTypes.ObjectId,
+        },
+        notes: String,
+        alterationTailorId: {
+            type: mongoose.SchemaTypes.ObjectId,
         },
         tailorId: {
             type: mongoose.SchemaTypes.ObjectId,
@@ -49,4 +52,4 @@ let InhouseOrders = mongoose.Schema(
     },
     { timestamps: true }
 );
-export default mongoose.model("InhouseOrders", InhouseOrders);
+export default mongoose.model("AlterationOrders", AlterationOrders);

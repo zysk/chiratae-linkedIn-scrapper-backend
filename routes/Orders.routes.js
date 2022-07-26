@@ -14,6 +14,9 @@ import {
     getInhouseOrders,
     getTailorsAvialabilityByDate,
     getCustomerOrderByDate,
+    markOrderAsCompleted,
+    TransferToAlterationTailor,
+    getAlterationOrders,
 } from "../controllers/Order.controller";
 const router = express.Router();
 
@@ -35,6 +38,10 @@ router.get("/getCustomerOrderByDate", getCustomerOrderByDate);
 router.get("/getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
 router.get("/getQcOrders/:id", getQcOrders);
 router.patch("/transferOrderInhouse", TransferOrderInhouse);
-router.patch("/getInhouseOrders", getInhouseOrders);
+router.get("/getInhouseOrders", getInhouseOrders);
+router.patch("/markOrderAsCompleted", markOrderAsCompleted);
+router.patch("/transferToAlterationTailor", TransferToAlterationTailor);
+
+router.get("/getAlterationOrders/:id", getAlterationOrders);
 
 export default router;
