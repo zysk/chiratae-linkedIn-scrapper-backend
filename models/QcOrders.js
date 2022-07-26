@@ -31,7 +31,14 @@ let QcOrders = mongoose.Schema(
                 },
             ],
         },
-
+        orderStatus: String,
+        isCompeleted: {
+            type: Boolean,
+            default: false,
+        },
+        tailorId: {
+            type: mongoose.SchemaTypes.ObjectId,
+        },
         qcId: {
             type: mongoose.SchemaTypes.ObjectId,
         },

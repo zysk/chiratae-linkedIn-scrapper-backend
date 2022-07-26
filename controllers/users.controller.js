@@ -55,8 +55,8 @@ export const login = async (req, res, next) => {
     try {
         let UserExistCheck = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] });
         if (!UserExistCheck) throw new Error(`${ErrorMessages.INVALID_USER}`);
-        console.log(UserExistCheck);
-        console.log(req.body);
+        // console.log(UserExistCheck);
+        // console.log(req.body);
         let passwordCheck = await comparePassword(UserExistCheck.password, req.body.password);
         if (!passwordCheck) throw new Error(ErrorMessages.INVALID_PASSWORD);
 
@@ -70,11 +70,11 @@ export const login = async (req, res, next) => {
 
 export const getUsers = async (req, res, next) => {
     try {
-        console.log(req.query);
+        // console.log(req.query);
         const UsersPipeline = UserList(req.query);
-        console.log(UsersPipeline);
+        // console.log(UsersPipeline);
         const UsersArr = await Users.aggregate(UsersPipeline);
-        console.log(UsersArr);
+        // console.log(UsersArr);
         res.status(200).json({ data: UsersArr, message: "Users", success: true });
     } catch (error) {
         console.error(error);

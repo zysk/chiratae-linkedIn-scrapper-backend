@@ -1,5 +1,18 @@
 import express from "express";
-import { addOrder, getById, getAllOrders, updateOrderImages, updateOrderStatusToFabricCollector, allocateOrderToPatternCutter, allocateOrderToTailor, allocateOrderToQC, getTailorOrdersByOrderId } from "../controllers/Order.controller";
+import {
+    addOrder,
+    getById,
+    getAllOrders,
+    updateOrderImages,
+    updateOrderStatusToFabricCollector,
+    allocateOrderToPatternCutter,
+    allocateOrderToTailor,
+    allocateOrderToQC,
+    getTailorOrdersByOrderId,
+    getQcOrders,
+    TransferOrderInhouse,
+    getInhouseOrders,
+} from "../controllers/Order.controller";
 const router = express.Router();
 
 router.post("/", addOrder);
@@ -16,4 +29,8 @@ router.patch("/allocateOrderToTailor", allocateOrderToTailor);
 router.patch("/allocateOrderToQC", allocateOrderToQC);
 
 router.get("/getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
+router.get("/getQcOrders/:id", getQcOrders);
+router.patch("/transferOrderInhouse", TransferOrderInhouse);
+router.patch("/getInhouseOrders", getInhouseOrders);
+
 export default router;

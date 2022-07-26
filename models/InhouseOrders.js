@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
-let TailorOrderArr = mongoose.Schema(
+let InhouseOrders = mongoose.Schema(
     {
         orderId: {
             type: mongoose.SchemaTypes.ObjectId,
         },
+
         productObj: {
             jobCardImage1: String,
             jobCardImage2: String,
@@ -30,18 +31,18 @@ let TailorOrderArr = mongoose.Schema(
                 },
             ],
         },
-        isCompleted: {
+        orderStatus: String,
+        isCompeleted: {
             type: Boolean,
             default: false,
         },
-        completionDate: {
-            type: Date,
-            default: new Date(),
-        },
         tailorId: {
+            type: mongoose.SchemaTypes.ObjectId,
+        },
+        qcId: {
             type: mongoose.SchemaTypes.ObjectId,
         },
     },
     { timestamps: true }
 );
-export default mongoose.model("TailorOrder", TailorOrderArr);
+export default mongoose.model("InhouseOrders", InhouseOrders);

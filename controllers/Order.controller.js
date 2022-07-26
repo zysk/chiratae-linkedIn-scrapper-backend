@@ -8,6 +8,7 @@ import MeasurementProduct from "../models/MeasurementProduct.model";
 import QualityControlChecks from "../models/QualityControlChecks.model";
 import TailorOrders from "../models/tailorOrders";
 import QcOrders from "../models/QcOrders";
+import InhouseOrders from "../models/InhouseOrders";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -275,18 +276,26 @@ export const allocateOrderToTailor = async (req, res, next) => {
 
 export const allocateOrderToQC = async (req, res, next) => {
     try {
+        console.log(req.body, "QC");
         let orderObj = await Order.findById(req.body.orderId).lean().exec();
         if (!orderObj) throw new Error("Order Not found");
 
         if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus)) throw new Error("You have already updated this status");
 
-        let temp = await Order.findByIdAndUpdate(req.body.orderId, {
+        await Order.findByIdAndUpdate(req.body.orderId, {
             $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
             orderStatus: req.body.orderStatus,
-            qcIdArr: req.body.qcIdArr,
         })
             .lean()
             .exec();
+        let qcObj = {
+            orderId: req.body.orderId,
+            productObj: req.body.productObj,
+            tailorId: req.body.tailorId,
+            qcId: req.body.qcId,
+        };
+        console.log(qcObj, "QCOBJ");
+        await new QcOrders(qcObj).save();
         res.status(200).json({ message: "Order Status Updated", success: true });
     } catch (error) {
         console.error(error);
@@ -297,6 +306,56 @@ export const allocateOrderToQC = async (req, res, next) => {
 export const getTailorOrdersByOrderId = async (req, res, next) => {
     try {
         let orderArr = await TailorOrders.find({ orderId: req.params.id }).lean().exec();
+
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getQcOrders = async (req, res, next) => {
+    try {
+        let orderArr = await QcOrders.find({ qcId: req.params.id }).lean().exec();
+
+        res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const TransferOrderInhouse = async (req, res, next) => {
+    try {
+        console.log(req.body);
+        let orderObj = await Order.findById(req.body.orderId).lean().exec();
+        if (!orderObj) throw new Error("Order Not found");
+
+        if (orderObj.orderStatusArr.some((el) => el.status === req.body.orderStatus)) throw new Error("You have already updated this status");
+
+        await Order.findByIdAndUpdate(req.body.orderId, {
+            $push: { orderStatusArr: { status: req.body.orderStatus, statusChangedByRole: req.body.role, statusChangedBy: req.body.statusUpdatedBy } },
+            orderStatus: req.body.orderStatus,
+        })
+            .lean()
+            .exec();
+        let qcObj = {
+            orderId: req.body.orderId,
+            productObj: req.body.productObj,
+            tailorId: req.body.tailorId,
+            qcId: req.body.qcId,
+        };
+        await new InhouseOrders(qcObj).save();
+        res.status(200).json({ message: "Order transfered to qc", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getInhouseOrders = async (req, res, next) => {
+    try {
+        let orderArr = await InhouseOrders.find().lean().exec();
 
         res.status(200).json({ message: "orderArr", data: orderArr, success: true });
     } catch (error) {
