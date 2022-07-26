@@ -12,6 +12,8 @@ import {
     getQcOrders,
     TransferOrderInhouse,
     getInhouseOrders,
+    getTailorsAvialabilityByDate,
+    getCustomerOrderByDate,
 } from "../controllers/Order.controller";
 const router = express.Router();
 
@@ -27,6 +29,8 @@ router.patch("/updateOrderImages", updateOrderImages);
 router.patch("/allocatePatternCutter", allocateOrderToPatternCutter);
 router.patch("/allocateOrderToTailor", allocateOrderToTailor);
 router.patch("/allocateOrderToQC", allocateOrderToQC);
+router.get("/getTailorsAvialabilityByDate", getTailorsAvialabilityByDate);
+router.get("/getCustomerOrderByDate", getCustomerOrderByDate);
 
 router.get("/getTailorOrdersByOrderId/:id", getTailorOrdersByOrderId);
 router.get("/getQcOrders/:id", getQcOrders);

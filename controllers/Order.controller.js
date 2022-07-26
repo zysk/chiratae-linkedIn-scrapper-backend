@@ -9,6 +9,7 @@ import QualityControlChecks from "../models/QualityControlChecks.model";
 import TailorOrders from "../models/tailorOrders";
 import QcOrders from "../models/QcOrders";
 import InhouseOrders from "../models/InhouseOrders";
+import { rolesObj } from "../helpers/Constants";
 export const addOrder = async (req, res, next) => {
     try {
         if (!req.body.customerId) {
@@ -358,6 +359,61 @@ export const getInhouseOrders = async (req, res, next) => {
         let orderArr = await InhouseOrders.find().lean().exec();
 
         res.status(200).json({ message: "orderArr", data: orderArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getTailorsAvialabilityByDate = async (req, res, next) => {
+    try {
+        console.log(req.query);
+        let searchDate = new Date(req.query.search);
+        let searchDateStartTime = searchDate.setHours(0, 0, 0, 0);
+        let searchDateEndTime = searchDate.setHours(23, 59, 59);
+
+        let tailorsArr = await Tailor.find().lean().exec();
+
+        for (const el of tailorsArr) {
+            let tailorOrdersCount = await TailorOrders.find({ tailorId: el._id, completionDate: { $gte: searchDateStartTime, $lte: searchDateEndTime } })
+                .count()
+                .exec();
+            // console.log(tailorOrdersCount)
+            el.ordersCount = tailorOrdersCount;
+            console.log(el.perDayCapacity, tailorOrdersCount, el.perDayCapacity < tailorOrdersCount);
+
+            if (el.perDayCapacity > tailorOrdersCount) {
+                el.isAvialable = "Available";
+            } else {
+                el.isAvialable = "Not Available";
+            }
+        }
+        // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
+        res.status(200).json({ message: "Tailor", data: tailorsArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const getCustomerOrderByDate = async (req, res, next) => {
+    try {
+        console.log(req.query);
+        let searchDate = new Date(req.query.search);
+        let searchDateStartTime = searchDate.setHours(0, 0, 0, 0);
+        let searchDateEndTime = searchDate.setHours(23, 59, 59);
+
+        let customerArr = await Users.find({ role: rolesObj.CUSTOMER }).lean().exec();
+
+        for (const el of customerArr) {
+            let customerOrdersArr = await Order.find({ customerId: el._id, createdAt: { $gte: searchDateStartTime, $lte: searchDateEndTime } }).exec();
+            // console.log(tailorOrdersCount)
+            el.ordersCount = customerOrdersArr.length;
+            el.totalPrice = customerOrdersArr.reduce((acc, el) => acc + el.price, 0);
+            el.customerOrderArr = customerOrdersArr;
+            console.log(el.perDayCapacity, customerOrdersArr, el.perDayCapacity < customerOrdersArr);
+        }
+        // let tailorObj = await Tailor.find({ $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
+        res.status(200).json({ message: "Customer order", data: customerArr, success: true });
     } catch (error) {
         console.error(error);
         next(error);

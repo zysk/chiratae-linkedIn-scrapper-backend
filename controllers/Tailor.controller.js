@@ -74,6 +74,7 @@ export const getSpecificTailor = async (req, res, next) => {
     }
 };
 
+
 // export const getTailorWithProductId = async (req, res, next) => {
 //     try {
 //         let tailorArr = await Tailor.find({ "productArr.productId": req.params.productId }).exec();

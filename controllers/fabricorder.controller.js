@@ -1,5 +1,6 @@
 import { OrderStatus } from "../helpers/OrderStatus";
 import Fabric from "../models/FabricOrder.model";
+import Fabrics from "../models/Fabric.model";
 import FabricStock from "../models/FabricStock.model";
 export const newFabricOrder = async (req, res, next) => {
     try {
@@ -13,6 +14,33 @@ export const newFabricOrder = async (req, res, next) => {
 export const getAllFabricsOrders = async (req, res, next) => {
     try {
         let fabrics = await Fabric.find().exec();
+        res.status(200).json({ data: fabrics, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+
+export const getAllFabricsOrdersByDate = async (req, res, next) => {
+    try {
+        console.log(req.query);
+        let searchDate = new Date(req.query.search)
+        let searchDateStartTime = searchDate.setHours(0, 0, 0, 0)
+        let searchDateEndTime = searchDate.setHours(23, 59, 59)
+
+        console.log(req.query.search)
+        let fabrics = await Fabric.find({ createdAt: { $gte: searchDateStartTime, $lte: searchDateEndTime } }).lean().exec();
+        for (const el of fabrics) {
+
+            for (const ele of el.fabricArr) {
+                console.log(ele.fabricId, "fabric id")
+                let fabricObj = await Fabrics.findOne({ _id: `${ele.fabricId}` }).exec()
+                ele.fabricObj = fabricObj;
+            }
+        }
+
+
         res.status(200).json({ data: fabrics, success: true });
     } catch (error) {
         console.error(error);
