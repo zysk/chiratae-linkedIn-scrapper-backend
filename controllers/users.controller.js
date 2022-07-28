@@ -82,49 +82,7 @@ export const getUsers = async (req, res, next) => {
     }
 };
 
-export const registerOtherUsers = async (req, res, next) => {
-    try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }, { uid: new RegExp(`^${req.body.uid}`) }] });
-        if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
 
-        if (!ValidateEmail(req.body.email)) {
-            throw new Error(ErrorMessages.INVALID_EMAIL);
-        }
-        if (req.body.role == rolesObj.ADMIN) throw new Error(ErrorMessages.INVALID_USER);
-        if (req.body.profilePicture) {
-            try {
-                req.body.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
-            } catch (error) {
-                console.error(error);
-                req.body.profilePicture = "";
-            }
-        }
-        if (req.body.frontPicture) {
-            try {
-                req.body.frontPicture = await storeFileAndReturnNameBase64(req.body.frontPicture);
-            } catch (error) {
-                console.error(error);
-                req.body.frontPicture = "";
-            }
-        }
-        if (req.body.backPicture) {
-            try {
-                req.body.backPicture = await storeFileAndReturnNameBase64(req.body.backPicture);
-            } catch (error) {
-                console.error(error);
-                req.body.backPicture = "";
-            }
-        }
-        req.body.password = await encryptPassword(req.body.password);
-        console.log(req.body);
-        await new Users(req.body).save();
-
-        res.status(200).json({ message: `${req.body.role} Created`, success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};
 export const updateUser = async (req, res, next) => {
     try {
         await Users.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
@@ -144,16 +102,6 @@ export const deleteUser = async (req, res, next) => {
     }
 };
 
-export const getSpecificCustomer = async (req, res, next) => {
-    try {
-        console.log(req.query);
-        let user = await Users.findOne({ role: rolesObj.CUSTOMER, $or: [{ phone: req.query.search }, { uid: req.query.search }] }).exec();
-        res.status(200).json({ message: "Customer", data: user, success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};
 
 export const getById = async (req, res, next) => {
     try {
