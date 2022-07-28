@@ -7,23 +7,10 @@ let User = mongoose.Schema(
         email: String,
         phone: Number,
         password: String,
-        height: String,
-        uid: String,
         age: String,
-        customerId: String,
         profilePicture: String,
-        frontPicture: String,
-        backPicture: String,
-        aadhaarNo: String,
-        experience: String,
         city: String,
         address: String,
-        productIdArr: [
-            {
-                ///for pattern cutter
-                productId: String,
-            },
-        ],
         role: {
             type: String,
             default: rolesObj.CUSTOMER,

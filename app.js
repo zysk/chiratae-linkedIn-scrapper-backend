@@ -9,14 +9,6 @@ import mongoose from "mongoose";
 //routes
 import usersRouter from "./routes/users.routes";
 import indexRouter from "./routes/index.routes";
-import fabricRouter from "./routes/Fabric.routes";
-import productRouter from "./routes/product.routes";
-import fabricOrderRouter from "./routes/FabricOrder.routes";
-import customerMeasurementRouter from "./routes/CustomerMeasurement.routes";
-import MeasurementProductRouter from "./routes/MeasurementProduct.routes";
-import OrderRouter from "./routes/Orders.routes";
-import TailorRouter from "./routes/Tailor.routes";
-import QualityControlRouter from "./routes/QualityControlChecks.routes";
 import cors from "cors";
 
 const app = express();
@@ -39,15 +31,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/fabric", fabricRouter);
-app.use("/fabricOrder", fabricOrderRouter);
-
-app.use("/product", productRouter);
-app.use("/customerMeasurement", customerMeasurementRouter);
-app.use("/MeasurementProduct", MeasurementProductRouter);
-app.use("/Order", OrderRouter);
-app.use("/Tailor", TailorRouter);
-app.use("/QualityControl", QualityControlRouter);
 
 app.use(errorHandler);
 
