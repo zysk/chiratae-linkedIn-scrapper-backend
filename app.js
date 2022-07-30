@@ -6,14 +6,24 @@ import { errorHandler } from "./helpers/ErrorHandler";
 import { CONFIG } from "./helpers/Config";
 import mongoose from "mongoose";
 
-//routes
+// //routes
 import usersRouter from "./routes/users.routes";
 import indexRouter from "./routes/index.routes";
+
+import category from "./routes/category.routes";
+import product from "./routes/product.routes";
+import brand from "./routes/brand.routes";
+import attribute from "./routes/attribute.routes";
+import attributeValue from "./routes/attributeValue.routes";
+import tag from "./routes/tag.routes";
+import userCart from "./routes/userCart.routes";
+
+
 import cors from "cors";
 
 const app = express();
 app.use(cors());
-
+console.log(CONFIG.MONGOURI)
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) {
         console.log(err);
@@ -21,7 +31,6 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
         console.log("connected to db at " + CONFIG.MONGOURI);
     }
 });
-
 app.use(logger("dev"));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
@@ -31,6 +40,13 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/category", category);
+app.use("/product", product);
+app.use("/brand", brand);
+app.use("/attribute", attribute);
+app.use("/attributeValue", attributeValue);
+app.use("/tag", tag);
+app.use("/userCart", userCart);
 
 app.use(errorHandler);
 

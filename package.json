@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "npx babel-node ./bin/www",
-        "dev": "nodemon --exec babel-node ./bin/www"
+        "dev": "nodemon --exec babel-node ./bin/www --signal SIGINT"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",

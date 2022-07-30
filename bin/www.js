@@ -12,6 +12,8 @@ import http from "http";
  */
 
 let port = normalizePort(process.env.PORT || "3000");
+console.log("PORT", port)
+
 app.set("port", port);
 
 /**

@@ -40,9 +40,7 @@ export const registerUser = async (req, res, next) => {
                 req.body.backPicture = "";
             }
         }
-
         // req.body.uid = await generateUid();
-
         await new Users(req.body).save();
 
         res.status(200).json({ message: "User Created", success: true });
