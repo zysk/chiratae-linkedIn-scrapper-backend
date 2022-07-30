@@ -17,7 +17,7 @@ import attribute from "./routes/attribute.routes";
 import attributeValue from "./routes/attributeValue.routes";
 import tag from "./routes/tag.routes";
 import userCart from "./routes/userCart.routes";
-
+// import banner from "./routes/banner.routes";
 
 import cors from "cors";
 
@@ -47,6 +47,7 @@ app.use("/attribute", attribute);
 app.use("/attributeValue", attributeValue);
 app.use("/tag", tag);
 app.use("/userCart", userCart);
+// app.use("/banner", banner);
 
 app.use(errorHandler);
 

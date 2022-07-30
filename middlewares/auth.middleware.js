@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/users.model";
+import User from "../models/user.model";
 
-export const authorizeJwt = async (req, res, next) => {
+export const authorizeJwt = async(req, res, next) => {
     // console.log(req.headers)
     let authorization = req.headers["authorization"];
     let token = authorization && authorization.split("Bearer ")[1];
@@ -20,7 +20,7 @@ export const authorizeJwt = async (req, res, next) => {
     }
 };
 
-export const setUserAndUserObj = async (req, res, next) => {
+export const setUserAndUserObj = async(req, res, next) => {
     // console.log(req.headers)
     let authorization = req.headers["authorization"];
     if (authorization) {

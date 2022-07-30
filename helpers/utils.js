@@ -1,9 +1,9 @@
 import { customAlphabet } from "nanoid";
-import User from "../models/users.model";
+import User from "../models/user.model";
 
 const nanoid = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 10);
 
-export const generateUid = async () => {
+export const generateUid = async() => {
     let check = true;
     while (check) {
         let tempUid = nanoid();
