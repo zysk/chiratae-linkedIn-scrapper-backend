@@ -6,8 +6,8 @@ let User = mongoose.Schema({
     email: { type: String, required: true },
     phone: { type: Number, required: true },
     password: { type: String, required: true },
-    age: { type: Number, },
-    profilePicture: String,
+    age: { type: Number },
+    // profilePicture: String,
     city: { type: String, },
     address: { type: String, },
     isActive: { type: Boolean, default: false },
@@ -19,7 +19,7 @@ let User = mongoose.Schema({
     aadharNo: { type: Number, },
     penCardImage: { type: String, },
     aadharImage: { type: String, },
-    kycVerified: { type: Boolean, default: false },
+    kycStatus: { type: String, default: 'pending', enum: ['pending', 'approve', 'denied'] },
 
 }, { timestamps: true });
 

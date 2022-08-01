@@ -1,8 +1,7 @@
-
 import authorizeJwt from "../middlewares/auth.middleware";
 
-import product from "../models/product.model.";
-export const registerProduct = async (req, res, next) => {
+import product from "../models/product.model";
+export const registerProduct = async(req, res, next) => {
     try {
         if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }))
             throw ({ status: 400, message: ' this exist, use another' });
@@ -11,12 +10,11 @@ export const registerProduct = async (req, res, next) => {
         await product(req.body).save()
 
         res.status(201).json({ message: 'product Registered', success: true });
-    }
-    catch (err) {
+    } catch (err) {
         next(err);
     }
 };
-export const getProduct = async (req, res, next) => {
+export const getProduct = async(req, res, next) => {
     try {
         const getProduct = await product.find().exec();
         res.status(200).json({ message: "getProduct", data: getProduct, success: true });
@@ -24,9 +22,9 @@ export const getProduct = async (req, res, next) => {
         next(err);
     }
 };
-export const updateById = async (req, res, next) => {
+export const updateById = async(req, res, next) => {
     try {
-        if (await product.findOne({ $or: [{ category: req.body.category },  { name: req.body.name }] }))
+        if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }))
             throw ({ status: 400, message: ' this exist, use another' });
         const productObj = await product.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!productObj) throw ({ status: 400, message: "product  Not Found" });
@@ -35,7 +33,7 @@ export const updateById = async (req, res, next) => {
         next(err);
     }
 };
-export const deleteById = async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
 
     try {
         const productObj = await product.findByIdAndDelete(req.params.id).exec();

@@ -3,10 +3,10 @@ import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { generateAccessJwt } from "../helpers/Jwt";
-import { generateUid } from "../helpers/utils";
+// import { generateUid } from "../helpers/utils";
 import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/user.model";
-import { upload } from "../helpers/fileUpload";
+// import { upload } from "../helpers/fileUpload";
 
 export const registerUser = async(req, res, next) => {
     try {
@@ -21,38 +21,64 @@ export const registerUser = async(req, res, next) => {
 
         let newUser = await new Users(req.body).save();
         // res.status(200).json({ message: "User Created", data: _id, success: true });
-        res.status(200).json({ message: "User Created", data: newUser, success: true });
+        res.status(200).json({ message: "User Created", success: true });
     } catch (error) {
         console.error(error);
         next(error);
     }
 };
 
-export const kycUpload = async(req, res, next) => {
-    // router.post('/uploadFile/:id', upload.single('file'), async(req, res, next) => {
+export const userKyc = async(req, res, next) => { /// not valid 
     try {
-        // if (req.file.profilePicture) {
-        //     req.file.profilePicture = await storeFileAndReturnNameBase64(req.body.profilePicture);
-        // }
         if (req.body.penCardImage) {
             req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
         }
         if (req.body.aadharImage) {
             req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
         }
-        let getUser = await Users.findByIdAndUpdate(req.params.id, { penCardImage: req.body.penCardImage, aadharImage: req.body.aadharImage });
-        // let getUser = await Users.findById(req.params.id)
-        // console.log(getUser, "oo1p");
-        // let ab;
-        // if ((Users.penCardImage && Users.aadharImage)) {
-        //     console.log("jhhjdjgked")
-        //     ab = await Users.findByIdAndUpdate(req.params.id, { kycVerified: true }, { new: true })
-        // }
-        // await vendorAds(req.body).save()
-        // console.log(ab, "oop")
-        console.log(getUser.penCardImage, "oop")
-            // console.log(getUser.aadharImage, "oop")
-            // console.log(getUser.isActive, "oop")
+        let getUser =
+            await Users
+            .findById(req.params.id);
+
+        console.log(getUser, "oo1p");
+
+        if (!getUser.penCardImage) {
+            if (req.body.penCardImage) {
+                req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+            }
+            getUser.penCardImage = req.body.penCardImage
+            await getUser.save()
+        } else {
+            if (req.body.penCardImage) {
+                req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+            }
+            getUser.$set({ "": "" })
+        }
+
+        if (!getUser.aadharImage) {
+            if (req.body.aadharImage) {
+                req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
+            }
+            getUser.aadharImage = req.body.aadharImage
+            await getUser.save()
+        }
+
+        let ab;
+
+        // ab = await Users.findOneAndUpdate({ userId: req.params.id, "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage, "getUser.penNo": req.body.penNo, "getUser.aadharNo": req.body.aadharNo }, { $set: { "kycVerified": true } })
+        // ab = await Users
+        // .findOneAndUpdate({ $and: [{ penCardImage: req.body.penCardImage },
+        //      { aadharImage: req.body.aadharImage }, { penNo: req.body.penNo },
+        //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
+
+
+        if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
+            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true })
+            console.log("jhhjdjgked")
+        }
+        console.log(ab, "oop")
+
+
         res.status(201).json({ message: 'images added succesfully', success: true });
     } catch (err) {
         next(err);
@@ -68,7 +94,7 @@ export const getUsers = async(req, res, next) => {
         let UserObj = await Users.find();
 
         // console.log(UsersArr);
-        res.status(200).json({ data: UserObj, message: "Users", success: true });
+        res.status(200).json({ message: "Users", data: UserObj, success: true });
     } catch (error) {
         console.error(error);
         next(error);
@@ -77,6 +103,15 @@ export const getUsers = async(req, res, next) => {
 
 export const updateUser = async(req, res, next) => {
     try {
+        if (req.body.password) {
+            req.body.password = await encryptPassword(req.body.password);
+        }
+        if (req.body.penCardImage) {
+            req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+        }
+        if (req.body.aadharImage) {
+            req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
+        }
         await Users.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
         res.status(200).json({ success: true });
     } catch (error) {
@@ -87,7 +122,41 @@ export const updateUser = async(req, res, next) => {
 export const deleteUser = async(req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
-        res.status(200).json({ data: userObj, success: true });
+        if (!userObj) throw ({ status: 400, message: "user not found or deleted already" });
+
+        res.status(200).json({ msg: "user deleted successfully", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getUserData = async(req, res, next) => { //get users data according kyc status  //admin only can see
+    try {
+        let kycStatus = req.query.kycStatus
+
+        let UserObj = await Users.find({ kycStatus: req.query.kycStatus });
+        console.log(UserObj)
+        res.status(200).json({ message: "Users-data", data: UserObj, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const changeUserKyc = async(req, res, next) => { //change kyc-status manually from admin side
+    try {
+        let kycStatus = req.body.kycStatus;
+        // console.log(req.body)
+        if (!(['verified', 'denied'].includes(kycStatus))) {
+            throw ({
+                status: 400,
+                message: "status should be 'verified'or'denied' "
+            })
+        }
+        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } });
+        // console.log(UserObj);
+        res.status(200).json({ message: "change user kyc status successfully", success: true });
     } catch (error) {
         console.error(error);
         next(error);

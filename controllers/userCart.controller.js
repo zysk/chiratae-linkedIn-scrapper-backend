@@ -1,4 +1,4 @@
-import product from "../models/product.model.";
+import product from "../models/product.model";
 import userCart from "../models/userCart.model";
 import authorizeJwt from "../middlewares/auth.middleware";
 import storeFileAndReturnNameBase64 from "../helpers/fileSystem";
@@ -19,14 +19,15 @@ export const removeProduct = async(req, res, next) => {
     try {
         let { items, } = req.body;
         const userCartObj = await userCart.findOne({ userId: req.params.id });
-        const findCart = await userCart.findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": -1 } })
+        const findCart = await userCart
+            .findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": -1 } })
 
-        // for (let i = 0; i < findCart.items.length; i++) {
-        //     if (findCart.items[i].quantity == 0) {
-        //         userCartObj.items.splice(0);
-        //         await userCartObj.save()
-        //     }
-        // }
+        for (let i = 0; i < findCart.items.length; i++) {
+            if (findCart.items[i].quantity <= 1) {
+                userCartObj.items.splice(i, 1);
+                await userCartObj.save()
+            }
+        }
 
         if (!userCartObj) throw ({ status: 400, message: "cart  Not Found" });
         res.status(200).json({ message: "product removed from cart", dat: findCart, success: true });
@@ -42,9 +43,12 @@ export const updateCart = async(req, res, next) => {
         console.log(userCartObj, "a894284209");
         var ab;
         if (userCartObj.items.some(el => `${el.productId}` == req.body.items.productId)) {
-            ab = await userCart.findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": 1 } })
+            ab = await userCart.
+            findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": 1 } })
         } else {
-            ab = await userCart.findOneAndUpdate({ userId: req.params.id, }, { $push: { items: items } })
+            items.quantity = 1
+            ab = await userCart.
+            findOneAndUpdate({ userId: req.params.id, }, { $push: { items } })
         }
 
         // for (let i = 0; i < items.length; i++) {
@@ -61,7 +65,7 @@ export const updateCart = async(req, res, next) => {
         // }
         // console.log(userCartObj, "92229119")
         // if (!userCartObj) throw ({ status: 400, message: "cart  Not Found" });
-        res.status(200).json({ message: "cart Updated", dat: ab, success: true });
+        res.status(200).json({ message: "cart Updated", success: true });
 
     } catch (err) {
         next(err);

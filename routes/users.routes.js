@@ -1,17 +1,19 @@
 import express from "express";
-import { deleteUser, getUsers, registerUser, updateUser, kycUpload } from "../controllers/users.controller";
+import { deleteUser, getUsers, registerUser, updateUser, userKyc, getUserData, changeUserKyc } from "../controllers/users.controller";
 
 let router = express.Router();
 
 
 router.post("/register", registerUser);
-router.post("/kycFiles/:id", kycUpload);
+router.post("/userKyc/:id", userKyc);
 
+router.get("/getUserData", getUserData);
 router.get("/getUsers", getUsers);
 
-// router.patch("/updateById/:id", updateUser);
+router.patch("/updateById/:id", updateUser);
+router.patch("/changeUserKyc", changeUserKyc);
 
-// router.delete("/deleteById/:id", deleteUser);
+router.delete("/deleteById/:id", deleteUser);
 
 
 export default router;

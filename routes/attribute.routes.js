@@ -1,5 +1,5 @@
 import express from "express";
-import { registerAttribute, updateById, deleteById,  getAttribute } from "../controllers/attribute.controller";
+import { registerAttribute, updateById, deleteById, getAttribute } from "../controllers/attribute.controller";
 
 let router = express.Router();
 
