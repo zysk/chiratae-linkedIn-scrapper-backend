@@ -17,6 +17,10 @@ export const registerUser = async(req, res, next) => {
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
+        // req.body.phone = toString(req.body.phone)
+        if (!(/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)))
+            throw ({ status: false, message: `Please fill a valid phone number` })
+
         req.body.password = await encryptPassword(req.body.password);
 
         let newUser = await new Users(req.body).save();
@@ -28,7 +32,7 @@ export const registerUser = async(req, res, next) => {
     }
 };
 
-export const userKyc = async(req, res, next) => { /// not valid 
+export const userKyc = async(req, res, next) => {
     try {
         if (req.body.penCardImage) {
             req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
@@ -36,47 +40,49 @@ export const userKyc = async(req, res, next) => { /// not valid
         if (req.body.aadharImage) {
             req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
         }
-        let getUser =
-            await Users
-            .findById(req.params.id);
 
+        let getUser = await Users.findById(req.params.id);
         console.log(getUser, "oo1p");
 
         if (!getUser.penCardImage) {
-            if (req.body.penCardImage) {
-                req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
-            }
-            getUser.penCardImage = req.body.penCardImage
-            await getUser.save()
-        } else {
-            if (req.body.penCardImage) {
-                req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
-            }
-            getUser.$set({ "": "" })
+            if (!req.body.penCardImage) throw ({ status: 400, message: "pencard image must have upload for next step" });
         }
-
         if (!getUser.aadharImage) {
+            if (!req.body.aadharImage) throw ({ status: 400, message: "aadhar image must have upload for next step" });
+        }
+        // if(!getUser.aadharImage) {
+        //     if (req.body.aadharImage) {
+        //         req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+        //     }
+        //     getUser.$set({ "": "" })
+        // }
+
+        if (getUser.aadharImage) {
             if (req.body.aadharImage) {
-                req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
+                await Users.findByIdAndUpdate({ _id: req.params.id }, { $set: { aadharImage: req.body.aadharImage } })
             }
-            getUser.aadharImage = req.body.aadharImage
-            await getUser.save()
+        }
+        if (getUser.penCardImage) {
+            if (req.body.penCardImage) {
+                await Users.findByIdAndUpdate(req.params.id, { $set: { penCardImage: req.body.penCardImage } })
+            }
         }
 
-        let ab;
+        // let ab;
 
         // ab = await Users.findOneAndUpdate({ userId: req.params.id, "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage, "getUser.penNo": req.body.penNo, "getUser.aadharNo": req.body.aadharNo }, { $set: { "kycVerified": true } })
         // ab = await Users
         // .findOneAndUpdate({ $and: [{ penCardImage: req.body.penCardImage },
         //      { aadharImage: req.body.aadharImage }, { penNo: req.body.penNo },
         //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
-
-
+        // await getUser.findOneAndUpdate({ _id: req.params.id }, { "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage });
+        await Users.findByIdAndUpdate(req.params.id, req.body);
+        //change here req.body to getUser to chekc db , all details present or not   
         if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
             await Users.findByIdAndUpdate(req.params.id, { kycVerified: true })
             console.log("jhhjdjgked")
         }
-        console.log(ab, "oop")
+        // console.log(ab, "oop")
 
 
         res.status(201).json({ message: 'images added succesfully', success: true });

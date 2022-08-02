@@ -4,7 +4,7 @@ import { rolesObj } from "../helpers/Constants";
 let User = mongoose.Schema({
     name: { type: String },
     email: { type: String, required: true },
-    phone: { type: Number, required: true },
+    phone: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
     age: { type: Number },
     // profilePicture: String,

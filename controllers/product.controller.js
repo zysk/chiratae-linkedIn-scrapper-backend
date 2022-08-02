@@ -1,10 +1,20 @@
 import authorizeJwt from "../middlewares/auth.middleware";
 
 import product from "../models/product.model";
+import category from "../models/category.model";
+import tag from "../models/tag.model";
 export const registerProduct = async(req, res, next) => {
     try {
         if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }))
             throw ({ status: 400, message: ' this exist, use another' });
+        if (req.body.category) {
+            let categoryObj = await category.findById(req.body.category);
+            req.body.category = categoryObj._id
+        }
+        if (req.body.tag) {
+            let tagObj = await tag.findById(req.body.tag);
+            req.body.tag = tag._id
+        }
         // if (await product.find({ tags: { $elemMatch: { tagId: req.body.tags[0].tagId } } }).pretty())
         //     throw ({ status: 400, message: ' this tag exist, use another' });
         await product(req.body).save()

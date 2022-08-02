@@ -1,19 +1,23 @@
 import authorizeJwt from "../middlewares/auth.middleware";
 
 import attributeValue from "../models/attibuteValue.model";
-export const registerAttributeValue =async (req, res, next) => {
+import attribute from "../models/attribute.model";
+export const registerAttributeValue = async(req, res, next) => {
     try {
+        if (req.body.attribute) {
+            let attributeObj = await attribute.findById(req.body.attribute)
+            req.body.attribute = attributeObj._id
+        }
         if (await attributeValue.findOne({ value: req.body.value }))
             throw ({ status: 400, message: ' this exist, use another' });
         await attributeValue(req.body).save();
         res.status(201).json({ message: 'attributeValue Registered', success: true });
-    }
-    catch (err) {
+    } catch (err) {
         next(err);
     }
 };
-export const getAttributeValue =async (req, res, next) => {
-// router.get("/getAttributeValue", async (req, res, next) => {
+export const getAttributeValue = async(req, res, next) => {
+    // router.get("/getAttributeValue", async (req, res, next) => {
     try {
         const getAttritubeValue = await attributeValue.find().exec();
         res.status(200).json({ message: "getAttritubeValue", data: getAttritubeValue, success: true });
@@ -21,8 +25,8 @@ export const getAttributeValue =async (req, res, next) => {
         next(err);
     }
 };
-export const updateById =async (req, res, next) => {
-// router.patch("/updateById/:id", authorizeJwt, async (req, res, next) => {
+export const updateById = async(req, res, next) => {
+    // router.patch("/updateById/:id", authorizeJwt, async (req, res, next) => {
     try {
         if (await attributeValue.findOne({ value: req.body.value }))
             throw ({ status: 400, message: ' attribute value exist ' });
@@ -33,8 +37,8 @@ export const updateById =async (req, res, next) => {
         next(err);
     }
 };
-export const deleteById =async (req, res, next) => {
-// router.delete("/deleteById/:id", authorizeJwt, async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
+    // router.delete("/deleteById/:id", authorizeJwt, async (req, res, next) => {
     try {
         const attributeValueObj = await attributeValue.findByIdAndDelete(req.params.id).exec();
         if (!attributeValueObj) throw ({ status: 400, message: "attributeValue Not Found" });
