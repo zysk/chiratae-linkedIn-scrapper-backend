@@ -20,7 +20,8 @@ import userCart from "./routes/userCart.routes";
 import banner from "./routes/banner.routes";
 import inventory from "./routes/inventory.routes";
 import productLog from "./routes/productLogs.routes";
-import wishlist from "./routes/productLogs.routes";
+import wishlist from "./routes/wishlist.routes";
+import userAddress from "./routes/userAddress.routes";
 
 import cors from "cors";
 
@@ -53,6 +54,8 @@ app.use("/userCart", userCart);
 app.use("/banner", banner);
 app.use("/logs", productLog);
 app.use("/inventory", inventory);
+app.use("/wishlist", wishlist);
+app.use("/userAddress", userAddress);
 
 app.use(errorHandler);
 

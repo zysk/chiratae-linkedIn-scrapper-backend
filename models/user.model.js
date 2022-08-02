@@ -9,7 +9,7 @@ let User = mongoose.Schema({
     age: { type: Number },
     // profilePicture: String,
     city: { type: String, },
-    address: { type: String, },
+    // address: { type: String },
     isActive: { type: Boolean, default: false },
     role: {
         type: String,

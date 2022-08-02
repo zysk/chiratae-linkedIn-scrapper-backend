@@ -2,19 +2,18 @@ import authorizeJwt from "../middlewares/auth.middleware";
 
 import brand from "../models/brand.model";
 
-export const registerBrand = async (req, res, next) => {
+export const registerBrand = async(req, res, next) => {
     try {
         if (await brand.findOne({ name: req.body.name }).exec())
             throw ({ status: 400, message: ' this exist, use another' });
 
         await brand(req.body).save()
         res.status(201).json({ message: 'brand Registered', success: true });
-    }
-    catch (err) {
+    } catch (err) {
         next(err);
     }
 };
-export const getBrand = async (req, res, next) => {
+export const getBrand = async(req, res, next) => {
     // router.get("/getBrand", async (req, res, next) => {
     try {
         const getBrand = await brand.find().exec();
@@ -23,10 +22,10 @@ export const getBrand = async (req, res, next) => {
         next(err);
     }
 };
-export const updateById = async (req, res, next) => {
+export const updateById = async(req, res, next) => {
     // router.patch("/updateById/:id", authorizeJwt, async (req, res, next) => {
     try {
-        if (await brand.findOne({ name: req.body.name }))
+        if (await brand.findOne({ name: req.body.name }).exec())
             throw ({ status: 400, message: ' brand exist ' });
         const brandObj = await brand.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!brandObj) throw ({ status: 400, message: "brand  Not Found" });
@@ -35,7 +34,7 @@ export const updateById = async (req, res, next) => {
         next(err);
     }
 };
-export const deleteById = async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
     // router.delete("/deleteById/:id", authorizeJwt, async (req, res, next) => {
     try {
         const brandObj = await brand.findByIdAndDelete(req.params.id).exec();

@@ -15,8 +15,8 @@ let product = mongoose.Schema({
     //         _id:false,
     //         tagId:String}
     // ],///    doubt 
-    tag: { type: mongoose.Types.ObjectId, ref: 'TagId' },
-    attribute: String,
+    tag: [{ tagId: { type: mongoose.Types.ObjectId, ref: 'TagId' } }],
+    attribute: [{ attributeId: { type: mongoose.Types.ObjectId, ref: 'attribute' } }],
 
     //isphysical product
     //Price Info And Stock

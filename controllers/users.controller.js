@@ -23,7 +23,7 @@ export const registerUser = async(req, res, next) => {
 
         req.body.password = await encryptPassword(req.body.password);
 
-        let newUser = await new Users(req.body).save();
+        let newUser = await new Users(req.body).save().exec();
         // res.status(200).json({ message: "User Created", data: _id, success: true });
         res.status(200).json({ message: "User Created", success: true });
     } catch (error) {
@@ -61,7 +61,7 @@ export const login = async(req, res, next) => {
 
 export const userKyc = async(req, res, next) => {
     try {
-        let getUser = await Users.findById(req.params.id);
+        let getUser = await Users.findById(req.params.id).exec();
         console.log(getUser, "oo1p");
 
         if (!getUser.penCardImage) {
@@ -102,10 +102,10 @@ export const userKyc = async(req, res, next) => {
         //      { aadharImage: req.body.aadharImage }, { penNo: req.body.penNo },
         //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
         // await getUser.findOneAndUpdate({ _id: req.params.id }, { "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage });
-        await Users.findByIdAndUpdate(req.params.id, req.body);
+        await Users.findByIdAndUpdate(req.params.id, req.body).exec();
         //change here req.body to getUser to chekc db , all details present or not   
         if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
-            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true })
+            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true }).exec()
             console.log("jhhjdjgked")
         }
         // console.log(ab, "oop")
@@ -167,7 +167,7 @@ export const getUserData = async(req, res, next) => { //get users data according
     try {
         let kycStatus = req.query.kycStatus
 
-        let UserObj = await Users.find({ kycStatus: req.query.kycStatus });
+        let UserObj = await Users.find({ kycStatus: req.query.kycStatus }).exec();
         console.log(UserObj)
         res.status(200).json({ message: "Users-data", data: UserObj, success: true });
     } catch (error) {
@@ -185,7 +185,7 @@ export const changeUserKyc = async(req, res, next) => { //change kyc-status manu
                 message: "status should be 'verified'or'denied' "
             })
         };
-        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } });
+        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } }).exec();
         // console.log(UserObj);
         res.status(200).json({ message: "change user kyc status successfully", success: true });
     } catch (error) {
@@ -197,7 +197,7 @@ export const changeUserKyc = async(req, res, next) => { //change kyc-status manu
 
 export const registerAdmin = async(req, res, next) => {
     try {
-        let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
+        let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] }).exec();
         console.log(req.body)
             // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
         if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);

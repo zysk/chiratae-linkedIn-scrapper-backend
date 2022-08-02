@@ -12,10 +12,10 @@ export const registerBanner = async(req, res, next) => {
             req.body.slide = await storeFileAndReturnNameBase64(req.body.slide);
         }
         if (req.body.url) {
-            let foundUrl = await banner.findOne({ url: req.body.url })
+            let foundUrl = await banner.findOne({ url: req.body.url }).exec()
             if (foundUrl) throw ({ status: 400, message: "url already registered" });
         }
-        let bannerObj = await banner(req.body).save()
+        let bannerObj = await banner(req.body).save().exec()
 
         console.log(bannerObj)
         res.status(201).json({ message: 'banner Registered', success: true });
