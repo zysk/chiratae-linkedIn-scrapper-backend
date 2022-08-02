@@ -1,10 +1,11 @@
 import express from "express";
-import { deleteUser, getUsers, registerUser, updateUser, userKyc, getUserData, changeUserKyc } from "../controllers/users.controller";
+import { deleteUser, getUsers, registerUser, updateUser, userKyc, getUserData, changeUserKyc, login } from "../controllers/users.controller";
 
 let router = express.Router();
 
 
 router.post("/register", registerUser);
+router.post("/login", login);
 router.post("/userKyc/:id", userKyc);
 
 router.get("/getUserData", getUserData);

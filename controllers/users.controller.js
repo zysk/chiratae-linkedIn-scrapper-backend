@@ -32,15 +32,35 @@ export const registerUser = async(req, res, next) => {
     }
 };
 
+export const login = async(req, res, next) => {
+    try {
+        console.log(req.body)
+        const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
+        if (userObj) {
+            const passwordCheck = await comparePassword(userObj.password, req.body.password);
+            if (passwordCheck) {
+                let accessToken = await generateAccessJwt({
+                    userId: userObj._id,
+                    role: rolesObj.USER,
+                    name: userObj.name,
+                    phone: userObj.phone,
+                    email: userObj.email
+                });
+                res.status(200).json({ message: 'LogIn Successfull', token: accessToken, success: true });
+            } else {
+                throw ({ status: 401, message: "Invalid Password" })
+            }
+        } else {
+            throw ({ status: 401, message: "user Not Found" })
+        }
+    } catch (err) {
+        console.log(err)
+        next(err);
+    }
+};
+
 export const userKyc = async(req, res, next) => {
     try {
-        if (req.body.penCardImage) {
-            req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
-        }
-        if (req.body.aadharImage) {
-            req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
-        }
-
         let getUser = await Users.findById(req.params.id);
         console.log(getUser, "oo1p");
 
@@ -66,6 +86,12 @@ export const userKyc = async(req, res, next) => {
             if (req.body.penCardImage) {
                 await Users.findByIdAndUpdate(req.params.id, { $set: { penCardImage: req.body.penCardImage } })
             }
+        }
+        if (req.body.penCardImage) {
+            req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+        }
+        if (req.body.aadharImage) {
+            req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
         }
 
         // let ab;
@@ -93,14 +119,14 @@ export const userKyc = async(req, res, next) => {
 
 export const getUsers = async(req, res, next) => {
     try {
-        // console.log(req.query);
-        // const UsersPipeline = UserList(req.query);
-        // console.log(UsersPipeline);
-        // const UsersArr = await Users.aggregate(UsersPipeline);
-        let UserObj = await Users.find();
+        console.log(req.query);
+        const UsersPipeline = UserList(req.query);
+        console.log(UsersPipeline);
+        const UsersArr = await Users.aggregate(UsersPipeline);
+        // let UserObj = await Users.find();
 
         // console.log(UsersArr);
-        res.status(200).json({ message: "Users", data: UserObj, success: true });
+        res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
         console.error(error);
         next(error);

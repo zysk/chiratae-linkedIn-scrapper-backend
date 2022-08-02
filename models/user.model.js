@@ -11,10 +11,10 @@ let User = mongoose.Schema({
     city: { type: String, },
     address: { type: String, },
     isActive: { type: Boolean, default: false },
-    // role: {
-    //     type: String,
-    //     default: rolesObj.CUSTOMER,
-    // },
+    role: {
+        type: String,
+        default: rolesObj.USER,
+    },
     penNo: { type: String, },
     aadharNo: { type: Number, },
     penCardImage: { type: String, },

@@ -13,7 +13,7 @@ export const registerProduct = async(req, res, next) => {
         }
         if (req.body.tag) {
             let tagObj = await tag.findById(req.body.tag);
-            req.body.tag = tag._id
+            req.body.tag = tagObj._id
         }
         // if (await product.find({ tags: { $elemMatch: { tagId: req.body.tags[0].tagId } } }).pretty())
         //     throw ({ status: 400, message: ' this tag exist, use another' });
