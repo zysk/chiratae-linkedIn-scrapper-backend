@@ -12,3 +12,9 @@ export const ErrorMessages = {
     INVALID_USER: "Invalid user",
     INVALID_TOKEN: "Invalid token",
 };
+
+export const generalModelStatuses = {
+    APPROVED: "APPROVED",
+    DECLINED: "DECLINED",
+    PENDING: "PENDING",
+};
