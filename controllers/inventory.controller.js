@@ -8,7 +8,7 @@ import inventory from "../models/inventory.model";
 export const createInventory = async(req, res, next) => {
     try {
         if (req.body.stock < 0) throw ({ status: 400, message: "stocks can't be negative" });
-        let stocks = await new inventory(req.body).save();
+        let stocks = await new inventory(req.body).save().exec();
         res.status(200).json({ message: "stocks create", success: true });
     } catch (error) {
         console.error(error);
@@ -18,7 +18,7 @@ export const createInventory = async(req, res, next) => {
 
 export const getStocks = async(req, res, next) => {
     try {
-        let stockObj = await inventory.find();
+        let stockObj = await inventory.find().exec();
         res.status(200).json({ message: "stocks data", data: stockObj, success: true });
     } catch (error) {
         console.error(error);

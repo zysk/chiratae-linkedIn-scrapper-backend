@@ -5,19 +5,19 @@ import category from "../models/category.model";
 import tag from "../models/tag.model";
 export const registerProduct = async(req, res, next) => {
     try {
-        if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }))
-            throw ({ status: 400, message: ' this exist, use another' });
+        if (await product.findOne({ $or: [{ name: req.body.name }] }).exec())
+            throw ({ status: 400, message: ' this name exist, use another' });
         if (req.body.category) {
-            let categoryObj = await category.findById(req.body.category);
+            let categoryObj = await category.findById(req.body.category).lean().exec();
             req.body.category = categoryObj._id
         }
-        if (req.body.tag) {
-            let tagObj = await tag.findById(req.body.tag);
-            req.body.tag = tagObj._id
-        }
+        // if (req.body.tag.length > 0) {
+        //     // let tagObj = await tag.findById(req.body.tag).lean().exec();
+        //     req.body.tag = tagObj._id
+        // }
         // if (await product.find({ tags: { $elemMatch: { tagId: req.body.tags[0].tagId } } }).pretty())
         //     throw ({ status: 400, message: ' this tag exist, use another' });
-        await product(req.body).save()
+        await product(req.body).save();
 
         res.status(201).json({ message: 'product Registered', success: true });
     } catch (err) {
@@ -34,8 +34,8 @@ export const getProduct = async(req, res, next) => {
 };
 export const updateById = async(req, res, next) => {
     try {
-        if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }))
-            throw ({ status: 400, message: ' this exist, use another' });
+        if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }).exec())
+            throw ({ status: 400, message: ' this category or name exist, use another' });
         const productObj = await product.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!productObj) throw ({ status: 400, message: "product  Not Found" });
         res.status(200).json({ message: "product Updated", success: true });

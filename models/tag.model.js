@@ -1,10 +1,7 @@
 import mongoose from "mongoose";
 
-let tagId = mongoose.Schema(
-    {
-        tagName: String,
-    },
-    { timestamps: true }
-);
+let tagId = mongoose.Schema({
+    tagName: { type: String, required: true }
+}, { timestamps: true });
 
 export default mongoose.model("TagId", tagId);

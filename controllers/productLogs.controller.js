@@ -4,9 +4,9 @@ import product from "../models/product.model";
 
 export const createLogs = async (req, res, next) => {
     try {
-        let productObj = await product.findOne({ _id: req.body.productId });
+        let productObj = await product.findOne({ _id: req.body.productId }).exec();
         if (!productObj) throw { status: 400, message: "product not found" };
-        await new log(req.body).save();
+        await new log(req.body).save().exec();
         res.status(200).json({ message: "logs created", success: true });
     } catch (error) {
         console.error(error);
@@ -16,7 +16,7 @@ export const createLogs = async (req, res, next) => {
 
 export const getLogs = async (req, res, next) => {
     try {
-        let logsArr = await log.find({ productId: req.query.productId });
+        let logsArr = await log.find({ productId: req.query.productId }).exec();
         //add product details
 
         // let productObj = {

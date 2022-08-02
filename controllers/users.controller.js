@@ -8,7 +8,7 @@ import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
-export const registerUser = async (req, res, next) => {
+export const registerUser = async(req, res, next) => {
     try {
         let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
         console.log(req.body);
@@ -22,7 +22,7 @@ export const registerUser = async (req, res, next) => {
 
         req.body.password = await encryptPassword(req.body.password);
 
-        let newUser = await new Users(req.body).save();
+        let newUser = await new Users(req.body).save().exec();
         // res.status(200).json({ message: "User Created", data: _id, success: true });
         res.status(200).json({ message: "User Created", success: true });
     } catch (error) {
@@ -31,7 +31,7 @@ export const registerUser = async (req, res, next) => {
     }
 };
 
-export const login = async (req, res, next) => {
+export const login = async(req, res, next) => {
     try {
         console.log(req.body);
         const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
@@ -58,9 +58,9 @@ export const login = async (req, res, next) => {
     }
 };
 
-export const userKyc = async (req, res, next) => {
+export const userKyc = async(req, res, next) => {
     try {
-        let getUser = await Users.findById(req.params.id);
+        let getUser = await Users.findById(req.params.id).exec();
         console.log(getUser, "oo1p");
 
         if (!getUser.penCardImage) {
@@ -101,11 +101,11 @@ export const userKyc = async (req, res, next) => {
         //      { aadharImage: req.body.aadharImage }, { penNo: req.body.penNo },
         //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
         // await getUser.findOneAndUpdate({ _id: req.params.id }, { "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage });
-        await Users.findByIdAndUpdate(req.params.id, req.body);
-        //change here req.body to getUser to chekc db , all details present or not
-        if (req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined) {
-            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true });
-            console.log("jhhjdjgked");
+        await Users.findByIdAndUpdate(req.params.id, req.body).exec();
+        //change here req.body to getUser to chekc db , all details present or not   
+        if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
+            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true }).exec()
+            console.log("jhhjdjgked")
         }
         // console.log(ab, "oop")
 
@@ -115,7 +115,7 @@ export const userKyc = async (req, res, next) => {
     }
 };
 
-export const getUsers = async (req, res, next) => {
+export const getUsers = async(req, res, next) => {
     try {
         console.log(req.query);
         const UsersPipeline = UserList(req.query);
@@ -131,7 +131,7 @@ export const getUsers = async (req, res, next) => {
     }
 };
 
-export const updateUser = async (req, res, next) => {
+export const updateUser = async(req, res, next) => {
     try {
         if (req.body.password) {
             req.body.password = await encryptPassword(req.body.password);
@@ -149,7 +149,7 @@ export const updateUser = async (req, res, next) => {
         next(error);
     }
 };
-export const deleteUser = async (req, res, next) => {
+export const deleteUser = async(req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
         if (!userObj) throw { status: 400, message: "user not found or deleted already" };
@@ -161,13 +161,14 @@ export const deleteUser = async (req, res, next) => {
     }
 };
 
-export const getUserData = async (req, res, next) => {
+export const getUserData = async(req, res, next) => {
     //get users data according kyc status  //admin only can see
     try {
         let kycStatus = req.query.kycStatus;
 
-        let UserObj = await Users.find({ kycStatus: req.query.kycStatus });
-        console.log(UserObj);
+        let UserObj = await Users.find({ kycStatus: req.query.kycStatus }).exec();
+        console.log(UserObj)
+
         res.status(200).json({ message: "Users-data", data: UserObj, success: true });
     } catch (error) {
         console.error(error);
@@ -175,17 +176,17 @@ export const getUserData = async (req, res, next) => {
     }
 };
 
-export const changeUserKyc = async (req, res, next) => {
+export const changeUserKyc = async(req, res, next) => {
     //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
         if (!["verified", "denied"].includes(kycStatus)) {
             throw {
                 status: 400,
-                message: "status should be 'verified'or'denied' ",
-            };
-        }
-        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { kycStatus: kycStatus } });
+                message: "status should be 'verified'or'denied' "
+            }
+        };
+        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } }).exec();
         // console.log(UserObj);
         res.status(200).json({ message: "change user kyc status successfully", success: true });
     } catch (error) {
@@ -195,7 +196,7 @@ export const changeUserKyc = async (req, res, next) => {
 };
 //ADMIN============
 
-export const registerAdmin = async (req, res, next) => {
+export const registerAdmin = async(req, res, next) => {
     try {
         let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
             .lean()
@@ -216,7 +217,7 @@ export const registerAdmin = async (req, res, next) => {
         next(error);
     }
 };
-export const loginAdmin = async (req, res, next) => {
+export const loginAdmin = async(req, res, next) => {
     try {
         console.log(req.body);
         const adminObj = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, { phone: req.body.phone }], role: rolesObj.ADMIN })

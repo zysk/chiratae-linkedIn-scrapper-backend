@@ -7,7 +7,7 @@ export const getCart = async(req, res, next) => {
 
     try {
         const getCart = await userCart.findOne({ userId: req.params.id }).exec();
-        if (!getCart) await userCart.create({ userId: req.params.id, item: [] });
+        if (!getCart) await userCart.create({ userId: req.params.id, item: [] }).exec();
         res.status(200).json({ message: "cart details", data: getCart, success: true });
 
     } catch (err) {
@@ -20,7 +20,7 @@ export const removeProduct = async(req, res, next) => {
         let { items, } = req.body;
         const userCartObj = await userCart.findOne({ userId: req.params.id });
         const findCart = await userCart
-            .findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": -1 } })
+            .findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": -1 } }).exec()
 
         for (let i = 0; i < findCart.items.length; i++) {
             if (findCart.items[i].quantity <= 1) {
@@ -39,16 +39,16 @@ export const removeProduct = async(req, res, next) => {
 export const updateCart = async(req, res, next) => {
     try {
         let { items, } = req.body;
-        const userCartObj = await userCart.findOne({ userId: req.params.id });
+        const userCartObj = await userCart.findOne({ userId: req.params.id }).exec();
         console.log(userCartObj, "a894284209");
         var ab;
         if (userCartObj.items.some(el => `${el.productId}` == req.body.items.productId)) {
             ab = await userCart.
-            findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": 1 } })
+            findOneAndUpdate({ userId: req.params.id, "items.productId": items.productId }, { $inc: { "items.$.quantity": 1 } }).exec()
         } else {
             items.quantity = 1
             ab = await userCart.
-            findOneAndUpdate({ userId: req.params.id, }, { $push: { items } })
+            findOneAndUpdate({ userId: req.params.id, }, { $push: { items } }).exec()
         }
 
         // for (let i = 0; i < items.length; i++) {

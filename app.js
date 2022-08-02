@@ -17,9 +17,11 @@ import product from "./routes/product.routes";
 import productLog from "./routes/productLogs.routes";
 import tag from "./routes/tag.routes";
 import userCart from "./routes/userCart.routes";
+
 // //routes
 import usersRouter from "./routes/users.routes";
-
+import wishlist from "./routes/wishlist.routes";
+import userAddress from "./routes/userAddress.routes";
 const app = express();
 app.use(cors());
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
@@ -48,6 +50,8 @@ app.use("/userCart", userCart);
 app.use("/banner", banner);
 app.use("/logs", productLog);
 app.use("/inventory", inventory);
+app.use("/wishlist", wishlist);
+app.use("/userAddress", userAddress);
 
 app.use(errorHandler);
 

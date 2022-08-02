@@ -5,12 +5,12 @@ import attribute from "../models/attribute.model";
 export const registerAttributeValue = async(req, res, next) => {
     try {
         if (req.body.attribute) {
-            let attributeObj = await attribute.findById(req.body.attribute)
+            let attributeObj = await attribute.findById(req.body.attribute).exec()
             req.body.attribute = attributeObj._id
         }
-        if (await attributeValue.findOne({ value: req.body.value }))
+        if (await attributeValue.findOne({ value: req.body.value }).exec())
             throw ({ status: 400, message: ' this exist, use another' });
-        await attributeValue(req.body).save();
+        await attributeValue(req.body).save().exec();
         res.status(201).json({ message: 'attributeValue Registered', success: true });
     } catch (err) {
         next(err);
@@ -47,5 +47,3 @@ export const deleteById = async(req, res, next) => {
         next(err);
     }
 };
-
-// module.exports = router;
