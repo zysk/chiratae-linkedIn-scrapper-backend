@@ -179,18 +179,65 @@ export const getUserData = async(req, res, next) => { //get users data according
 export const changeUserKyc = async(req, res, next) => { //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
-        // console.log(req.body)
         if (!(['verified', 'denied'].includes(kycStatus))) {
             throw ({
                 status: 400,
                 message: "status should be 'verified'or'denied' "
             })
-        }
+        };
         let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } });
         // console.log(UserObj);
         res.status(200).json({ message: "change user kyc status successfully", success: true });
     } catch (error) {
         console.error(error);
         next(error);
+    }
+};
+//ADMIN============
+
+export const registerAdmin = async(req, res, next) => {
+    try {
+        let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
+        console.log(req.body)
+            // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
+        if (!ValidateEmail(req.body.email)) {
+            throw new Error(ErrorMessages.INVALID_EMAIL);
+        }
+        // req.body.phone = toString(req.body.phone)
+        if (!(/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)))
+            throw ({ status: false, message: `Please fill a valid phone number` })
+
+        req.body.password = await encryptPassword(req.body.password);
+
+        let newUser = await new Users(req.body).save();
+
+        res.status(200).json({ message: "admin Created", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const loginAdmin = async(req, res, next) => {
+    try {
+        let { email, password } = req.body
+        console.log(req.body)
+        const adminObj = await Users.findOne({ $or: [{ email: email.toLowerCase() }, { email: email.toUpperCase() }], role: "ADMIN" }).lean().exec();
+        if (adminObj) {
+            const passwordCheck = await comparePassword(adminObj.password, req.body.password);
+            if (passwordCheck) {
+                let accessToken = await generateAccessJwt({ userId: adminObj._id, role: rolesObj.ADMIN, name: adminObj.name, phone: adminObj.phone, email: adminObj.email });
+
+                // await Users.findByIdAndUpdate(adminObj._id, { token: accessToken }).exec();
+                res.status(200).json({ message: 'LogIn Successfull', token: accessToken, success: true });
+            } else {
+                throw ({ status: 401, message: "Invalid Password" })
+            }
+        } else {
+            throw ({ status: 401, message: "admin Not Found" })
+        }
+    } catch (err) {
+        console.log(err)
+        next(err);
     }
 };
