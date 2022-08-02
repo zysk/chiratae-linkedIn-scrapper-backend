@@ -1,32 +1,27 @@
-import express from "express";
-import path from "path";
 import cookieParser from "cookie-parser";
-import logger from "morgan";
-import { errorHandler } from "./helpers/ErrorHandler";
-import { CONFIG } from "./helpers/Config";
+import cors from "cors";
+import express from "express";
 import mongoose from "mongoose";
-
-// //routes
-import usersRouter from "./routes/users.routes";
-import indexRouter from "./routes/index.routes";
-
-import category from "./routes/category.routes";
-import product from "./routes/product.routes";
-import brand from "./routes/brand.routes";
+import logger from "morgan";
+import path from "path";
+import { CONFIG } from "./helpers/Config";
+import { errorHandler } from "./helpers/ErrorHandler";
 import attribute from "./routes/attribute.routes";
 import attributeValue from "./routes/attributeValue.routes";
+import banner from "./routes/banner.routes";
+import brand from "./routes/brand.routes";
+import category from "./routes/category.routes";
+import indexRouter from "./routes/index.routes";
+import inventory from "./routes/inventory.routes";
+import product from "./routes/product.routes";
+import productLog from "./routes/productLogs.routes";
 import tag from "./routes/tag.routes";
 import userCart from "./routes/userCart.routes";
-import banner from "./routes/banner.routes";
-import inventory from "./routes/inventory.routes";
-import productLog from "./routes/productLogs.routes";
-import wishlist from "./routes/productLogs.routes";
-
-import cors from "cors";
+// //routes
+import usersRouter from "./routes/users.routes";
 
 const app = express();
 app.use(cors());
-console.log(CONFIG.MONGOURI)
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) {
         console.log(err);

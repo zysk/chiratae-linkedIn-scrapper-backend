@@ -1,8 +1,8 @@
 import inventory from "../models/inventory.model";
 import log from "../models/productLogs.model";
-import product from "../models/product.model"
+import product from "../models/product.model";
 
-export const createLogs = async(req, res, next) => {
+export const createLogs = async (req, res, next) => {
     try {
         let productObj = await product.findOne({ _id: req.body.productId });
         if (!productObj) throw { status: 400, message: "product not found" };
@@ -14,7 +14,7 @@ export const createLogs = async(req, res, next) => {
     }
 };
 
-export const getLogs = async(req, res, next) => {
+export const getLogs = async (req, res, next) => {
     try {
         let logsArr = await log.find({ productId: req.query.productId });
         //add product details

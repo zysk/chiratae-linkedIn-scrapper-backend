@@ -8,18 +8,17 @@ import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
-export const registerUser = async(req, res, next) => {
+export const registerUser = async (req, res, next) => {
     try {
         let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
-        console.log(req.body)
-            // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        console.log(req.body);
+        // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
-        };
+        }
         // req.body.phone = toString(req.body.phone)
-        if (!(/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)))
-            throw ({ status: false, message: `Please fill a valid phone number` })
+        if (!/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
 
         req.body.password = await encryptPassword(req.body.password);
 
@@ -32,9 +31,9 @@ export const registerUser = async(req, res, next) => {
     }
 };
 
-export const login = async(req, res, next) => {
+export const login = async (req, res, next) => {
     try {
-        console.log(req.body)
+        console.log(req.body);
         const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
         if (userObj) {
             const passwordCheck = await comparePassword(userObj.password, req.body.password);
@@ -44,31 +43,31 @@ export const login = async(req, res, next) => {
                     role: rolesObj.USER,
                     name: userObj.name,
                     phone: userObj.phone,
-                    email: userObj.email
+                    email: userObj.email,
                 });
-                res.status(200).json({ message: 'LogIn Successfull', token: accessToken, success: true });
+                res.status(200).json({ message: "LogIn Successfull", token: accessToken, success: true });
             } else {
-                throw ({ status: 401, message: "Invalid Password" })
+                throw { status: 401, message: "Invalid Password" };
             }
         } else {
-            throw ({ status: 401, message: "user Not Found" })
+            throw { status: 401, message: "user Not Found" };
         }
     } catch (err) {
-        console.log(err)
+        console.log(err);
         next(err);
     }
 };
 
-export const userKyc = async(req, res, next) => {
+export const userKyc = async (req, res, next) => {
     try {
         let getUser = await Users.findById(req.params.id);
         console.log(getUser, "oo1p");
 
         if (!getUser.penCardImage) {
-            if (!req.body.penCardImage) throw ({ status: 400, message: "pencard image must have upload for next step" });
+            if (!req.body.penCardImage) throw { status: 400, message: "pencard image must have upload for next step" };
         }
         if (!getUser.aadharImage) {
-            if (!req.body.aadharImage) throw ({ status: 400, message: "aadhar image must have upload for next step" });
+            if (!req.body.aadharImage) throw { status: 400, message: "aadhar image must have upload for next step" };
         }
         // if(!getUser.aadharImage) {
         //     if (req.body.aadharImage) {
@@ -79,12 +78,12 @@ export const userKyc = async(req, res, next) => {
 
         if (getUser.aadharImage) {
             if (req.body.aadharImage) {
-                await Users.findByIdAndUpdate({ _id: req.params.id }, { $set: { aadharImage: req.body.aadharImage } })
+                await Users.findByIdAndUpdate({ _id: req.params.id }, { $set: { aadharImage: req.body.aadharImage } });
             }
         }
         if (getUser.penCardImage) {
             if (req.body.penCardImage) {
-                await Users.findByIdAndUpdate(req.params.id, { $set: { penCardImage: req.body.penCardImage } })
+                await Users.findByIdAndUpdate(req.params.id, { $set: { penCardImage: req.body.penCardImage } });
             }
         }
         if (req.body.penCardImage) {
@@ -103,21 +102,20 @@ export const userKyc = async(req, res, next) => {
         //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
         // await getUser.findOneAndUpdate({ _id: req.params.id }, { "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage });
         await Users.findByIdAndUpdate(req.params.id, req.body);
-        //change here req.body to getUser to chekc db , all details present or not   
-        if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
-            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true })
-            console.log("jhhjdjgked")
+        //change here req.body to getUser to chekc db , all details present or not
+        if (req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined) {
+            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true });
+            console.log("jhhjdjgked");
         }
         // console.log(ab, "oop")
 
-
-        res.status(201).json({ message: 'images added succesfully', success: true });
+        res.status(201).json({ message: "images added succesfully", success: true });
     } catch (err) {
         next(err);
     }
 };
 
-export const getUsers = async(req, res, next) => {
+export const getUsers = async (req, res, next) => {
     try {
         console.log(req.query);
         const UsersPipeline = UserList(req.query);
@@ -133,7 +131,7 @@ export const getUsers = async(req, res, next) => {
     }
 };
 
-export const updateUser = async(req, res, next) => {
+export const updateUser = async (req, res, next) => {
     try {
         if (req.body.password) {
             req.body.password = await encryptPassword(req.body.password);
@@ -151,10 +149,10 @@ export const updateUser = async(req, res, next) => {
         next(error);
     }
 };
-export const deleteUser = async(req, res, next) => {
+export const deleteUser = async (req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
-        if (!userObj) throw ({ status: 400, message: "user not found or deleted already" });
+        if (!userObj) throw { status: 400, message: "user not found or deleted already" };
 
         res.status(200).json({ msg: "user deleted successfully", success: true });
     } catch (error) {
@@ -163,12 +161,13 @@ export const deleteUser = async(req, res, next) => {
     }
 };
 
-export const getUserData = async(req, res, next) => { //get users data according kyc status  //admin only can see
+export const getUserData = async (req, res, next) => {
+    //get users data according kyc status  //admin only can see
     try {
-        let kycStatus = req.query.kycStatus
+        let kycStatus = req.query.kycStatus;
 
         let UserObj = await Users.find({ kycStatus: req.query.kycStatus });
-        console.log(UserObj)
+        console.log(UserObj);
         res.status(200).json({ message: "Users-data", data: UserObj, success: true });
     } catch (error) {
         console.error(error);
@@ -176,16 +175,17 @@ export const getUserData = async(req, res, next) => { //get users data according
     }
 };
 
-export const changeUserKyc = async(req, res, next) => { //change kyc-status manually from admin side
+export const changeUserKyc = async (req, res, next) => {
+    //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
-        if (!(['verified', 'denied'].includes(kycStatus))) {
-            throw ({
+        if (!["verified", "denied"].includes(kycStatus)) {
+            throw {
                 status: 400,
-                message: "status should be 'verified'or'denied' "
-            })
-        };
-        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { "kycStatus": kycStatus } });
+                message: "status should be 'verified'or'denied' ",
+            };
+        }
+        let UserObj = await Users.findOneAndUpdate({ _id: req.body.userId }, { $set: { kycStatus: kycStatus } });
         // console.log(UserObj);
         res.status(200).json({ message: "change user kyc status successfully", success: true });
     } catch (error) {
@@ -195,18 +195,16 @@ export const changeUserKyc = async(req, res, next) => { //change kyc-status manu
 };
 //ADMIN============
 
-export const registerAdmin = async(req, res, next) => {
+export const registerAdmin = async (req, res, next) => {
     try {
-        let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
-        console.log(req.body)
-            // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
+        let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
+            .lean()
+            .exec();
         if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
-        // req.body.phone = toString(req.body.phone)
-        if (!(/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)))
-            throw ({ status: false, message: `Please fill a valid phone number` })
+        if (!/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
 
         req.body.password = await encryptPassword(req.body.password);
 
@@ -218,26 +216,25 @@ export const registerAdmin = async(req, res, next) => {
         next(error);
     }
 };
-export const loginAdmin = async(req, res, next) => {
+export const loginAdmin = async (req, res, next) => {
     try {
-        let { email, password } = req.body
-        console.log(req.body)
-        const adminObj = await Users.findOne({ $or: [{ email: email.toLowerCase() }, { email: email.toUpperCase() }], role: "ADMIN" }).lean().exec();
+        console.log(req.body);
+        const adminObj = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, { phone: req.body.phone }], role: rolesObj.ADMIN })
+            .lean()
+            .exec();
         if (adminObj) {
             const passwordCheck = await comparePassword(adminObj.password, req.body.password);
             if (passwordCheck) {
-                let accessToken = await generateAccessJwt({ userId: adminObj._id, role: rolesObj.ADMIN, name: adminObj.name, phone: adminObj.phone, email: adminObj.email });
-
-                // await Users.findByIdAndUpdate(adminObj._id, { token: accessToken }).exec();
-                res.status(200).json({ message: 'LogIn Successfull', token: accessToken, success: true });
+                let accessToken = await generateAccessJwt({ userId: adminObj._id, role: rolesObj.ADMIN, user: { name: adminObj.name, email: adminObj.email, phone: adminObj.phone, _id: adminObj._id } });
+                res.status(200).json({ message: "LogIn Successfull", token: accessToken, success: true });
             } else {
-                throw ({ status: 401, message: "Invalid Password" })
+                throw { status: 401, message: "Invalid Password" };
             }
         } else {
-            throw ({ status: 401, message: "admin Not Found" })
+            throw { status: 401, message: "Admin Not Found" };
         }
     } catch (err) {
-        console.log(err)
+        console.log(err);
         next(err);
     }
 };
