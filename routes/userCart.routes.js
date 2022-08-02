@@ -1,14 +1,14 @@
 import express from "express";
 import { removeProduct, getCart, updateCart } from "../controllers/userCart.controller";
-
+import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 
 
 router.get("/getCart/:id", getCart);
 
-router.patch("/updateCart/:id", updateCart);
-// router.patch("/addProductTocart", addProductTocart);
-router.patch("/removeProduct/:id", removeProduct);
+router.patch("/updateCart/:id", authorizeJwt, updateCart);
+
+router.patch("/removeProduct/:id", authorizeJwt, removeProduct);
 
 
 export default router;

@@ -16,7 +16,7 @@ export const registerUser = async(req, res, next) => {
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
-        }
+        };
         // req.body.phone = toString(req.body.phone)
         if (!(/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)))
             throw ({ status: false, message: `Please fill a valid phone number` })

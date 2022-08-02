@@ -1,4 +1,4 @@
-import authorizeJwt from "../middlewares/auth.middleware";
+// import authorizeJwt from "../middlewares/auth.middleware";
 
 import product from "../models/product.model";
 import category from "../models/category.model";
