@@ -4,11 +4,11 @@ import Category from "../models/category.model";
 export const addCategory = async (req, res, next) => {
     try {
         console.log(req.body);
-        const CategoryNameCheck = await Category.findOne({ $or: [{ name: new RegExp(`^${req.body.name}$`, "i") }, { url: new RegExp(`^${req.body.url}$`) }] }).exec();
+        const CategoryNameCheck = await Category.findOne({ $or: [{ name: new RegExp(`^${req.body.name}$`, "i") }, { slug: new RegExp(`^${req.body.slug}$`) }] }).exec();
         if (CategoryNameCheck) throw new Error("Entry Already exist please change brand name or url");
         let obj = {};
         if (req.body.imageStr) {
-            req.body.imageStr = await storeFileAndReturnNameBase64(req.body.imageStr);
+            req.body.categoryImage = await storeFileAndReturnNameBase64(req.body.imageStr);
         }
         if (req.body.parentCategoryId) {
             let categoryObj = await Category.findById(req.body.parentCategoryId).lean().exec();
@@ -33,9 +33,18 @@ export const addCategory = async (req, res, next) => {
 };
 export const getCategory = async (req, res, next) => {
     try {
-        const getCategory = await Category.find().exec();
+        let categoryArr = await Category.find().lean().exec();
         // console.log(getCategory, "efnwfnewfo")
-        res.status(200).json({ message: "getCategory", data: getCategory, success: true });
+        for (let el of categoryArr) {
+            console.log(el);
+            if (el.parentCategoryId) {
+                let parentObj = await Category.findById(el.parentCategoryId).lean().exec();
+                if (parentObj) {
+                    el.parentCategoryName = parentObj.name;
+                }
+            }
+        }
+        res.status(200).json({ message: "getCategory", data: categoryArr, success: true });
     } catch (err) {
         next(err);
     }

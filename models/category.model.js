@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generalModelStatuses } from "../helpers/Constants";
 
 let category = mongoose.Schema(
     {
@@ -6,7 +7,7 @@ let category = mongoose.Schema(
         slug: String,
         icon: String,
         searchable: { type: Boolean, default: false },
-        status: { type: Boolean, default: false },
+        status: { type: String, default: generalModelStatuses.APPROVED },
         categoryImage: String,
         parentCategoryId: String, //direct parent id
         parentCategoryArr: [
