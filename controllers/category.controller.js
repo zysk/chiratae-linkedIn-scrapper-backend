@@ -28,8 +28,8 @@ export const getCategory = async(req, res, next) => {
 export const updateById = async(req, res, next) => {
     try {
         console.log(req.body, "pyuio")
-        if (await category.findOne({ name: req.body.name }).exec())
-            throw ({ status: 400, message: `this ${req.body.name} category exist` });
+        const categoryName = await category.findOne({ name: req.body.name }).exec()
+        if (categoryName) throw ({ status: 400, message: `this ${req.body.name} category exist` });
         const categoryObj = await category.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!categoryObj) throw ({ status: 400, message: "category  Not Found" });
         res.status(200).json({ message: "category Updated", success: true });

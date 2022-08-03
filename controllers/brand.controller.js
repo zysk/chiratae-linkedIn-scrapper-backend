@@ -4,8 +4,8 @@ import brand from "../models/brand.model";
 
 export const registerBrand = async(req, res, next) => {
     try {
-        if (await brand.findOne({ name: req.body.name }).exec())
-            throw ({ status: 400, message: ' this exist, use another' });
+        const brandName = await brand.findOne({ name: req.body.name }).exec()
+        if (brandName) throw ({ status: 400, message: ' this exist, use another' });
 
         await brand(req.body).save()
         res.status(201).json({ message: 'brand Registered', success: true });
@@ -25,8 +25,8 @@ export const getBrand = async(req, res, next) => {
 export const updateById = async(req, res, next) => {
     // router.patch("/updateById/:id", authorizeJwt, async (req, res, next) => {
     try {
-        if (await brand.findOne({ name: req.body.name }).exec())
-            throw ({ status: 400, message: ' brand exist ' });
+        const brandName = await brand.findOne({ name: req.body.name }).exec()
+        if (brandName) throw ({ status: 400, message: ' brand exist ' });
         const brandObj = await brand.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!brandObj) throw ({ status: 400, message: "brand  Not Found" });
         res.status(200).json({ message: "brand Updated", success: true });

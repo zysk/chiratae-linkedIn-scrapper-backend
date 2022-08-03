@@ -5,8 +5,8 @@ import attribute from "../models/attribute.model";
 export const registerAttribute = async(req, res, next) => {
     try {
         console.log(req.body, "345678i")
-        if (await attribute.findOne({ name: req.body.name }).exec())
-            throw ({ status: 400, message: ' this exist, use another' });
+        const attributeName = await attribute.findOne({ name: req.body.name }).exec()
+        if (attributeName) throw ({ status: 400, message: ' this exist, use another' });
         await attribute(req.body).save().exec()
         res.status(201).json({ message: 'attribute Registered', success: true });
     } catch (err) {
@@ -23,8 +23,8 @@ export const getAttribute = async(req, res, next) => {
 };
 export const updateById = async(req, res, next) => {
     try {
-        if (await attribute.findOne({ name: req.body.name }).exec())
-            throw ({ status: 400, message: ' attribute exist ' });
+        const attribute = await attribute.findOne({ name: req.body.name }).exec()
+        if (attribute) throw ({ status: 400, message: ' attribute exist ' });
         const attributeObj = await attribute.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!attributeObj) throw ({ status: 400, message: "attribute  Not Found" });
         res.status(200).json({ message: "attribute Updated", success: true });
