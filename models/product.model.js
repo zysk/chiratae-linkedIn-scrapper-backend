@@ -5,8 +5,8 @@ let product = mongoose.Schema(
         name: String,
         sku: String,
         mobileNumber: Number,
-        category: { type: mongoose.Types.ObjectId, ref: "category" },
-        brand: { type: mongoose.Types.ObjectId, ref: "brand" },
+        categoryId: { type: mongoose.Types.ObjectId, ref: "category" },
+        brandId: { type: mongoose.Types.ObjectId, ref: "brand" },
         minimumOrderQuantity: { type: Number },
         maxOrderquantity: Number,
 
