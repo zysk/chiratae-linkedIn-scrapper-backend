@@ -11,7 +11,6 @@ router.post("/userKyc/:id", userKyc);
 router.get("/getUserData", getUserData);
 router.get("/getUsers", getUsers);
 
-router.patch("/updateById/:id", authorizeJwt, updateUser);
 router.patch("/changeUserKyc", authorizeJwt, changeUserKyc);
 
 router.delete("/deleteById/:id", authorizeJwt, deleteUser);
