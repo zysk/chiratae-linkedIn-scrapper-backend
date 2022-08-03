@@ -92,9 +92,24 @@ export const updateUserStatus = async (req, res, next) => {
             throw new Error("User Not found")
         }
 
-        await Users.findByIdAndUpdate(req.params.id, { isActive: req.body }).exec();
+        await Users.findByIdAndUpdate(req.params.id, { isActive: req.body.status }).exec();
 
         res.status(201).json({ message: "User Active Status Updated Successfully", success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const updateUserKycStatus = async (req, res, next) => {
+    try {
+        let userObj = await Users.findById(req.params.id).exec();
+        if (!userObj) {
+            throw new Error("User Not found")
+        }
+        console.log(req.body)
+        await Users.findByIdAndUpdate(req.params.id, { kycStatus: req.body.value }).exec();
+
+        res.status(201).json({ message: "User KYC Status Updated Successfully", success: true });
     } catch (err) {
         next(err);
     }
