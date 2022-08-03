@@ -1,12 +1,19 @@
 import mongoose from "mongoose";
-import { rolesObj } from "../helpers/Constants";
+import { generalModelStatuses } from "../helpers/Constants";
 
-let banner = mongoose.Schema({
-    image: { type: String },
-    url: { type: String, required: true, unique: true },
-    categoryId: { type: mongoose.Types.ObjectId, ref: "category" },
-    slide: { type: String }
+let banner = mongoose.Schema(
+    {
+        name: String,
+        image: { type: String },
+        url: { type: String },
+        description: String,
+        status: {
+            type: String,
+            default: generalModelStatuses.APPROVED,
+        },
+        // slide: { type: String },
+    },
+    { timestamps: true }
+);
 
-}, { timestamps: true });
-
-export default mongoose.model("banner", banner)
+export default mongoose.model("banner", banner);

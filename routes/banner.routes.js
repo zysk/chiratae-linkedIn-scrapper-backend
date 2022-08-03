@@ -1,14 +1,14 @@
 import express from "express";
-import { registerBanner, updateById, deleteById, getBanner } from "../controllers/banner.controller";
+import { updateById, deleteById, getBanner, addBanner } from "../controllers/banner.controller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 
-router.post("/register", registerBanner);
+router.post("/addBanner", addBanner);
 
 router.get("/getBanner", getBanner);
 
-router.patch("/updateById/:id", authorizeJwt, updateById);
+router.patch("/updateById/:id", updateById);
 
-router.delete("/deleteById/:id", authorizeJwt, deleteById);
+router.delete("/deleteById/:id", deleteById);
 
 export default router;

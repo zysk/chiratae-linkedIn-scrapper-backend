@@ -8,10 +8,20 @@ let category = mongoose.Schema(
         searchable: { type: Boolean, default: false },
         status: { type: Boolean, default: false },
         categoryImage: String,
-        // seoTags:[{
-        //     tag:String
-        // }]
-        //add new keys here 
+        parentCategoryId: String, //direct parent id
+        parentCategoryArr: [
+            {
+                parentId: String,
+            },
+        ],
+        order: {
+            type: Number,
+            required: true,
+        },
+        level: {
+            type: Number,
+            default: 1,
+        },
     },
     { timestamps: true }
 );
