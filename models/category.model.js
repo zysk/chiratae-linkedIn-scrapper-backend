@@ -15,6 +15,7 @@ let category = mongoose.Schema(
                 parentId: String,
             },
         ],
+        price: Number,
         order: {
             type: Number,
             required: true,

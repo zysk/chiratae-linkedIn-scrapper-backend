@@ -52,8 +52,6 @@ export const getCategory = async (req, res, next) => {
 
 export const updateById = async (req, res, next) => {
     try {
-        console.log(req.body, "pyuio");
-        if (await Category.findOne({ name: req.body.name }).exec()) throw { status: 400, message: `this ${req.body.name} category exist` };
         const categoryObj = await Category.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!categoryObj) throw { status: 400, message: "category  Not Found" };
         res.status(200).json({ message: "category Updated", success: true });
@@ -66,6 +64,45 @@ export const deleteById = async (req, res, next) => {
         const categoryObj = await Category.findByIdAndDelete(req.params.id).exec();
         if (!categoryObj) throw { status: 400, message: "category Not Found" };
         res.status(200).json({ message: "category Deleted", success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getNestedCategory = async (req, res, next) => {
+    try {
+        let mainCategoryArr = await Category.find({ "deletedObj.deletedBool": false }).lean().exec();
+        const setSubcategoryArr = (id) => {
+            if (!id) return [];
+            let tempArr = mainCategoryArr.filter((el) => el.parentCategoryId == `${id}`);
+            if (tempArr.length == 0) return [];
+            return tempArr
+                .map((el) => {
+                    let obj = {
+                        ...el,
+                        label: el.name,
+                        value: el._id,
+                        subCategoryArr: setSubcategoryArr(el._id),
+                        isExpanded: true,
+                    };
+                    return obj;
+                })
+                .sort((a, b) => a.order - b.order);
+        };
+        let finalArr = mainCategoryArr
+            .filter((el) => el.level == 1)
+            .map((el) => {
+                let obj = {
+                    ...el,
+                    label: el.name,
+                    value: el._id,
+                    subCategoryArr: setSubcategoryArr(el._id),
+                    isExpanded: true,
+                };
+                return obj;
+            })
+            .sort((a, b) => a.order - b.order);
+        res.status(200).json({ message: "Category Arr", data: finalArr, success: true });
     } catch (err) {
         next(err);
     }

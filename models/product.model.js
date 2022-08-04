@@ -4,22 +4,25 @@ let product = mongoose.Schema(
     {
         name: String,
         sku: String,
-        mobileNumber: Number,
-        categoryId: { type: mongoose.Types.ObjectId, ref: "category" },
-        brandId: { type: mongoose.Types.ObjectId, ref: "brand" },
+        modelNumber: Number,
+        categoryId: { type: mongoose.Types.ObjectId },
+        parentCategoryIdArr: [
+            {
+                categoryId: { type: mongoose.Types.ObjectId },
+            },
+        ],
+        brandId: { type: mongoose.Types.ObjectId },
         minimumOrderQuantity: { type: Number },
         maxOrderquantity: Number,
 
-        tag: [{ tagId: { type: mongoose.Types.ObjectId, ref: "TagId" } }],
-        attribute: [{ attributeId: { type: mongoose.Types.ObjectId, ref: "attribute" } }],
+        tagArr: [{ tagId: { type: mongoose.Types.ObjectId } }],
+        // attribute: [{ attributeId: { type: mongoose.Types.ObjectId, ref: "attribute" } }],
 
-        stockManage: { type: Boolean, default: false },
-        productStock: Number,
-        sellingPrice: { type: Number, required: true },
-        discount: Number,
-        discountType: { type: String, required: true },
+        sellingPrice: { type: Number },
+        discountValue: Number,
+        discountType: { type: String },
         description: String,
-        specifications: String,
+        specification: String,
 
         //seo info
         metaTitle: String,

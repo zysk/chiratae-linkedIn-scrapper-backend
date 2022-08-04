@@ -1,55 +1,52 @@
 // import authorizeJwt from "../middlewares/auth.middleware";
 
-import product from "../models/product.model";
-import category from "../models/category.model";
-import tag from "../models/tag.model";
-export const registerProduct = async(req, res, next) => {
+import Product from "../models/product.model";
+import Category from "../models/category.model";
+import Inventory from "../models/inventory.model";
+
+import Tag from "../models/tag.model";
+import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
+import StockLogs from "../models/stockLogs.model";
+export const addProduct = async (req, res, next) => {
     try {
-        if (await product.findOne({ $or: [{ name: req.body.name }] }).exec())
-            throw ({ status: 400, message: ' this name exist, use another' });
-        if (req.body.category) {
-            let categoryObj = await category.findById(req.body.category).lean().exec();
-            req.body.category = categoryObj._id
+        let insertObj = {
+            ...req.body,
+        };
+        let skuCheck = await Product.findOne({ sku: new RegExp(`^${req.body.sku}$`) })
+            .lean()
+            .exec();
+        if (skuCheck) throw new Error("Product Already exist with this sku code.");
+        let categoryObj = await Category.findById(req.body.categoryId).lean().exec();
+        if (!categoryObj) throw new Error("Product Category not found");
+
+        insertObj.parentCategoryIdArr = categoryObj.parentCategoryArr.map((el) => ({ categoryId: el.parentId }));
+
+        if (insertObj.productImageStr) {
+            insertObj.productImage = await storeFileAndReturnNameBase64(insertObj.productImageStr);
         }
-        // if (req.body.tag.length > 0) {
-        //     // let tagObj = await tag.findById(req.body.tag).lean().exec();
-        //     req.body.tag = tagObj._id
-        // }
-        // if (await product.find({ tags: { $elemMatch: { tagId: req.body.tags[0].tagId } } }).pretty())
-        //     throw ({ status: 400, message: ' this tag exist, use another' });
-        await product(req.body).save();
+        if (insertObj.productSpecificationFile) {
+            insertObj.productSpecificationFile = await storeFileAndReturnNameBase64(insertObj.productSpecificationFile);
+        }
 
-        res.status(201).json({ message: 'product Registered', success: true });
-    } catch (err) {
-        next(err);
-    }
-};
-export const getProduct = async(req, res, next) => {
-    try {
-        const getProduct = await product.find().exec();
-        res.status(200).json({ message: "getProduct", data: getProduct, success: true });
-    } catch (err) {
-        next(err);
-    }
-};
-export const updateById = async(req, res, next) => {
-    try {
-        if (await product.findOne({ $or: [{ category: req.body.category }, { name: req.body.name }] }).exec())
-            throw ({ status: 400, message: ' this category or name exist, use another' });
-        const productObj = await product.findByIdAndUpdate(req.params.id, req.body).exec();
-        if (!productObj) throw ({ status: 400, message: "product  Not Found" });
-        res.status(200).json({ message: "product Updated", success: true });
-    } catch (err) {
-        next(err);
-    }
-};
-export const deleteById = async(req, res, next) => {
+        let insertedObj = await new Product(insertObj).save();
 
-    try {
-        const productObj = await product.findByIdAndDelete(req.params.id).exec();
-        if (!productObj) throw ({ status: 400, message: "product Not Found" });
-        res.status(200).json({ message: "product Deleted", success: true });
+        await new Inventory({ productId: insertedObj._id, stock: insertObj.stock }).save();
+        //handle stock logs here
+        // await new StockLogs({}).save()
+
+        res.status(200).json({ message: "product Registered", success: true });
     } catch (err) {
+        console.error(err);
         next(err);
+    }
+};
+
+export const getAllProducts = async (req, res, next) => {
+    try {
+        let productArr = await Product.find().lean().exec();
+        res.status(200).json({ message: "products", data: productArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
     }
 };
