@@ -4,7 +4,7 @@ let product = mongoose.Schema(
     {
         name: String,
         sku: String,
-        modelNumber: Number,
+        modelNumber: String,
         categoryId: { type: mongoose.Types.ObjectId },
         parentCategoryIdArr: [
             {
@@ -13,7 +13,7 @@ let product = mongoose.Schema(
         ],
         brandId: { type: mongoose.Types.ObjectId },
         minimumOrderQuantity: { type: Number },
-        maxOrderquantity: Number,
+        maximumOrderQuantity: Number,
 
         tagArr: [{ tagId: { type: mongoose.Types.ObjectId } }],
         // attribute: [{ attributeId: { type: mongoose.Types.ObjectId, ref: "attribute" } }],
@@ -23,7 +23,8 @@ let product = mongoose.Schema(
         discountType: { type: String },
         description: String,
         specification: String,
-
+        productImage: String,
+        productSpecificationFile: String,
         //seo info
         metaTitle: String,
         metaDescription: String,
