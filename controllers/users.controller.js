@@ -8,9 +8,9 @@ import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
-export const registerUser = async(req, res, next) => {
+export const registerUser = async (req, res, next) => {
     try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] });
+        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] }).exec();
         console.log(req.body);
         // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
@@ -20,18 +20,18 @@ export const registerUser = async(req, res, next) => {
         // req.body.phone = toString(req.body.phone)
         if (!/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
 
-        req.body.password = await encryptPassword(req.body.password);
+        // req.body.password = await encryptPassword(req.body.password);
 
-        let newUser = await new Users(req.body).save().exec();
+        let newUser = await new Users(req.body).save();
         // res.status(200).json({ message: "User Created", data: _id, success: true });
-        res.status(200).json({ message: "User Created", success: true });
+        res.status(200).json({ message: "User Created", data: newUser, success: true });
     } catch (error) {
         console.error(error);
         next(error);
     }
 };
 
-export const login = async(req, res, next) => {
+export const login = async (req, res, next) => {
     try {
         console.log(req.body);
         const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
@@ -58,64 +58,68 @@ export const login = async(req, res, next) => {
     }
 };
 
-export const userKyc = async(req, res, next) => {
+export const userKyc = async (req, res, next) => {
     try {
-        let getUser = await Users.findById(req.params.id).exec();
-        console.log(getUser, "oo1p");
+        console.log(req.body, "req.body")
 
-        if (!getUser.penCardImage) {
-            if (!req.body.penCardImage) throw { status: 400, message: "pencard image must have upload for next step" };
-        }
-        if (!getUser.aadharImage) {
-            if (!req.body.aadharImage) throw { status: 400, message: "aadhar image must have upload for next step" };
-        }
-        // if(!getUser.aadharImage) {
-        //     if (req.body.aadharImage) {
-        //         req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
-        //     }
-        //     getUser.$set({ "": "" })
-        // }
 
-        if (getUser.aadharImage) {
-            if (req.body.aadharImage) {
-                await Users.findByIdAndUpdate({ _id: req.params.id }, { $set: { aadharImage: req.body.aadharImage } });
-            }
+        let userObj = await Users.findById(req.params.id).exec();
+        if (!userObj) {
+            throw new Error("User Not found")
         }
-        if (getUser.penCardImage) {
-            if (req.body.penCardImage) {
-                await Users.findByIdAndUpdate(req.params.id, { $set: { penCardImage: req.body.penCardImage } });
-            }
+        if (req.body.visitingCard) {
+            req.body.visitingCard = await storeFileAndReturnNameBase64(req.body.visitingCard);
         }
-        if (req.body.penCardImage) {
-            req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
+        if (req.body.shopImage) {
+            req.body.shopImage = await storeFileAndReturnNameBase64(req.body.shopImage);
         }
-        if (req.body.aadharImage) {
-            req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
+        if (req.body.onlinePortal) {
+            req.body.onlinePortal = await storeFileAndReturnNameBase64(req.body.onlinePortal);
         }
 
-        // let ab;
-
-        // ab = await Users.findOneAndUpdate({ userId: req.params.id, "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage, "getUser.penNo": req.body.penNo, "getUser.aadharNo": req.body.aadharNo }, { $set: { "kycVerified": true } })
-        // ab = await Users
-        // .findOneAndUpdate({ $and: [{ penCardImage: req.body.penCardImage },
-        //      { aadharImage: req.body.aadharImage }, { penNo: req.body.penNo },
-        //       { aadharNo: req.body.aadharNo }] }, { $set: { "kycVerified": true } })
-        // await getUser.findOneAndUpdate({ _id: req.params.id }, { "getUser.penCardImage": req.body.penCardImage, "getUser.aadharImage": req.body.aadharImage });
         await Users.findByIdAndUpdate(req.params.id, req.body).exec();
-        //change here req.body to getUser to chekc db , all details present or not   
-        if ((req.body.penCardImage !== undefined && req.body.aadharImage !== undefined && req.body.penNo !== undefined && req.body.aadharNo !== undefined)) {
-            await Users.findByIdAndUpdate(req.params.id, { kycVerified: true }).exec()
-            console.log("jhhjdjgked")
-        }
-        // console.log(ab, "oop")
 
-        res.status(201).json({ message: "images added succesfully", success: true });
+        res.status(201).json({ message: "Kyc added succesfully", success: true });
     } catch (err) {
         next(err);
     }
 };
 
-export const getUsers = async(req, res, next) => {
+export const updateUserStatus = async (req, res, next) => {
+    try {
+        let userObj = await Users.findById(req.params.id).exec();
+        if (!userObj) {
+            throw new Error("User Not found")
+        }
+
+        await Users.findByIdAndUpdate(req.params.id, { isActive: req.body.status }).exec();
+
+        res.status(201).json({ message: "User Active Status Updated Successfully", success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const updateUserKycStatus = async (req, res, next) => {
+    try {
+        let userObj = await Users.findById(req.params.id).exec();
+        if (!userObj) {
+            throw new Error("User Not found")
+        }
+        console.log(req.body)
+        await Users.findByIdAndUpdate(req.params.id, { kycStatus: req.body.value }).exec();
+
+        res.status(201).json({ message: "User KYC Status Updated Successfully", success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+
+
+
+export const getUsers = async (req, res, next) => {
     try {
         console.log(req.query);
         const UsersPipeline = UserList(req.query);
@@ -131,25 +135,8 @@ export const getUsers = async(req, res, next) => {
     }
 };
 
-export const updateUser = async(req, res, next) => {
-    try {
-        if (req.body.password) {
-            req.body.password = await encryptPassword(req.body.password);
-        }
-        if (req.body.penCardImage) {
-            req.body.penCardImage = await storeFileAndReturnNameBase64(req.body.penCardImage);
-        }
-        if (req.body.aadharImage) {
-            req.body.aadharImage = await storeFileAndReturnNameBase64(req.body.aadharImage);
-        }
-        await Users.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};
-export const deleteUser = async(req, res, next) => {
+
+export const deleteUser = async (req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
         if (!userObj) throw { status: 400, message: "user not found or deleted already" };
@@ -161,7 +148,7 @@ export const deleteUser = async(req, res, next) => {
     }
 };
 
-export const getUserData = async(req, res, next) => {
+export const getUserData = async (req, res, next) => {
     //get users data according kyc status  //admin only can see
     try {
         let kycStatus = req.query.kycStatus;
@@ -176,7 +163,7 @@ export const getUserData = async(req, res, next) => {
     }
 };
 
-export const changeUserKyc = async(req, res, next) => {
+export const changeUserKyc = async (req, res, next) => {
     //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
@@ -196,7 +183,7 @@ export const changeUserKyc = async(req, res, next) => {
 };
 //ADMIN============
 
-export const registerAdmin = async(req, res, next) => {
+export const registerAdmin = async (req, res, next) => {
     try {
         let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
             .lean()
@@ -217,7 +204,7 @@ export const registerAdmin = async(req, res, next) => {
         next(error);
     }
 };
-export const loginAdmin = async(req, res, next) => {
+export const loginAdmin = async (req, res, next) => {
     try {
         console.log(req.body);
         const adminObj = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, { phone: req.body.phone }], role: rolesObj.ADMIN })

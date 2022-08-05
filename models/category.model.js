@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generalModelStatuses } from "../helpers/Constants";
 
 let category = mongoose.Schema(
     {
@@ -6,12 +7,22 @@ let category = mongoose.Schema(
         slug: String,
         icon: String,
         searchable: { type: Boolean, default: false },
-        status: { type: Boolean, default: false },
+        status: { type: String, default: generalModelStatuses.APPROVED },
         categoryImage: String,
-        // seoTags:[{
-        //     tag:String
-        // }]
-        //add new keys here 
+        parentCategoryId: String, //direct parent id
+        parentCategoryArr: [
+            {
+                parentId: String,
+            },
+        ],
+        order: {
+            type: Number,
+            required: true,
+        },
+        level: {
+            type: Number,
+            default: 1,
+        },
     },
     { timestamps: true }
 );

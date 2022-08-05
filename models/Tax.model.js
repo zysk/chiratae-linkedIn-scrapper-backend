@@ -1,19 +1,14 @@
 import mongoose from "mongoose";
 import { generalModelStatuses } from "../helpers/Constants";
-
-let banner = mongoose.Schema(
+let Tax = mongoose.Schema(
     {
         name: String,
-        image: { type: String },
-        url: { type: String },
-        description: String,
+        rate: Number,
         status: {
             type: String,
             default: generalModelStatuses.APPROVED,
         },
-        // slide: { type: String },
     },
     { timestamps: true }
 );
-
-export default mongoose.model("banner", banner);
+export default mongoose.model("Tax", Tax);
