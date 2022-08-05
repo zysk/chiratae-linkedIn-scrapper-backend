@@ -2,9 +2,11 @@ import mongoose from "mongoose";
 
 let attribute = mongoose.Schema(
     {
-        name: { type: String, required: true },
+        name: { type: String },
         description: String,
-        // colorType: { type: Boolean, default: false } //acive or inactive
+        attributeValueIdArr: {
+            type: mongoose.Types.ObjectId,
+        },
     },
     { timestamps: true }
 );

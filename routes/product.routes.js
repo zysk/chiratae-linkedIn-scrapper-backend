@@ -1,17 +1,12 @@
 import express from "express";
-import { registerProduct, updateById, deleteById, getProduct } from "../controllers/product.controller";
-import { authorizeJwt } from "../middlewares/auth.middleware";
+import { addProduct, deleteProductById, getAllProducts, updateProductById } from "../controllers/product.controller";
 
 let router = express.Router();
 
+router.post("/addProduct", addProduct);
+router.get("/getProducts", getAllProducts);
+router.patch("/updateById/:id", updateProductById);
 
-router.post("/registerProduct", registerProduct);
-
-router.get("/getProduct", getProduct);
-
-router.patch("/updateById/:id", authorizeJwt, updateById);
-
-router.delete("/deleteById/:id", authorizeJwt, deleteById);
-
+router.delete("/deleteById/:id", deleteProductById);
 
 export default router;

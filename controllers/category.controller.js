@@ -1,7 +1,7 @@
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import Category from "../models/category.model";
 
-export const addCategory = async (req, res, next) => {
+export const addCategory = async(req, res, next) => {
     try {
         console.log(req.body);
         const CategoryNameCheck = await Category.findOne({ $or: [{ name: new RegExp(`^${req.body.name}$`, "i") }, { slug: new RegExp(`^${req.body.slug}$`) }] }).exec();
@@ -22,7 +22,7 @@ export const addCategory = async (req, res, next) => {
             };
         } else {
             const categoryCount = await Category.countDocuments({ level: 1 }).exec();
-            obj = { ...req.body, order: categoryCount + 1, level: 1 };
+            obj = {...req.body, order: categoryCount + 1, level: 1 };
         }
         let newEntry = new Category(obj).save();
         if (!newEntry) throw new Error("Unable to create Category");
@@ -31,7 +31,7 @@ export const addCategory = async (req, res, next) => {
         next(err);
     }
 };
-export const getCategory = async (req, res, next) => {
+export const getCategory = async(req, res, next) => {
     try {
         let categoryArr = await Category.find().lean().exec();
         // console.log(getCategory, "efnwfnewfo")
@@ -50,30 +50,63 @@ export const getCategory = async (req, res, next) => {
     }
 };
 
-export const updateById = async (req, res, next) => {
+export const updateById = async(req, res, next) => {
     try {
-<<<<<<< HEAD
-        console.log(req.body, "pyuio")
-        const categoryName = await category.findOne({ name: req.body.name }).exec()
-        if (categoryName) throw ({ status: 400, message: `this ${req.body.name} category exist` });
-        const categoryObj = await category.findByIdAndUpdate(req.params.id, req.body).exec();
-        if (!categoryObj) throw ({ status: 400, message: "category  Not Found" });
-=======
         console.log(req.body, "pyuio");
         if (await Category.findOne({ name: req.body.name }).exec()) throw { status: 400, message: `this ${req.body.name} category exist` };
+
         const categoryObj = await Category.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!categoryObj) throw { status: 400, message: "category  Not Found" };
->>>>>>> ace611778bc698f1a6c25f2d894056ed8717d7a5
+
         res.status(200).json({ message: "category Updated", success: true });
     } catch (err) {
         next(err);
     }
 };
-export const deleteById = async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
     try {
         const categoryObj = await Category.findByIdAndDelete(req.params.id).exec();
         if (!categoryObj) throw { status: 400, message: "category Not Found" };
         res.status(200).json({ message: "category Deleted", success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getNestedCategory = async(req, res, next) => {
+    try {
+        let mainCategoryArr = await Category.find({ "deletedObj.deletedBool": false }).lean().exec();
+        const setSubcategoryArr = (id) => {
+            if (!id) return [];
+            let tempArr = mainCategoryArr.filter((el) => el.parentCategoryId == `${id}`);
+            if (tempArr.length == 0) return [];
+            return tempArr
+                .map((el) => {
+                    let obj = {
+                        ...el,
+                        label: el.name,
+                        value: el._id,
+                        subCategoryArr: setSubcategoryArr(el._id),
+                        isExpanded: true,
+                    };
+                    return obj;
+                })
+                .sort((a, b) => a.order - b.order);
+        };
+        let finalArr = mainCategoryArr
+            .filter((el) => el.level == 1)
+            .map((el) => {
+                let obj = {
+                    ...el,
+                    label: el.name,
+                    value: el._id,
+                    subCategoryArr: setSubcategoryArr(el._id),
+                    isExpanded: true,
+                };
+                return obj;
+            })
+            .sort((a, b) => a.order - b.order);
+        res.status(200).json({ message: "Category Arr", data: finalArr, success: true });
     } catch (err) {
         next(err);
     }

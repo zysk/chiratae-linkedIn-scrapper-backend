@@ -46,7 +46,6 @@ app.use("/category", category);
 app.use("/product", product);
 app.use("/brand", brand);
 app.use("/attribute", attribute);
-app.use("/attributeValue", attributeValue);
 app.use("/tag", tag);
 app.use("/userCart", userCart);
 app.use("/banner", banner);
