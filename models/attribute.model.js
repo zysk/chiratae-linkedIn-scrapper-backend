@@ -4,9 +4,11 @@ let attribute = mongoose.Schema(
     {
         name: { type: String },
         description: String,
-        attributeValueIdArr: {
-            type: mongoose.Types.ObjectId,
-        },
+        attributeValueArr: [
+            {
+                attributeId: String,
+            },
+        ],
     },
     { timestamps: true }
 );
