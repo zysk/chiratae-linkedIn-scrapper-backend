@@ -29,6 +29,10 @@ let product = mongoose.Schema(
         metaTitle: String,
         metaDescription: String,
         metaImage: String,
+        active: {
+            type: Boolean,
+            default: true,
+        },
     },
     { timestamps: true }
 );

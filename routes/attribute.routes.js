@@ -1,15 +1,14 @@
 import express from "express";
-import { updateById, deleteById, getAttribute, addAttributValue, getAttributeValue, updateAttributeValueById, deleteAttributeValueById, addAttribute } from "../controllers/attribute.controller";
-import { authorizeJwt } from "../middlewares/auth.middleware";
+import { addAttribute, addAttributValue, deleteAttributeValueById, deleteById, getAttribute, getAttributeValue, updateAttributeValueById, updateById } from "../controllers/attribute.controller";
 let router = express.Router();
 
 router.post("/addAttribute", addAttribute);
 
 router.get("/getAttribute", getAttribute);
 
-router.patch("/updateById/:id", authorizeJwt, updateById);
+router.patch("/updateById/:id", updateById);
 
-router.delete("/deleteById/:id", authorizeJwt, deleteById);
+router.delete("/deleteById/:id", deleteById);
 router.post("/addAttributValue", addAttributValue);
 router.get("/getAttributeValue", getAttributeValue);
 
