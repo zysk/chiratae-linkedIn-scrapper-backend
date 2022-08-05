@@ -25,7 +25,7 @@ let User = mongoose.Schema({
     visitingCard: { type: String },
     shopImage: { type: String },
     onlinePortal: { type: String },
-    kycStatus: { type: String, default: 'pending', enum: ['pending', 'approve', 'denied'] },
+    kycStatus: { type: String, default: 'Pending', enum: ['Pending', 'Approve', 'Denied'] },
 
 }, { timestamps: true });
 
