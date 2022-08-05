@@ -7,7 +7,7 @@ import Inventory from "../models/inventory.model";
 import Tag from "../models/tag.model";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import StockLogs from "../models/stockLogs.model";
-export const addProduct = async (req, res, next) => {
+export const addProduct = async(req, res, next) => {
     try {
         let insertObj = {
             ...req.body,
@@ -26,7 +26,7 @@ export const addProduct = async (req, res, next) => {
         }
         if (insertObj.specificationFile) {
             insertObj.productSpecificationFile = await storeFileAndReturnNameBase64(insertObj.specificationFile);
-        }
+        };
 
         let insertedObj = await new Product(insertObj).save();
 
@@ -41,7 +41,7 @@ export const addProduct = async (req, res, next) => {
     }
 };
 
-export const getAllProducts = async (req, res, next) => {
+export const getAllProducts = async(req, res, next) => {
     try {
         let productArr = await Product.find().lean().exec();
         for (let el of productArr) {
@@ -59,18 +59,11 @@ export const getAllProducts = async (req, res, next) => {
     }
 };
 
-export const deleteProductById = async (req, res, next) => {
-    try {
-        const productObj = await Product.findByIdAndDelete(req.params.id).exec();
-        if (!productObj) throw new Error("Product Not Found");
-        res.status(200).json({ message: "Product Deleted", success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
+export const deleteProductById = async(req, res, next) => {
+    try {} catch {}
 };
 
-export const updateProductById = async (req, res, next) => {
+export const updateProductById = async(req, res, next) => {
     try {
         let insertObj = {
             ...req.body,
@@ -98,5 +91,79 @@ export const updateProductById = async (req, res, next) => {
     } catch (err) {
         console.error(err);
         next(err);
+    }
+};
+//top 10 product
+
+export const getActiveProducts = async(req, res, next) => {
+    try {
+        let productArr = await Product.find({ active: true }).lean().exec();
+        // console.log(productArr, "ppppppppp")
+        res.status(200).json({ message: "products", data: productArr, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const getProductsPub = async(req, res, next) => { //total and published product
+    try {
+        let publishedProducts = 0
+        let totalProducts = 0
+
+        let productArr = await Product.find().lean().exec();
+        totalProducts = productArr.length
+        for (let el of productArr) {
+            if (el.active == true) { publishedProducts++ }
+        };
+        // if (publishedProducts < 0) {
+
+        // }
+        res.status(200).json({
+            message: "products",
+            data: { "publishedProducts": publishedProducts, "totalProducts": totalProducts },
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getProductsCategoryWise = async(req, res, next) => { //total and published product
+    try {
+        let getCategoryArr = await Category.find().lean().exec();
+        // console.log(getCategory, "iiiiiiiiiiiiii")
+        let productArr = await Product.find().lean().exec();
+
+
+        for (let el of getCategoryArr) {
+            let found = await Product.find({ "parentCategoryIdArr[0].categoryId": el._id })
+            console.log(found, "'wwww")
+        }
+        // console.log(productArr, "opopopopo")
+        let obj = []
+            // for (let el of getCategoryArr) {
+            //     let aa = await productArr.find({ "parentCategoryIdArr": { $elemMatch: { categoryId: getCategoryArr._id } } })
+            //     console.log(aa)
+            // }
+
+        // for (let el of getCategoryArr) {
+        //     let found = productArr.findIndex(ele => `${ele.parentCategoryIdArr.categoryId}` == `${el._id}`)
+        //     if (found) {
+        //         obj.category = obj.category + 1
+        //     }
+        // }
+
+
+        // console.log(obj, "ooooooo")
+
+        res.status(200).json({
+            message: "products",
+            data: objCategory,
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
     }
 };

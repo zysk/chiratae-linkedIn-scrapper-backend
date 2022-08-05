@@ -1,7 +1,8 @@
 import Attribute from "../models/attribute.model";
 import AttributeValue from "../models/attibuteValue.model";
 
-export const addAttribute = async (req, res, next) => {
+
+export const addAttribute = async(req, res, next) => {
     try {
         let attributeCheck = await Attribute.findOne({ name: new RegExp(`^${req.body.name}$`) }).exec();
         if (attributeCheck) throw new Error({ status: 400, message: "Already Exists" });
@@ -12,7 +13,7 @@ export const addAttribute = async (req, res, next) => {
         next(err);
     }
 };
-export const getAttribute = async (req, res, next) => {
+export const getAttribute = async(req, res, next) => {
     try {
         const getAttritube = await Attribute.find().exec();
         res.status(200).json({ message: "getAttritube", data: getAttritube, success: true });
@@ -20,7 +21,7 @@ export const getAttribute = async (req, res, next) => {
         next(err);
     }
 };
-export const updateById = async (req, res, next) => {
+export const updateById = async(req, res, next) => {
     try {
         if (await Attribute.findOne({ name: req.body.name }).exec()) throw { status: 400, message: " attribute exist " };
         const attributeObj = await Attribute.findByIdAndUpdate(req.params.id, req.body).exec();
@@ -30,7 +31,7 @@ export const updateById = async (req, res, next) => {
         next(err);
     }
 };
-export const deleteById = async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
     try {
         const attributeObj = await Attribute.findByIdAndDelete(req.params.id).exec();
         if (!attributeObj) throw { status: 400, message: "attribute Not Found" };
@@ -39,8 +40,7 @@ export const deleteById = async (req, res, next) => {
         next(err);
     }
 };
-
-export const addAttributValue = async (req, res, next) => {
+export const addAttributValue = async(req, res, next) => {
     try {
         console.log(req.body);
         let existCheck = await AttributeValue.findOne({ name: new RegExp(`^${req.body.name}$`) })
@@ -53,7 +53,7 @@ export const addAttributValue = async (req, res, next) => {
         next(err);
     }
 };
-export const getAttributeValue = async (req, res, next) => {
+export const getAttributeValue = async(req, res, next) => {
     try {
         const getAttritubeValue = await AttributeValue.find().exec();
         res.status(200).json({ message: "getAttritubeValue", data: getAttritubeValue, success: true });
@@ -62,7 +62,7 @@ export const getAttributeValue = async (req, res, next) => {
     }
 };
 
-export const updateAttributeValueById = async (req, res, next) => {
+export const updateAttributeValueById = async(req, res, next) => {
     try {
         // console.log(req.body, req.params);
         let attributeObj = await AttributeValue.findByIdAndUpdate(req.params.id, req.body).exec();
@@ -72,7 +72,7 @@ export const updateAttributeValueById = async (req, res, next) => {
         next(err);
     }
 };
-export const deleteAttributeValueById = async (req, res, next) => {
+export const deleteAttributeValueById = async(req, res, next) => {
     try {
         const attributeObj = await AttributeValue.findByIdAndDelete(req.params.id).exec();
         if (!attributeObj) throw { status: 400, message: "attribute Not Found" };

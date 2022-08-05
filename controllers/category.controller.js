@@ -1,7 +1,7 @@
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import Category from "../models/category.model";
 
-export const addCategory = async (req, res, next) => {
+export const addCategory = async(req, res, next) => {
     try {
         console.log(req.body);
         const CategoryNameCheck = await Category.findOne({ $or: [{ name: new RegExp(`^${req.body.name}$`, "i") }, { slug: new RegExp(`^${req.body.slug}$`) }] }).exec();
@@ -22,8 +22,8 @@ export const addCategory = async (req, res, next) => {
             };
         } else {
             const categoryCount = await Category.countDocuments({ level: 1 }).exec();
-            obj = { ...req.body, order: categoryCount + 1, level: 1 };
-        }
+            obj = {...req.body, order: categoryCount + 1, level: 1 };
+        };
         let newEntry = new Category(obj).save();
         if (!newEntry) throw new Error("Unable to create Category");
         res.status(200).json({ message: "Category Successfully Created", success: true });
@@ -31,7 +31,7 @@ export const addCategory = async (req, res, next) => {
         next(err);
     }
 };
-export const getCategory = async (req, res, next) => {
+export const getCategory = async(req, res, next) => {
     try {
         let categoryArr = await Category.find().lean().exec();
         // console.log(getCategory, "efnwfnewfo")
@@ -50,16 +50,20 @@ export const getCategory = async (req, res, next) => {
     }
 };
 
-export const updateById = async (req, res, next) => {
+export const updateById = async(req, res, next) => {
     try {
+        console.log(req.body, "pyuio");
+        if (await Category.findOne({ name: req.body.name }).exec()) throw { status: 400, message: `this ${req.body.name} category exist` };
+
         const categoryObj = await Category.findByIdAndUpdate(req.params.id, req.body).exec();
         if (!categoryObj) throw { status: 400, message: "category  Not Found" };
+
         res.status(200).json({ message: "category Updated", success: true });
     } catch (err) {
         next(err);
     }
 };
-export const deleteById = async (req, res, next) => {
+export const deleteById = async(req, res, next) => {
     try {
         const categoryObj = await Category.findByIdAndDelete(req.params.id).exec();
         if (!categoryObj) throw { status: 400, message: "category Not Found" };
@@ -69,7 +73,7 @@ export const deleteById = async (req, res, next) => {
     }
 };
 
-export const getNestedCategory = async (req, res, next) => {
+export const getNestedCategory = async(req, res, next) => {
     try {
         let mainCategoryArr = await Category.find({ "deletedObj.deletedBool": false }).lean().exec();
         const setSubcategoryArr = (id) => {

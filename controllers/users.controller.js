@@ -8,7 +8,7 @@ import { ValidateEmail } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
-export const registerUser = async (req, res, next) => {
+export const registerUser = async(req, res, next) => {
     try {
         let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] }).exec();
         console.log(req.body);
@@ -31,7 +31,7 @@ export const registerUser = async (req, res, next) => {
     }
 };
 
-export const login = async (req, res, next) => {
+export const login = async(req, res, next) => {
     try {
         console.log(req.body);
         const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
@@ -58,10 +58,9 @@ export const login = async (req, res, next) => {
     }
 };
 
-export const userKyc = async (req, res, next) => {
+export const userKyc = async(req, res, next) => {
     try {
         console.log(req.body, "req.body")
-
 
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
@@ -69,13 +68,13 @@ export const userKyc = async (req, res, next) => {
         }
         if (req.body.visitingCard) {
             req.body.visitingCard = await storeFileAndReturnNameBase64(req.body.visitingCard);
-        }
+        };
         if (req.body.shopImage) {
             req.body.shopImage = await storeFileAndReturnNameBase64(req.body.shopImage);
-        }
+        };
         if (req.body.onlinePortal) {
             req.body.onlinePortal = await storeFileAndReturnNameBase64(req.body.onlinePortal);
-        }
+        };
 
         await Users.findByIdAndUpdate(req.params.id, req.body).exec();
 
@@ -85,7 +84,7 @@ export const userKyc = async (req, res, next) => {
     }
 };
 
-export const updateUserStatus = async (req, res, next) => {
+export const updateUserStatus = async(req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
@@ -100,7 +99,7 @@ export const updateUserStatus = async (req, res, next) => {
     }
 };
 
-export const updateUserKycStatus = async (req, res, next) => {
+export const updateUserKycStatus = async(req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
@@ -115,11 +114,7 @@ export const updateUserKycStatus = async (req, res, next) => {
     }
 };
 
-
-
-
-
-export const getUsers = async (req, res, next) => {
+export const getUsers = async(req, res, next) => {
     try {
         console.log(req.query);
         const UsersPipeline = UserList(req.query);
@@ -135,8 +130,7 @@ export const getUsers = async (req, res, next) => {
     }
 };
 
-
-export const deleteUser = async (req, res, next) => {
+export const deleteUser = async(req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
         if (!userObj) throw { status: 400, message: "user not found or deleted already" };
@@ -148,7 +142,7 @@ export const deleteUser = async (req, res, next) => {
     }
 };
 
-export const getUserData = async (req, res, next) => {
+export const getUserData = async(req, res, next) => {
     //get users data according kyc status  //admin only can see
     try {
         let kycStatus = req.query.kycStatus;
@@ -163,7 +157,7 @@ export const getUserData = async (req, res, next) => {
     }
 };
 
-export const changeUserKyc = async (req, res, next) => {
+export const changeUserKyc = async(req, res, next) => {
     //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
@@ -183,7 +177,7 @@ export const changeUserKyc = async (req, res, next) => {
 };
 //ADMIN============
 
-export const registerAdmin = async (req, res, next) => {
+export const registerAdmin = async(req, res, next) => {
     try {
         let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
             .lean()
@@ -204,7 +198,7 @@ export const registerAdmin = async (req, res, next) => {
         next(error);
     }
 };
-export const loginAdmin = async (req, res, next) => {
+export const loginAdmin = async(req, res, next) => {
     try {
         console.log(req.body);
         const adminObj = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, { phone: req.body.phone }], role: rolesObj.ADMIN })
@@ -224,5 +218,38 @@ export const loginAdmin = async (req, res, next) => {
     } catch (err) {
         console.log(err);
         next(err);
+    }
+};
+// total customer and active customer
+
+export const getTotalCustomer = async(req, res, next) => {
+    try {
+        let totalCustomer = 0;
+        let arr = await Users.find().exec();
+        totalCustomer = arr.length;
+        // for (let el of arr) {
+        //     if (el.kycStatus == true)
+        // }
+
+        res.status(200).json({ message: "Users-data", data: { "totalCustomer": totalCustomer }, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getActiveCustomer = async(req, res, next) => {
+    try {
+        let activeCustomer = 0;
+        let arr = await Users.find().exec();
+        for (let el of arr) {
+            if (el.kycStatus == "Approve") {
+                activeCustomer++
+            }
+        }
+        res.status(200).json({ message: "Users-data", data: { "activeCustomer": activeCustomer }, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
     }
 };

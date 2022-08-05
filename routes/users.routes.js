@@ -1,5 +1,19 @@
 import express from "express";
-import { changeUserKyc, deleteUser, getUserData, getUsers, login, loginAdmin, registerAdmin, registerUser, updateUserKycStatus, updateUserStatus, userKyc } from "../controllers/users.controller";
+import {
+    changeUserKyc,
+    deleteUser,
+    getUserData,
+    getUsers,
+    login,
+    loginAdmin,
+    registerAdmin,
+    registerUser,
+    updateUserKycStatus,
+    updateUserStatus,
+    userKyc,
+    getTotalCustomer,
+    getActiveCustomer
+} from "../controllers/users.controller";
 let router = express.Router();
 
 router.post("/register", registerUser);
@@ -19,4 +33,9 @@ router.delete("/deleteById/:id", deleteUser);
 //admin =
 router.post("/registerAdmin", registerAdmin);
 router.post("/loginAdmin", loginAdmin);
+//
+//total--customer
+router.get("/totalCustomer", getTotalCustomer);
+//active customer
+router.get("/activeCustomer", getActiveCustomer);
 export default router;
