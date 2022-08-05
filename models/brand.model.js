@@ -1,21 +1,23 @@
 import mongoose from "mongoose";
+import { generalModelStatuses } from "../helpers/Constants";
 
 let brand = mongoose.Schema(
     {
-
         name: String,
         description: String,
         websiteLink: String,
         metaTitle: String, //for seo
         metaDescription: String, //for seo
-        brandLogo: [String],
-        statusInfo: { type: String, required: true },
-        isFeatured: Boolean,
-      
+        imageUrl: String,
+        statusInfo: { type: String, default: generalModelStatuses.APPROVED },
+        isFeatured: {
+            type: Boolean,
+            default: false,
+        },
+
         // seoTags:[{
         //     tag:String
-        // }] ///doubt 
-
+        // }] ///doubt
     },
     { timestamps: true }
 );

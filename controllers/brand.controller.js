@@ -14,7 +14,6 @@ export const registerBrand = async(req, res, next) => {
     }
 };
 export const getBrand = async(req, res, next) => {
-    // router.get("/getBrand", async (req, res, next) => {
     try {
         const getBrand = await brand.find().exec();
         res.status(200).json({ message: "getBrand", data: getBrand, success: true });
@@ -23,7 +22,6 @@ export const getBrand = async(req, res, next) => {
     }
 };
 export const updateById = async(req, res, next) => {
-    // router.patch("/updateById/:id", authorizeJwt, async (req, res, next) => {
     try {
         const brandName = await brand.findOne({ name: req.body.name }).exec()
         if (brandName) throw ({ status: 400, message: ' brand exist ' });
@@ -35,7 +33,6 @@ export const updateById = async(req, res, next) => {
     }
 };
 export const deleteById = async(req, res, next) => {
-    // router.delete("/deleteById/:id", authorizeJwt, async (req, res, next) => {
     try {
         const brandObj = await brand.findByIdAndDelete(req.params.id).exec();
         if (!brandObj) throw ({ status: 400, message: "brand Not Found" });

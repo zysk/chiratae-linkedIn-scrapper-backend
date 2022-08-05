@@ -27,7 +27,6 @@ export const getWishlist = async(req, res, next) => {
         let { userId } = req.body
         let productArr = await product.find().lean().exec();
 
-
         const wishlistedProductArr = await wishlist.find({ userId: userId }).exec();
 
         for (const el of productArr) {
