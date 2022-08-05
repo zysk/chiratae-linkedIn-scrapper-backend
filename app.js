@@ -17,6 +17,7 @@ import product from "./routes/product.routes";
 import productLog from "./routes/productLogs.routes";
 import tag from "./routes/tag.routes";
 import userCart from "./routes/userCart.routes";
+import productReviewRouter from "./routes/productReview.routes";
 
 // //routes
 import usersRouter from "./routes/users.routes";
@@ -54,6 +55,7 @@ app.use("/inventory", inventory);
 app.use("/wishlist", wishlist);
 app.use("/userAddress", userAddress);
 app.use("/tax", TaxRouter);
+app.use("/productReview", productReviewRouter);
 
 app.use(errorHandler);
 

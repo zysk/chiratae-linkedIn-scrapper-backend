@@ -23,7 +23,7 @@ export const addCategory = async(req, res, next) => {
         } else {
             const categoryCount = await Category.countDocuments({ level: 1 }).exec();
             obj = {...req.body, order: categoryCount + 1, level: 1 };
-        }
+        };
         let newEntry = new Category(obj).save();
         if (!newEntry) throw new Error("Unable to create Category");
         res.status(200).json({ message: "Category Successfully Created", success: true });

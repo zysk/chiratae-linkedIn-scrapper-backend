@@ -220,3 +220,36 @@ export const loginAdmin = async(req, res, next) => {
         next(err);
     }
 };
+// total customer and active customer
+
+export const getTotalCustomer = async(req, res, next) => {
+    try {
+        let totalCustomer = 0;
+        let arr = await Users.find().exec();
+        totalCustomer = arr.length;
+        // for (let el of arr) {
+        //     if (el.kycStatus == true)
+        // }
+
+        res.status(200).json({ message: "Users-data", data: { "totalCustomer": totalCustomer }, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const getActiveCustomer = async(req, res, next) => {
+    try {
+        let activeCustomer = 0;
+        let arr = await Users.find().exec();
+        for (let el of arr) {
+            if (el.kycStatus == "Approve") {
+                activeCustomer++
+            }
+        }
+        res.status(200).json({ message: "Users-data", data: { "activeCustomer": activeCustomer }, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
