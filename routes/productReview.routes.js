@@ -7,9 +7,8 @@ router.post("/registerReview", addReview);
 
 router.get("/getReview", getReview);
 
-router.patch("/updateById/:id", updateById);
+router.patch("/updateById/:id", authorizeJwt, updateById);
 
-router.delete("/deleteById/:id", deleteById);
-
+router.delete("/deleteById/:id", authorizeJwt, deleteById);
 
 export default router;

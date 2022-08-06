@@ -105,7 +105,7 @@ export const getActiveProducts = async(req, res, next) => {
         next(error);
     }
 };
-export const getProductsPub = async(req, res, next) => { //total and published product
+export const getProductsPubAndTotal = async(req, res, next) => { //total and published product
     try {
         let publishedProducts = 0
         let totalProducts = 0
@@ -129,37 +129,18 @@ export const getProductsPub = async(req, res, next) => { //total and published p
     }
 };
 
-export const getProductsCategoryWise = async(req, res, next) => { //total and published product
+export const getProductsCategoryWise = async(req, res, next) => { //category wise product quanity
     try {
         let getCategoryArr = await Category.find().lean().exec();
-        // console.log(getCategory, "iiiiiiiiiiiiii")
-        let productArr = await Product.find().lean().exec();
-
-
+        // let found = []
+        let obj = {}
         for (let el of getCategoryArr) {
-            let found = await Product.find({ "parentCategoryIdArr[0].categoryId": el._id })
-            console.log(found, "'wwww")
+            // let found = await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } })               
+            obj[el._id] = (await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } }).count() || 0) + 1
         }
-        // console.log(productArr, "opopopopo")
-        let obj = []
-            // for (let el of getCategoryArr) {
-            //     let aa = await productArr.find({ "parentCategoryIdArr": { $elemMatch: { categoryId: getCategoryArr._id } } })
-            //     console.log(aa)
-            // }
-
-        // for (let el of getCategoryArr) {
-        //     let found = productArr.findIndex(ele => `${ele.parentCategoryIdArr.categoryId}` == `${el._id}`)
-        //     if (found) {
-        //         obj.category = obj.category + 1
-        //     }
-        // }
-
-
-        // console.log(obj, "ooooooo")
-
         res.status(200).json({
             message: "products",
-            data: objCategory,
+            data: obj,
             success: true
         });
     } catch (error) {

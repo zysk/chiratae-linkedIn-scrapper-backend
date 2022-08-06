@@ -10,3 +10,4 @@ export const isValid = (value) => {
     if (typeof value === 'string' && value.trim().length === 0) return false;
     return true;
 };
+export const validNo = /^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;

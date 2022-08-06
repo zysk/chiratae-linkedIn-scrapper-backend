@@ -5,7 +5,7 @@ import {
     getAllProducts,
     updateProductById,
     getActiveProducts,
-    getProductsPub,
+    getProductsPubAndTotal,
     getProductsCategoryWise
 } from "../controllers/product.controller";
 
@@ -19,6 +19,6 @@ router.delete("/deleteById/:id", deleteProductById);
 router.get("/getActiveProducts", getActiveProducts);
 
 
-router.get("/getA", getProductsPub);
-router.get("/get", getProductsCategoryWise);
+router.get("/getPublishAndTotal", getProductsPubAndTotal);
+router.get("/getProductCategoryWise", getProductsCategoryWise);
 export default router;

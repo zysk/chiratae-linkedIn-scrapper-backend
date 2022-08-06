@@ -4,7 +4,7 @@ import { generalModelStatuses } from "../helpers/Constants";
 let productReview = mongoose.Schema({
     userId: { type: mongoose.Types.ObjectId },
     Name: String,
-    rating: { type: String, enum: ['average', 'good'] },
+    rating: { type: Number, },
     feedback: String,
     productId: { type: mongoose.Types.ObjectId },
     status: { type: String, default: "pending", enum: ["approve", "denied", "pending"] },
