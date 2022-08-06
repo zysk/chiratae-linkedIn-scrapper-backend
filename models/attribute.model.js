@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
-
 let attribute = mongoose.Schema(
     {
         name: { type: String },
         description: String,
         attributeValueArr: [
             {
-                attributeId: String,
+                attributeId: {
+                    type: mongoose.Types.ObjectId,
+                    ref: "attributeValue",
+                },
             },
         ],
     },
