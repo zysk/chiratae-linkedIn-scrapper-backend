@@ -7,23 +7,18 @@ import path from "path";
 import { CONFIG } from "./helpers/Config";
 import { errorHandler } from "./helpers/ErrorHandler";
 import attribute from "./routes/attribute.routes";
-import attributeValue from "./routes/attributeValue.routes";
 import banner from "./routes/banner.routes";
 import brand from "./routes/brand.routes";
 import category from "./routes/category.routes";
 import indexRouter from "./routes/index.routes";
-import inventory from "./routes/inventory.routes";
 import product from "./routes/product.routes";
-import productLog from "./routes/productLogs.routes";
 import tag from "./routes/tag.routes";
+import TaxRouter from "./routes/Tax.routes";
+import userAddress from "./routes/userAddress.routes";
 import userCart from "./routes/userCart.routes";
-import productReviewRouter from "./routes/productReview.routes";
-
 // //routes
 import usersRouter from "./routes/users.routes";
 import wishlist from "./routes/wishlist.routes";
-import userAddress from "./routes/userAddress.routes";
-import TaxRouter from "./routes/Tax.routes";
 
 const app = express();
 app.use(cors());
@@ -50,12 +45,9 @@ app.use("/attribute", attribute);
 app.use("/tag", tag);
 app.use("/userCart", userCart);
 app.use("/banner", banner);
-app.use("/logs", productLog);
-app.use("/inventory", inventory);
 app.use("/wishlist", wishlist);
 app.use("/userAddress", userAddress);
 app.use("/tax", TaxRouter);
-app.use("/productReview", productReviewRouter);
 
 app.use(errorHandler);
 

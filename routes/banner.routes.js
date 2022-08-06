@@ -1,6 +1,5 @@
 import express from "express";
-import { updateById, deleteById, getBanner, addBanner } from "../controllers/banner.controller";
-import { authorizeJwt } from "../middlewares/auth.middleware";
+import { addBanner, deleteById, getBanner, updateById } from "../controllers/banner.controller";
 let router = express.Router();
 
 router.post("/addBanner", addBanner);

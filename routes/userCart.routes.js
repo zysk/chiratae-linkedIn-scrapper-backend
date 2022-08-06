@@ -3,12 +3,10 @@ import { removeProduct, getCart, updateCart } from "../controllers/userCart.cont
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 
-
 router.get("/getCart/:id", getCart);
 
-router.patch("/updateCart/:id", authorizeJwt, updateCart);
+router.patch("/updateCart/:id", updateCart);
 
-router.patch("/removeProduct/:id", authorizeJwt, removeProduct);
-
+router.patch("/removeProduct/:id", removeProduct);
 
 export default router;

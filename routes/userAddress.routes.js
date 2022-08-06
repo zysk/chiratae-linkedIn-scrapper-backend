@@ -3,16 +3,12 @@ import { registerUserAddress, getUserAddress, updateUserAddress, deleteAddress }
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 
-
 router.post("/registerUserAddress", authorizeJwt, registerUserAddress);
-
 
 router.get("/getUserAddress", getUserAddress);
 
+router.patch("/updateById/:id", updateUserAddress);
 
-router.patch("/updateById/:id", authorizeJwt, updateUserAddress);
-
-
-router.delete("/deleteById/:id", authorizeJwt, deleteAddress);
+router.delete("/deleteById/:id", deleteAddress);
 
 export default router;
