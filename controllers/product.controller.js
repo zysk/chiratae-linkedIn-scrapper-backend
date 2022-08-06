@@ -1,12 +1,10 @@
 // import authorizeJwt from "../middlewares/auth.middleware";
 
-import Product from "../models/product.model";
+import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import Category from "../models/category.model";
 import Inventory from "../models/inventory.model";
+import Product from "../models/product.model";
 
-import Tag from "../models/tag.model";
-import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
-import StockLogs from "../models/stockLogs.model";
 export const addProduct = async(req, res, next) => {
     try {
         let insertObj = {
@@ -26,7 +24,7 @@ export const addProduct = async(req, res, next) => {
         }
         if (insertObj.specificationFile) {
             insertObj.productSpecificationFile = await storeFileAndReturnNameBase64(insertObj.specificationFile);
-        };
+        }
 
         let insertedObj = await new Product(insertObj).save();
 
@@ -59,9 +57,10 @@ export const getAllProducts = async(req, res, next) => {
     }
 };
 
-export const deleteProductById = async(req, res, next) => {
-    try {} catch {}
-};
+// export const deleteProductById = async (req, res, next) => {
+//     try {
+//     } catch {}
+// };
 
 export const updateProductById = async(req, res, next) => {
     try {
@@ -93,8 +92,8 @@ export const updateProductById = async(req, res, next) => {
         next(err);
     }
 };
-//top 10 product
 
+//top 10 product
 export const getActiveProducts = async(req, res, next) => {
     try {
         let productArr = await Product.find({ active: true }).lean().exec();
@@ -111,17 +110,16 @@ export const getProductsPubAndTotal = async(req, res, next) => { //total and pub
         let totalProducts = 0
 
         let productArr = await Product.find().lean().exec();
-        totalProducts = productArr.length
+        totalProducts = productArr.length;
         for (let el of productArr) {
-            if (el.active == true) { publishedProducts++ }
-        };
-        // if (publishedProducts < 0) {
-
-        // }
+            if (el.active == true) {
+                publishedProducts++;
+            }
+        }
         res.status(200).json({
             message: "products",
-            data: { "publishedProducts": publishedProducts, "totalProducts": totalProducts },
-            success: true
+            data: { publishedProducts: publishedProducts, totalProducts: totalProducts },
+            success: true,
         });
     } catch (error) {
         console.error(error);
@@ -137,7 +135,7 @@ export const getProductsCategoryWise = async(req, res, next) => { //category wis
         for (let el of getCategoryArr) {
             // let found = await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } })               
             obj[el._id] = (await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } }).count() || 0) + 1
-        }
+        };
         res.status(200).json({
             message: "products",
             data: obj,

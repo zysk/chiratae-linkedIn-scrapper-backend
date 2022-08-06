@@ -17,7 +17,10 @@ let product = mongoose.Schema(
 
         tagArr: [{ tagId: { type: mongoose.Types.ObjectId } }],
         // attribute: [{ attributeId: { type: mongoose.Types.ObjectId, ref: "attribute" } }],
-
+        weight: Number,
+        height: Number,
+        width: Number,
+        length: Number,
         sellingPrice: { type: Number },
         discountValue: Number,
         discountType: { type: String },

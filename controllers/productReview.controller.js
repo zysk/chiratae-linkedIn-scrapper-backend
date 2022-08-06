@@ -16,8 +16,8 @@ export const addReview = async(req, res, next) => {
         if (!isValid(req.body.name)) throw new Error('name cant be empty');
         req.body.name.trim();
 
-        if (!req.body.rating) throw new Error("rating is mandatory");
-        if (!isValid(req.body.rating)) throw new Error('rating cant be empty');
+        //         if (!req.body.rating) throw new Error("rating is mandatory");
+        //         if (!isValid(req.body.rating)) throw new Error('rating cant be empty');
 
         if (!req.body.feedback) throw new Error("feedback is mandatory");
         const obj = {
@@ -50,10 +50,6 @@ export const updateById = async(req, res, next) => {
             .findOne({ productId: req.body.productId, userId: req.body.userId, }).lean().exec();
         console.log(userFound, "ppppp")
         if (!userFound) throw new Error('you cannot edit someone else review');
-
-        const obj = await productReview.findByIdAndUpdate(req.params.id, req.body).exec();
-        if (!obj) throw { status: 400, message: "review  Not Found" };
-
         res.status(200).json({ message: "review Updated", success: true });
     } catch (err) {
         next(err);
@@ -69,3 +65,15 @@ export const deleteById = async(req, res, next) => {
         next(err);
     }
 };
+
+// export const deleteById = async(req, res, next) => {
+//     try {
+//         let userFound = await productReview.findOne({ userId: req.body.userId, productId: req.body.productId }).lean().exec();
+//         if (!userFound) throw new Error('you cannot edit someone else review');
+//         const obj = await productReview.findByIdAndDelete(req.params.id).exec();
+//         if (!obj) throw { status: 400, message: "Review Not Found" };
+//         res.status(200).json({ message: "Review Deleted", success: true });
+//     } catch (err) {
+//         next(err);
+//     }
+// };

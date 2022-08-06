@@ -1,7 +1,13 @@
 import express from "express";
-import { addReview, updateById, deleteById, getReview } from "../controllers/productReview.controller";
-import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
+import { authorizeJwt } from "../middlewares/auth.middleware";
+
+import {
+    addReview,
+    deleteById,
+    updateById,
+    getReview
+} from "../controllers/productReview.controller";
 
 router.post("/registerReview", addReview);
 
