@@ -1,5 +1,7 @@
 import contactMail from "../models/contactMail.model";
 import { isValid, ValidateEmail } from "../helpers/Validators";
+import QRCode from 'qrcode';
+var qr = require('qr-image');
 
 export const addMail = async(req, res, next) => {
     try {
@@ -44,3 +46,33 @@ export const deleteById = async(req, res, next) => {
         next(err);
     }
 };
+
+export const downloadQrCode = async(req, res, next) => {
+    try {
+        var code = qr.image(req.params.text, { type: 'png', ec_level: 'H', size: 10, margin: 0 });
+        res.setHeader('Content-type', 'image/png')
+        code.pipe(res);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// export const downloadQrCode = async(req, res, next) => {
+//     try {
+//         let data = JSON.stringify(req.params.text)
+//             // Print the QR code to terminal
+//         QRCode.toString(data, function(err, QRcode) {
+//                 // Printing the generated code
+//                 console.log(QRcode, "pppppp")
+//                 res.send(QRCode)
+//             })
+//             // Converting into base64
+//         QRCode.toDataURL(data, function(err, code) {
+//             // Printing the code
+//             console.log(code)
+//         })
+
+//     } catch (err) {
+//         next(err);
+//     }
+// };

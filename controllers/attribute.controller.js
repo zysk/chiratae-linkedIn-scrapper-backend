@@ -40,6 +40,7 @@ export const deleteById = async(req, res, next) => {
         next(err);
     }
 };
+
 export const addAttributValue = async(req, res, next) => {
     try {
         console.log(req.body);
@@ -53,6 +54,7 @@ export const addAttributValue = async(req, res, next) => {
         next(err);
     }
 };
+
 export const getAttributeValue = async(req, res, next) => {
     try {
         const getAttritubeValue = await AttributeValue.find().exec();

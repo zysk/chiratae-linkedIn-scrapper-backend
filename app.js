@@ -19,7 +19,7 @@ import userCart from "./routes/userCart.routes";
 import productReviewRouter from "./routes/productReview.routes";
 import mailRouter from "./routes/contactMail.routes";
 
-// //routes
+//routes
 import usersRouter from "./routes/users.routes";
 import wishlist from "./routes/wishlist.routes";
 
@@ -54,6 +54,7 @@ app.use("/tax", TaxRouter);
 
 app.use("/productReview", productReviewRouter);
 app.use("/mail", mailRouter);
+
 
 app.use(errorHandler);
 
