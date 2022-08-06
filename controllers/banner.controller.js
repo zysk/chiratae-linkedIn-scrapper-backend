@@ -9,6 +9,7 @@ export const addBanner = async (req, res, next) => {
 
         let foundUrl = await Banner.findOne({ url: req.body.url }).exec();
         if (foundUrl) throw { status: 400, message: "url already registered" };
+        // console.log(req.body);
         let bannerObj = await Banner(req.body).save();
 
         res.status(201).json({ message: "banner Registered", success: true });
