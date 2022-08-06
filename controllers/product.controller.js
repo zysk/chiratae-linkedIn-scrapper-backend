@@ -5,7 +5,7 @@ import Category from "../models/category.model";
 import Inventory from "../models/inventory.model";
 import Product from "../models/product.model";
 
-export const addProduct = async(req, res, next) => {
+export const addProduct = async (req, res, next) => {
     try {
         let insertObj = {
             ...req.body,
@@ -39,7 +39,7 @@ export const addProduct = async(req, res, next) => {
     }
 };
 
-export const getAllProducts = async(req, res, next) => {
+export const getAllProducts = async (req, res, next) => {
     try {
         let productArr = await Product.find().lean().exec();
         for (let el of productArr) {
@@ -62,7 +62,7 @@ export const getAllProducts = async(req, res, next) => {
 //     } catch {}
 // };
 
-export const updateProductById = async(req, res, next) => {
+export const updateProductById = async (req, res, next) => {
     try {
         let insertObj = {
             ...req.body,
@@ -94,7 +94,7 @@ export const updateProductById = async(req, res, next) => {
 };
 
 //top 10 product
-export const getActiveProducts = async(req, res, next) => {
+export const getActiveProducts = async (req, res, next) => {
     try {
         let productArr = await Product.find({ active: true }).lean().exec();
         // console.log(productArr, "ppppppppp")
@@ -104,10 +104,11 @@ export const getActiveProducts = async(req, res, next) => {
         next(error);
     }
 };
-export const getProductsPubAndTotal = async(req, res, next) => { //total and published product
+export const getProductsPubAndTotal = async (req, res, next) => {
+    //total and published product
     try {
-        let publishedProducts = 0
-        let totalProducts = 0
+        let publishedProducts = 0;
+        let totalProducts = 0;
 
         let productArr = await Product.find().lean().exec();
         totalProducts = productArr.length;
@@ -127,19 +128,20 @@ export const getProductsPubAndTotal = async(req, res, next) => { //total and pub
     }
 };
 
-export const getProductsCategoryWise = async(req, res, next) => { //category wise product quanity
+export const getProductsCategoryWise = async (req, res, next) => {
+    //category wise product quanity
     try {
         let getCategoryArr = await Category.find().lean().exec();
         // let found = []
-        let obj = {}
+        let obj = {};
         for (let el of getCategoryArr) {
-            // let found = await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } })               
-            obj[el._id] = (await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } }).count() || 0) + 1
-        };
+            // let found = await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } })
+            obj[el._id] = ((await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } }).count()) || 0) + 1;
+        }
         res.status(200).json({
             message: "products",
             data: obj,
-            success: true
+            success: true,
         });
     } catch (error) {
         console.error(error);
