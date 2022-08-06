@@ -3,28 +3,27 @@ import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { generateAccessJwt } from "../helpers/Jwt";
-// import { generateUid } from "../helpers/utils";
-import { ValidateEmail } from "../helpers/Validators";
+
+import { ValidateEmail, validNo } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
 export const registerUser = async(req, res, next) => {
     try {
-        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: req.body.email }] }).exec();
+        let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] }).exec();
         console.log(req.body);
         // let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] });
         if (UserExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
-        // req.body.phone = toString(req.body.phone)
-        if (!/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
+        if (!validNo.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
 
-        // req.body.password = await encryptPassword(req.body.password);
+        req.body.password = await encryptPassword(req.body.password);
 
         let newUser = await new Users(req.body).save();
-        // res.status(200).json({ message: "User Created", data: _id, success: true });
-        res.status(200).json({ message: "User Created", data: newUser, success: true });
+
+        res.status(200).json({ message: "User Created", success: true });
     } catch (error) {
         console.error(error);
         next(error);
@@ -34,7 +33,7 @@ export const registerUser = async(req, res, next) => {
 export const login = async(req, res, next) => {
     try {
         console.log(req.body);
-        const userObj = await Users.findOne({ email: req.body.email }).lean().exec();
+        const userObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) }).lean().exec();
         if (userObj) {
             const passwordCheck = await comparePassword(userObj.password, req.body.password);
             if (passwordCheck) {
@@ -43,7 +42,7 @@ export const login = async(req, res, next) => {
                     role: rolesObj.USER,
                     name: userObj.name,
                     phone: userObj.phone,
-                    email: userObj.email,
+                    email: userObj.email
                 });
                 res.status(200).json({ message: "LogIn Successfull", token: accessToken, success: true });
             } else {
@@ -90,7 +89,6 @@ export const updateUserStatus = async(req, res, next) => {
         if (!userObj) {
             throw new Error("User Not found")
         }
-
         await Users.findByIdAndUpdate(req.params.id, { isActive: req.body.status }).exec();
 
         res.status(201).json({ message: "User Active Status Updated Successfully", success: true });
@@ -122,7 +120,7 @@ export const getUsers = async(req, res, next) => {
         const UsersArr = await Users.aggregate(UsersPipeline);
         // let UserObj = await Users.find();
 
-        // console.log(UsersArr);
+        console.log(UsersArr);
         res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
         console.error(error);
@@ -227,9 +225,7 @@ export const getTotalCustomer = async(req, res, next) => {
         let totalCustomer = 0;
         let arr = await Users.find().exec();
         totalCustomer = arr.length;
-        // for (let el of arr) {
-        //     if (el.kycStatus == true)
-        // }
+
 
         res.status(200).json({ message: "Users-data", data: { "totalCustomer": totalCustomer }, success: true });
     } catch (error) {
@@ -241,12 +237,9 @@ export const getTotalCustomer = async(req, res, next) => {
 export const getActiveCustomer = async(req, res, next) => {
     try {
         let activeCustomer = 0;
-        let arr = await Users.find().exec();
-        for (let el of arr) {
-            if (el.kycStatus == "Approve") {
-                activeCustomer++
-            }
-        }
+        let arr = await Users.find({ kycStatus: "Approve" }).exec();
+        activeCustomer = arr.length
+
         res.status(200).json({ message: "Users-data", data: { "activeCustomer": activeCustomer }, success: true });
     } catch (error) {
         console.error(error);
