@@ -23,7 +23,7 @@ export const registerUser = async (req, res, next) => {
         delete req.body.password;
         let newUser = await new Users(req.body).save();
 
-        res.status(200).json({ message: "User Created", success: true });
+        res.status(200).json({ message: "User Created", data: newUser, success: true });
     } catch (error) {
         console.error(error);
         next(error);
