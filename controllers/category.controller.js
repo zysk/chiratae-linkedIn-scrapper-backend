@@ -4,7 +4,11 @@ import Category from "../models/category.model";
 export const addCategory = async(req, res, next) => {
     try {
         // console.log(req.body);
-        const CategoryNameCheck = await Category.findOne({ $or: [{ name: new RegExp(`^${req.body.name}$`, "i") }, { slug: new RegExp(`^${req.body.slug}$`) }] }).exec();
+        const CategoryNameCheck = await Category.findOne({
+            $or: [{ name: new RegExp(`^${req.body.name}$`, "i") },
+                { slug: new RegExp(`^${req.body.slug}$`) }
+            ]
+        }).exec();
         if (CategoryNameCheck) throw new Error("Entry Already exist please change brand name or url");
         let obj = {};
         if (req.body.imageStr) {
@@ -12,9 +16,9 @@ export const addCategory = async(req, res, next) => {
         };
         if (req.body.parentCategoryId) {
             let categoryObj = await Category.findById(req.body.parentCategoryId).lean().exec();
-            console.log(categoryObj, "objjjjjj")
+            // console.log(categoryObj, "objjjjjj")
             let parentCategoryArr = [...categoryObj.parentCategoryArr]
-            console.log(parentCategoryArr, "pppppppp");
+                // console.log(parentCategoryArr, "pppppppp");
             parentCategoryArr.push({ parentId: categoryObj._id });
             obj = {
                 ...req.body,

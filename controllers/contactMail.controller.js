@@ -2,7 +2,7 @@ import excel from "exceljs";
 import contactMail from "../models/contactMail.model";
 import { isValid, ValidateEmail } from "../helpers/Validators";
 import QRCode from 'qrcode';
-var qr = require('qr-image');
+import qr  from "qr-image";
 
 export const addMail = async(req, res, next) => {
     try {
