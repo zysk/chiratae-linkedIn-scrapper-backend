@@ -1,3 +1,4 @@
+import excel from "exceljs";
 import contactMail from "../models/contactMail.model";
 import { isValid, ValidateEmail } from "../helpers/Validators";
 import QRCode from 'qrcode';
@@ -76,3 +77,41 @@ export const downloadQrCode = async(req, res, next) => {
 //         next(err);
 //     }
 // };
+
+
+export const downloadExcelFile = async(req, res, next) => {
+    try {
+        let sheetData = [{
+            id: "A1",
+            title: "mr",
+            name: "ramji",
+            age: 20,
+            published: true
+        }];
+        let workbook = new excel.Workbook();
+        let worksheet = workbook.addWorksheet("excelSheet");
+        worksheet.columns = [
+            { header: "Id", key: "id", width: 5 },
+            { header: "Title", key: "title", width: 25 },
+            { header: "Name", key: "name", width: 25 },
+            { header: "Age", key: "age", width: 10 },
+            { header: "Published", key: "published", width: 10 },
+        ];
+        // Add Array Rows
+        worksheet.addRows(sheetData);
+        // res is a Stream object
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=" + "excelSheet.xlsx"
+        );
+        return workbook.xlsx.write(res).then(function() {
+            res.status(200).end();
+        });
+    } catch (err) {
+        next(err);
+    }
+};
