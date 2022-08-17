@@ -24,6 +24,12 @@ let category = mongoose.Schema(
             type: Number,
             default: 1,
         },
+        deletedObj: {
+            deletedBool: false,
+            deletedAt: {
+                type: Date,
+            },
+        },
     },
     { timestamps: true }
 );
