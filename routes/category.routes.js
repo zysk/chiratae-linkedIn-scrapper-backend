@@ -6,6 +6,8 @@ router.post("/addCategory", addCategory);
 
 router.get("/getCategory", getCategory);
 
+router.get("/getChildCategory", getCategory);
+
 router.patch("/updateById/:id", updateById);
 
 router.delete("/deleteById/:id", deleteById);

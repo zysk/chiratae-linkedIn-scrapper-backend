@@ -6,7 +6,8 @@ import {
     updateProductById,
     getActiveProducts,
     getProductsPubAndTotal,
-    getProductsCategoryWise
+    getProductsCategoryWise,
+    getCategoryWiseProducts
 } from "../controllers/product.controller";
 
 let router = express.Router();
@@ -20,4 +21,5 @@ router.get("/getActiveProducts", getActiveProducts);
 
 router.get("/getPublishAndTotal", getProductsPubAndTotal);
 router.get("/getProductCategoryWise", getProductsCategoryWise);
+router.get("/getCategoryWiseProducts/:id", getCategoryWiseProducts);
 export default router;

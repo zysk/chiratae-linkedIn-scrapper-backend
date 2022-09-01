@@ -2,6 +2,8 @@
 
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import Category from "../models/category.model";
+import Brand from "../models/brand.model";
+import Tag from "../models/tag.model";
 import Inventory from "../models/inventory.model";
 import Product from "../models/product.model";
 
@@ -43,6 +45,17 @@ export const getAllProducts = async (req, res, next) => {
     try {
         let productArr = await Product.find().lean().exec();
         for (let el of productArr) {
+            let brandObj = await Brand.findById(el.brandId).exec()
+            el.brandObj = brandObj
+
+            let categoryObj = await Category.findById(el.categoryId).exec()
+            el.categoryObj = categoryObj
+
+            for (const ele of tagArr) {
+                let tagObj = await Tag.findById(ele.tagId).exec()
+                ele.tagObj = tagObj
+
+            }
             let stockObj = await Inventory.findOne({ productId: el._id }).lean().exec();
             if (stockObj) {
                 el.stock = stockObj.stock;
@@ -129,7 +142,7 @@ export const getProductsPubAndTotal = async (req, res, next) => {
 };
 
 export const getProductsCategoryWise = async (req, res, next) => {
-    //category wise product quanity
+    //category wise product
     try {
         let getCategoryArr = await Category.find().lean().exec();
         // let found = []
@@ -141,6 +154,37 @@ export const getProductsCategoryWise = async (req, res, next) => {
         res.status(200).json({
             message: "products",
             data: obj,
+            success: true,
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+
+
+
+export const getCategoryWiseProducts = async (req, res, next) => {
+    //category wise product
+    try {
+        let productsArr = await Product.find({ categoryId: req.params.id }).lean().exec()
+        for (const el of productsArr) {
+            let brandObj = await Brand.findById(el.brandId).exec()
+            el.brandObj = brandObj
+
+            let categoryObj = await Category.findById(el.categoryId).exec()
+            el.categoryObj = categoryObj
+
+            for (const ele of tagArr) {
+                let tagObj = await Tag.findById(ele.tagId).exec()
+                ele.tagObj = tagObj
+
+            }
+        }
+        res.status(200).json({
+            message: "products",
+            data: productsArr,
             success: true,
         });
     } catch (error) {

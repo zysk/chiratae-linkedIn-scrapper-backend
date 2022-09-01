@@ -45,7 +45,31 @@ export const getCategory = async (req, res, next) => {
         else {
             categoryArr = await Category.find({ level: 1 }).lean().exec();
         }
-        // console.log(getCategory, "efnwfnewfo")
+        for (let el of categoryArr) {
+            console.log(el);
+            if (el.parentCategoryId) {
+                let parentObj = await Category.findById(el.parentCategoryId).lean().exec();
+                if (parentObj) {
+                    el.parentCategoryName = parentObj.name;
+                }
+            }
+        }
+        res.status(200).json({ message: "getCategory", data: categoryArr, success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+export const getChildCategory = async (req, res, next) => {
+    try {
+        let categoryArr = []
+        if (res.query.level) {
+            categoryArr = await Category.find({ level: `${req.query.level}` }).lean().exec();
+        }
+        else {
+            categoryArr = await Category.find({ level: 1 }).lean().exec();
+        }
         for (let el of categoryArr) {
             console.log(el);
             if (el.parentCategoryId) {
