@@ -38,7 +38,13 @@ export const addCategory = async (req, res, next) => {
 
 export const getCategory = async (req, res, next) => {
     try {
-        let categoryArr = await Category.find().lean().exec();
+        let categoryArr = []
+        if (res.query.level) {
+            categoryArr = await Category.find({ level: req.query.level }).lean().exec();
+        }
+        else {
+            categoryArr = await Category.find({ level: 1 }).lean().exec();
+        }
         // console.log(getCategory, "efnwfnewfo")
         for (let el of categoryArr) {
             console.log(el);
