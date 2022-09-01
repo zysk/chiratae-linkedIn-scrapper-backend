@@ -26,7 +26,7 @@ export const addReview = async(req, res, next) => {
             rating: req.body.rating,
             userId: req.body.userId,
             productId: req.body.productId
-        }
+        };
         let newReview = await new productReview(obj).save();
         // if (!newReview) throw new Error("Unable to create review");
         res.status(200).json({ message: "review Successfully Created", success: true });

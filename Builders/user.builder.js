@@ -33,6 +33,7 @@ export const UserList = (payload) => {
                 shopImage: 1,
                 onlinePortal: 1,
                 kycStatus: 1,
+                createdAt: 1,
             },
         },
         { $sort: sortCondition }
