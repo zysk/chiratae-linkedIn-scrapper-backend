@@ -8,7 +8,7 @@ import { ValidateEmail, validNo } from "../helpers/Validators";
 import Users from "../models/user.model";
 // import { upload } from "../helpers/fileUpload";
 
-export const registerUser = async(req, res, next) => {
+export const registerUser = async (req, res, next) => {
     try {
         let UserExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] }).exec();
         console.log(req.body);
@@ -30,7 +30,7 @@ export const registerUser = async(req, res, next) => {
     }
 };
 
-export const login = async(req, res, next) => {
+export const login = async (req, res, next) => {
     try {
         console.log(req.body);
         const userObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) }).lean().exec();
@@ -57,7 +57,7 @@ export const login = async(req, res, next) => {
     }
 };
 
-export const userKyc = async(req, res, next) => {
+export const userKyc = async (req, res, next) => {
     try {
         console.log(req.body, "req.body")
 
@@ -83,7 +83,7 @@ export const userKyc = async(req, res, next) => {
     }
 };
 
-export const updateUserStatus = async(req, res, next) => {
+export const updateUserStatus = async (req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
@@ -97,7 +97,7 @@ export const updateUserStatus = async(req, res, next) => {
     }
 };
 
-export const updateUserKycStatus = async(req, res, next) => {
+export const updateUserKycStatus = async (req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
@@ -112,15 +112,10 @@ export const updateUserKycStatus = async(req, res, next) => {
     }
 };
 
-export const getUsers = async(req, res, next) => {
+export const getUsers = async (req, res, next) => {
     try {
-        console.log(req.query);
         const UsersPipeline = UserList(req.query);
-        console.log(UsersPipeline);
         const UsersArr = await Users.aggregate(UsersPipeline);
-        // let UserObj = await Users.find();
-
-        console.log(UsersArr);
         res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
         console.error(error);
@@ -128,11 +123,10 @@ export const getUsers = async(req, res, next) => {
     }
 };
 
-export const deleteUser = async(req, res, next) => {
+export const deleteUser = async (req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();
         if (!userObj) throw { status: 400, message: "user not found or deleted already" };
-
         res.status(200).json({ msg: "user deleted successfully", success: true });
     } catch (error) {
         console.error(error);
@@ -140,7 +134,7 @@ export const deleteUser = async(req, res, next) => {
     }
 };
 
-export const getUserData = async(req, res, next) => {
+export const getUserData = async (req, res, next) => {
     //get users data according kyc status  //admin only can see
     try {
         let kycStatus = req.query.kycStatus;
@@ -155,7 +149,7 @@ export const getUserData = async(req, res, next) => {
     }
 };
 
-export const changeUserKyc = async(req, res, next) => {
+export const changeUserKyc = async (req, res, next) => {
     //change kyc-status manually from admin side
     try {
         let kycStatus = req.body.kycStatus;
@@ -175,7 +169,7 @@ export const changeUserKyc = async(req, res, next) => {
 };
 //ADMIN============
 
-export const registerAdmin = async(req, res, next) => {
+export const registerAdmin = async (req, res, next) => {
     try {
         let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
             .lean()
@@ -196,7 +190,7 @@ export const registerAdmin = async(req, res, next) => {
         next(error);
     }
 };
-export const loginAdmin = async(req, res, next) => {
+export const loginAdmin = async (req, res, next) => {
     try {
         console.log(req.body);
         const adminObj = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, { phone: req.body.phone }], role: rolesObj.ADMIN })
@@ -220,7 +214,7 @@ export const loginAdmin = async(req, res, next) => {
 };
 // total customer and active customer
 
-export const getTotalCustomer = async(req, res, next) => {
+export const getTotalCustomer = async (req, res, next) => {
     try {
         let totalCustomer = 0;
         let arr = await Users.find().exec();
@@ -234,7 +228,7 @@ export const getTotalCustomer = async(req, res, next) => {
     }
 };
 
-export const getActiveCustomer = async(req, res, next) => {
+export const getActiveCustomer = async (req, res, next) => {
     try {
         let activeCustomer = 0;
         let arr = await Users.find({ kycStatus: "Approve" }).exec();
