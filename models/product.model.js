@@ -20,7 +20,7 @@ let product = mongoose.Schema(
         productArr: [
             {
                 name: String,
-                languageSupported: String,
+                languageSupported: Array,
                 shortDescription: String,
                 longDescripton: String,
                 featureChecklist: {
@@ -28,7 +28,7 @@ let product = mongoose.Schema(
                     softwareType: Object,
                     softwareData: Object,
                     farmAdmin: Object,
-                    accountAccess: Object,
+                    accountAccess: String,
                     usersPerAccount: Object,
                     modeOfUse: Object,
                     cropPlanning: Object,
@@ -41,34 +41,34 @@ let product = mongoose.Schema(
                     harvestAnalysis: Object,
                     hardwareAndConnectivity: Object,
                     accounting: Object,
-                    others: Object,
+                    others: String,
                 },
                 targetCustomer: {
-                    marketsServed: Object,
-                    typesOfFarmsServed: Object,
+                    marketsServed: String,
+                    typesOfFarmsServed: Array,
                     customers: Object,
-                    farmSize: Object,
-                    typeOfLeads: Object,
-                    relevantCrops: Object,
+                    farmSize: Array,
+                    typeOfLeads: String,
+                    relevantCrops: String,
                 },
                 customerSupport: {
                     isFreeTrialAvailable: Object,
                     typeOfCustomerSupport: Object,
                     trainingAvailable: Object,
                     isTrainingFree: String,
-                    typeOfTrainings: Object,
+                    typeOfTrainings: Array,
                 },
                 installation: {
-                    sofwareUse: Object,
-                    averageTime: Object,
-                    averageFees: Object,
-                    differentSubscription: Object,
-                    additionalAddOn: Object,
-                    valuePropositions: Object,
-                    competitors: Object,
+                    sofwareUse: String,
+                    averageTime: String,
+                    averageFees: String,
+                    differentSubscription: String,
+                    additionalAddOn: String,
+                    valuePropositions: String,
+                    competitors: String,
                 },
                 media: {
-                    mediaLinks: Object
+                    mediaLinks: String
                 }
             }
         ]
