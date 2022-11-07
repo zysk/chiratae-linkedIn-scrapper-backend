@@ -17,7 +17,7 @@ export const registerUser = async (req, res, next) => {
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
-        if (!validNo.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
+        // if (!validNo.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
 
         // req.body.password = await encryptPassword(req.body.password);
         delete req.body.password;
@@ -176,12 +176,10 @@ export const registerAdmin = async (req, res, next) => {
         let adminExistCheck = await Users.findOne({ $or: [{ phone: req.body.phone }, { email: new RegExp(`^${req.body.email}$`) }] })
             .lean()
             .exec();
-        if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS} or ${ErrorMessages.PHONE_EXISTS}`);
+        if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
         }
-        if (!/^\(?([1-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phone)) throw { status: false, message: `Please fill a valid phone number` };
-
         req.body.password = await encryptPassword(req.body.password);
 
         let newUser = await new Users(req.body).save();

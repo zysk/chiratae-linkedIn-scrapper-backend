@@ -9,32 +9,13 @@ import Product from "../models/product.model";
 
 export const addProduct = async (req, res, next) => {
     try {
-        let insertObj = {
-            ...req.body,
-        };
-        let skuCheck = await Product.findOne({ sku: new RegExp(`^${req.body.sku}$`) })
-            .lean()
-            .exec();
-        if (skuCheck) throw new Error("Product Already exist with this sku code.");
-        let categoryObj = await Category.findById(req.body.categoryId).lean().exec();
-        if (!categoryObj) throw new Error("Product Category not found");
 
-        insertObj.parentCategoryIdArr = categoryObj.parentCategoryArr.map((el) => ({ categoryId: el.parentId }));
+        let insertedObj = await new Product(req.body).save();
 
-        if (insertObj.productImageStr) {
-            insertObj.productImage = await storeFileAndReturnNameBase64(insertObj.productImageStr);
-        }
-        if (insertObj.specificationFile) {
-            insertObj.productSpecificationFile = await storeFileAndReturnNameBase64(insertObj.specificationFile);
-        }
-
-        let insertedObj = await new Product(insertObj).save();
-
-        await new Inventory({ productId: insertedObj._id, stock: insertObj.stock }).save();
         //handle stock logs here
         // await new StockLogs({}).save()
 
-        res.status(200).json({ message: "product ADDED", success: true });
+        res.status(200).json({ message: "Product Added", success: true });
     } catch (err) {
         console.error(err);
         next(err);
