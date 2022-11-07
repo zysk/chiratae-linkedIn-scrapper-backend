@@ -10,6 +10,27 @@ import Product from "../models/product.model";
 export const addProduct = async (req, res, next) => {
     try {
 
+        if (!req.body.companyPhone || req.body.companyPhone.length < 10) {
+            throw new Error("Please enter a valid number in companyPhone");
+        }
+        if (!req.body.companyMail || !`${req.body.companyMail}`.includes("@") || !`${req.body.companyMail}`.includes(".")) {
+            throw new Error("Please enter a valid mail in companyMail");
+        }
+        if (!req.body.companyRepPhone || req.body.companyRepPhone.length < 10) {
+            throw new Error("Please enter a valid number in companyRepPhone");
+        }
+        if (!req.body.companyRepMail || !`${req.body.companyRepMail}`.includes("@") || !`${req.body.companyRepMail}`.includes(".")) {
+            throw new Error("Please enter a valid mail in companyRepMail");
+        }
+        if (!req.body.leadManagerPhone || req.body.leadManagerPhone.length < 10) {
+            throw new Error("Please enter a valid number in leadManagerPhone");
+        }
+        if (!req.body.leadManagerMail || !`${req.body.leadManagerMail}`.includes("@") || !`${req.body.leadManagerMail}`.includes(".")) {
+            throw new Error("Please enter a valid mail in leadManagerMail");
+        }
+
+        //     companyMail,
+        //   companyPhone
         let insertedObj = await new Product(req.body).save();
 
         //handle stock logs here
