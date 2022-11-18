@@ -1,37 +1,28 @@
 // import authorizeJwt from "../middlewares/auth.middleware";
 
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
-import Category from "../models/category.model";
-import Brand from "../models/brand.model";
-import Tag from "../models/tag.model";
-import Inventory from "../models/inventory.model";
 import Product from "../models/product.model";
+import ProductGroups from "../models/productGroups.model";
 
 export const addProduct = async (req, res, next) => {
     try {
+        if (req.body.companyLogo) {
+            req.body.companyLogo = await storeFileAndReturnNameBase64(req.body.companyLogo)
+        }
 
-        // if (!req.body.companyPhone || req.body.companyPhone.length < 10) {
-        //     throw new Error("Please enter a valid number in companyPhone");
-        // }
-        // if (!req.body.companyMail || !`${req.body.companyMail}`.includes("@") || !`${req.body.companyMail}`.includes(".")) {
-        //     throw new Error("Please enter a valid mail in companyMail");
-        // }
-        // if (!req.body.companyRepPhone || req.body.companyRepPhone.length < 10) {
-        //     throw new Error("Please enter a valid number in companyRepPhone");
-        // }
-        // if (!req.body.companyRepMail || !`${req.body.companyRepMail}`.includes("@") || !`${req.body.companyRepMail}`.includes(".")) {
-        //     throw new Error("Please enter a valid mail in companyRepMail");
-        // }
-        // if (!req.body.leadManagerPhone || req.body.leadManagerPhone.length < 10) {
-        //     throw new Error("Please enter a valid number in leadManagerPhone");
-        // }
-        // if (!req.body.leadManagerMail || !`${req.body.leadManagerMail}`.includes("@") || !`${req.body.leadManagerMail}`.includes(".")) {
-        //     throw new Error("Please enter a valid mail in leadManagerMail");
-        // }
+        console.log(req.body.productArr[0].media, "req.body.productArr")
+        let arr = []
 
-        //     companyMail,
-        //   companyPhone
-        let insertedObj = await new Product(req.body).save();
+        for (const el of req.body.productArr) {
+            let obj = {
+                ...req.body,
+                ...el
+            }
+            arr.push(obj)
+        }
+        let addedProductsArr = await Product.insertMany([...arr]);
+
+        await ProductGroups({ ...req.body, productsArr: addedProductsArr.map(el => ({ productId: el._id })) }).save();
 
         //handle stock logs here
         // await new StockLogs({}).save()
@@ -43,154 +34,80 @@ export const addProduct = async (req, res, next) => {
     }
 };
 
-export const getAllProducts = async (req, res, next) => {
+
+
+
+export const getProducts = async (req, res, next) => {
     try {
-        let productArr = await Product.find().lean().exec();
-        for (let el of productArr) {
-            let brandObj = await Brand.findById(el.brandId).exec()
-            el.brandObj = brandObj
+        let addedProductsArr = await ProductGroups.find().lean().exec();
 
-            let categoryObj = await Category.findById(el.categoryId).exec()
-            el.categoryObj = categoryObj
-
-            for (const ele of tagArr) {
-                let tagObj = await Tag.findById(ele.tagId).exec()
-                ele.tagObj = tagObj
-
-            }
-            let stockObj = await Inventory.findOne({ productId: el._id }).lean().exec();
-            if (stockObj) {
-                el.stock = stockObj.stock;
-            } else {
-                el.stock = 0;
+        if (req.query.returnProductData) {
+            for (const el of addedProductsArr) {
+                if (el.productsArr) {
+                    for (const ele of el.productsArr) {
+                        let productObj = await Product.findById(ele.productId).exec()
+                        if (productObj) {
+                            ele.productObj = productObj
+                        }
+                        else {
+                            ele.productObj = {}
+                        }
+                    }
+                }
             }
         }
-        res.status(200).json({ message: "products", data: productArr, success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};
 
-// export const deleteProductById = async (req, res, next) => {
-//     try {
-//     } catch {}
-// };
-
-export const updateProductById = async (req, res, next) => {
-    try {
-        let insertObj = {
-            ...req.body,
-        };
-
-        let categoryObj = await Category.findById(req.body.categoryId).lean().exec();
-        if (!categoryObj) throw new Error("Product Category not found");
-
-        insertObj.parentCategoryIdArr = categoryObj.parentCategoryArr.map((el) => ({ categoryId: el.parentId }));
-
-        if (insertObj.productImageStr) {
-            insertObj.productImage = await storeFileAndReturnNameBase64(insertObj.productImageStr);
-        }
-        if (insertObj.specificationFile) {
-            insertObj.productSpecificationFile = await storeFileAndReturnNameBase64(insertObj.specificationFile);
-        }
-
-        await Product.findByIdAndUpdate(req.params.id, insertObj).exec();
-
-        await Inventory.findOneAndUpdate(req.params.id, { stock: insertObj.stock }).exec();
-        //handle stock logs here
-        // await new StockLogs({}).save()
-
-        res.status(200).json({ message: "product Updated", success: true });
+        res.status(200).json({ message: "Products Found", data: addedProductsArr, success: true });
     } catch (err) {
         console.error(err);
         next(err);
     }
 };
 
-//top 10 product
-export const getActiveProducts = async (req, res, next) => {
+export const getProductById = async (req, res, next) => {
     try {
-        let productArr = await Product.find({ active: true }).lean().exec();
-        // console.log(productArr, "ppppppppp")
-        res.status(200).json({ message: "products", data: productArr, success: true });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};
-export const getProductsPubAndTotal = async (req, res, next) => {
-    //total and published product
-    try {
-        let publishedProducts = 0;
-        let totalProducts = 0;
-
-        let productArr = await Product.find().lean().exec();
-        totalProducts = productArr.length;
-        for (let el of productArr) {
-            if (el.active == true) {
-                publishedProducts++;
+        console.log(req.params.id)
+        let productGroupsObj = await ProductGroups.findOne({ _id: req.params.id }).lean().exec();
+        if (!productGroupsObj) {
+            throw new Error("Product Not Found !!");
+        }
+        if (productGroupsObj.productsArr) {
+            for (const ele of productGroupsObj.productsArr) {
+                let productObj = await Product.findById(ele.productId).exec()
+                if (productObj) {
+                    ele.productObj = productObj
+                }
+                else {
+                    ele.productObj = {}
+                }
             }
         }
-        res.status(200).json({
-            message: "products",
-            data: { publishedProducts: publishedProducts, totalProducts: totalProducts },
-            success: true,
-        });
-    } catch (error) {
-        console.error(error);
-        next(error);
+
+        res.status(200).json({ message: "Products Found", data: productGroupsObj, success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
     }
 };
 
-export const getProductsCategoryWise = async (req, res, next) => {
-    //category wise product
+
+export const updateProductById = async (req, res, next) => {
     try {
-        let getCategoryArr = await Category.find().lean().exec();
-        // let found = []
-        let obj = {};
-        for (let el of getCategoryArr) {
-            // let found = await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } })
-            obj[el._id] = ((await Product.find({ parentCategoryIdArr: { $elemMatch: { categoryId: el._id } } }).count()) || 0) + 1;
-        }
-        res.status(200).json({
-            message: "products",
-            data: obj,
-            success: true,
-        });
-    } catch (error) {
-        console.error(error);
-        next(error);
+        // console.log(req.params.id)
+        // let productObj = await Product.findOne({ _id: req.params.id }).exec();
+        // if (!productObj) {
+        //     throw new Error("Product Not Found !!");
+        // }
+        console.log(req.body)
+
+
+        res.status(200).json({ message: "Products Updated", success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
     }
 };
 
 
 
 
-export const getCategoryWiseProducts = async (req, res, next) => {
-    //category wise product
-    try {
-        let productsArr = await Product.find({ categoryId: req.params.id }).lean().exec()
-        for (const el of productsArr) {
-            let brandObj = await Brand.findById(el.brandId).exec()
-            el.brandObj = brandObj
-
-            let categoryObj = await Category.findById(el.categoryId).exec()
-            el.categoryObj = categoryObj
-
-            for (const ele of tagArr) {
-                let tagObj = await Tag.findById(ele.tagId).exec()
-                ele.tagObj = tagObj
-
-            }
-        }
-        res.status(200).json({
-            message: "products",
-            data: productsArr,
-            success: true,
-        });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-};

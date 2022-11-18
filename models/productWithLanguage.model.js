@@ -1,8 +1,35 @@
 import mongoose from "mongoose";
 
-let product = mongoose.Schema(
+let productWithLanguage = mongoose.Schema(
     {
-
+        productId: String,
+        languageId: String,
+        ///////////////////
+        companyName: String,
+        companyMail: String,
+        companyPhone: String,
+        website: String,
+        companyLogo: String,
+        companyFoundingDate: String,
+        companyHqLocation: String,
+        companyDescription: String,
+        companyRepName: String,
+        companyRepMail: String,
+        companyRepPhone: String,
+        productType: {
+            value: String,
+        },
+        productCount: String,
+        leadManagerArr: [
+            {
+                name: String,
+                mail: String,
+                phone: String,
+                country: [{
+                    value: String,
+                }],
+            }
+        ],
         name: String,
         languageSupported: [{
             value: String
@@ -120,4 +147,4 @@ let product = mongoose.Schema(
     },
     { timestamps: true }
 );
-export default mongoose.model("product", product);
+export default mongoose.model("productWithLanguage", productWithLanguage);
