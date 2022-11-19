@@ -8,6 +8,6 @@ let router = express.Router();
 router.post("/addProduct", addProduct);
 router.get("/getProducts", getProducts);
 router.get("/getProductById/:id", getProductById);
-router.get("/updateById/:id", updateProductById);
+router.patch("/updateById/:id", updateProductById);
 
 export default router;
