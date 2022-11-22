@@ -14,9 +14,12 @@ let conversion = mongoose.Schema(
         ifyesIstrainingfreeofcost: String,
         protectedcropsgreenhousesnethouses: String,
 
-
-
-
+        seeds: String,
+        spices: String,
+        feedandForageCrops: String,
+        fiber: String,
+        industrial: String,
+        any: String,
 
         addnewProduct: String,
         /////Company Overview
