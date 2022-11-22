@@ -21,9 +21,6 @@ let productGroups = mongoose.Schema(
                 name: String,
                 mail: String,
                 phone: String,
-                country: [{
-                    value: String,
-                }],
             }
         ],
         productCount: String,

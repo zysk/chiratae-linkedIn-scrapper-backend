@@ -113,7 +113,7 @@ export const getProductById = async (req, res, next) => {
                                     precisionAgriculture: productObj?.featureChecklist?.precisionAgriculture,
                                     weatherForecast: productObj?.featureChecklist?.weatherForecast,
                                     soilHealth: productObj?.featureChecklist?.soilHealth,
-                                    farmAnalytics: productObj?.featureChecklist?.farmAnalytics,
+                                    infieldanalytics: productObj?.featureChecklist?.infieldanalytics,
                                     fieldAndEquipmentRecords: productObj?.featureChecklist?.fieldAndEquipmentRecords,
                                     harvestAnalysis: productObj?.featureChecklist?.harvestAnalysis,
                                     hardwareAndConnectivity: productObj?.featureChecklist?.hardwareAndConnectivity,
@@ -123,6 +123,7 @@ export const getProductById = async (req, res, next) => {
                                 targetCustomer: {
                                     marketsServed: productObj?.targetCustomer?.marketsServed,
                                     typesOfFarmsServed: productObj?.targetCustomer?.typesOfFarmsServed,
+                                    country: productObj?.targetCustomer.country,
                                     customers: productObj?.targetCustomer?.customers,
                                     farmSize: productObj?.targetCustomer?.farmSize,
                                     typeOfLeads: "",
@@ -186,6 +187,7 @@ export const getProductById = async (req, res, next) => {
                                     customers: {
                                         value: "",
                                     },
+                                    country: [],
                                     farmSize: [],
                                     typeOfLeads: "",
                                     relevantCrops: [],
@@ -258,6 +260,7 @@ export const getProductById = async (req, res, next) => {
                             targetCustomer: {
                                 marketsServed: [],
                                 typesOfFarmsServed: [],
+                                country: [],
                                 customers: {
                                     value: "",
                                 },
@@ -299,6 +302,27 @@ export const getProductById = async (req, res, next) => {
         console.log(JSON.stringify(productGroupsObj, null, 2), "productGroupsObj")
 
         res.status(200).json({ message: "Products Found", data: productGroupsObj, success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+};
+export const getFilteredProducts = async (req, res, next) => {
+    try {
+        console.log(req.query)
+
+        if (req.query.page) {
+            console.log(req.query.page)
+        }
+
+
+
+
+        let productsArr = await Product.find({}).exec()
+
+
+
+        res.status(200).json({ message: "Filtered Products Found", data: productsArr, success: true });
     } catch (err) {
         console.error(err);
         next(err);
@@ -351,6 +375,25 @@ export const updateProductById = async (req, res, next) => {
         }
 
         res.status(200).json({ message: "Products Updated", success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+};
+
+export const DeleteProductById = async (req, res, next) => {
+    try {
+        let groupObj = await ProductGroups.findById(req.params.id).exec()
+        console.log(groupObj, "groupObj")
+        if (!groupObj) {
+            throw new Error("Could not find or already delete please reload the page once")
+        }
+
+        await Product.deleteMany({ _id: [...groupObj.productsArr.map(el => el.productId)] }).exec()
+        await ProductWithLanguage.deleteMany({ productId: [...groupObj.productsArr.map(el => el.productId)] }).exec()
+        await ProductGroups.findByIdAndDelete(req.params.id).exec()
+
+        res.status(200).json({ message: "Products Deleted", success: true });
     } catch (err) {
         console.error(err);
         next(err);

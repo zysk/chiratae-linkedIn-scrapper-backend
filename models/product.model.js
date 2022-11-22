@@ -67,6 +67,9 @@ let product = mongoose.Schema(
             marketsServed: [{
                 value: String
             }],
+            country: [{
+                value: String,
+            }],
             typesOfFarmsServed: [{
                 value: String
             }],

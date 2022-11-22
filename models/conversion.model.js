@@ -165,7 +165,7 @@ let conversion = mongoose.Schema(
         pestdiseasealert: String,
         growthstageanalysis: String,
         /////////farmAnalyticsArr
-        farmanalytics: String,
+        infieldanalytics: String,
         cropzones: String,
         topographyanalysis: String,
         realtimefieldmonitoring: String,
@@ -183,9 +183,10 @@ let conversion = mongoose.Schema(
         commoditypricetracking: String,
         realTimedeliverystatusmonitoring: String,
         /////////hardwareAndConnectivityArr
-        hardwareconnectivity: String,
+        compatibility: String,
         meteoStationsandsoilsensors: String,
         eRPintegration: String,
+        cropAdvisor: String,
         agribusinesssoftwareintegration: String,
         iSOBUScompliance: String,
         /////////accountingArr
@@ -284,9 +285,10 @@ let conversion = mongoose.Schema(
         freshherbs: String,
         fodderandsugarbeet: String,
         meadowsandpastures: String,
-
+        growers: String,
 
         ///////////////////Installation, Set-up & Pricing
+        pricingDetails: String,
         installationSetupPricing: String,
         howcanyoursoftwarebeused: String,
         appleIOSappmobile: String,
