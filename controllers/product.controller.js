@@ -307,22 +307,232 @@ export const getProductById = async (req, res, next) => {
         next(err);
     }
 };
+
+
+export const getProductByProductId = async (req, res, next) => {
+    try {
+
+
+        let productObj = await Product.findById(req.params.id).lean().exec()
+        if (!productObj) {
+            throw new Error("Product Not found ")
+        }
+
+        let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id }).exec();
+        console.log(productGroupsObj, "productGroupsObj")
+        if (productGroupsObj) {
+            productObj.productGroupsObj = productGroupsObj
+        }
+
+        res.status(200).json({ message: "Products Found", data: productObj, success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+};
+
+
+//////////////////this api returns array of products which are displayed on category page in website (the array is filtered using the filters given on category page)
 export const getFilteredProducts = async (req, res, next) => {
     try {
-        console.log(req.query)
 
+
+        let query = {}
+        console.log(req.query, "asds")
         if (req.query.page) {
             console.log(req.query.page)
         }
+        if (req.query.properties && JSON.parse(req.query.properties).length > 0) {
+            let propertiesArr = JSON.parse(req.query.properties)
+            let softwareDescriptionObj = propertiesArr.find(el => el.name == "Farming Needs");
+            let pricingObj = propertiesArr.find(el => el.name == "Pricing");
+            let farmTypeObj = propertiesArr.find(el => el.name == "Farm Type");
+            let targetUserObj = propertiesArr.find(el => el.name == "Target User");
+            let languageObj = propertiesArr.find(el => el.name == "Language");
+            let technologyObj = propertiesArr.find(el => el.name == "Technology");
+            let marketsServedObj = propertiesArr.find(el => el.name == "Markets Served");
+            let featuresObj = propertiesArr.find(el => el.name == "Features");
+            console.log(pricingObj, "pricingObj")
+
+            if (softwareDescriptionObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...softwareDescriptionObj?.values.map(
+                            el => ({
+                                "featureChecklist.softwareDescription.value": el.value
+                            })
+                        ),
+                    ]
+                }
+            }
+            if (pricingObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...pricingObj?.values.map(
+                            el => ({
+                                "installation.pricingModel.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (farmTypeObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...farmTypeObj?.values.map(
+                            el => ({
+                                "targetCustomer.typesOfFarmsServed.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (targetUserObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...targetUserObj?.values.map(
+                            el => ({
+                                "targetCustomer.customers.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (languageObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...languageObj?.values.map(
+                            el => ({
+                                "languageSupported.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (technologyObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...technologyObj?.values.map(
+                            el => ({
+                                "featureChecklist.softwareData.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (marketsServedObj) {
+                query = {
+                    ...query,
+                    $and: [
+                        ...marketsServedObj?.values.map(
+                            el => ({
+                                "targetCustomer.marketsServed.value": el.value
+                            })
+                        )
+                    ]
+                }
+            }
+            if (featuresObj) {
+                query = {
+                    ...query,
+                    $or: [
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.farmAdmin.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.cropPlanning.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.precisionAgriculture.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.weatherForecast.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.harvestAnalysis.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.soilHealth.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+                        {
+                            $and: [
+                                ...featuresObj?.values.map(
+                                    el => ({
+                                        "featureChecklist.farmAnalytics.value": el.value
+                                    })
+                                )
+                            ]
+                        },
+
+                    ]
+
+                }
+            }
+            console.log(JSON.stringify(propertiesArr, null, 2), "Asd")
+        }
+
+        if (req.query.farmSize && JSON.parse(req.query.farmSize).value) {
+            let value = JSON.parse(req.query.farmSize).value
+            if (value) {
+
+                if (value == "500  ha") {
+                    query = { ...query, "targetCustomer.farmSize.value": "500+ ha" }
+                }
+                else {
+                    query = { ...query, "targetCustomer.farmSize.value": value }
+                }
+            }
+        }
+
+
+        console.log(query, "query")
+        let productsArr = await Product.find(query).exec()
 
 
 
-
-        let productsArr = await Product.find({}).exec()
-
-
-
-        res.status(200).json({ message: "Filtered Products Found", data: productsArr, success: true });
+        res.status(200).json({ message: "Filtered Products Found", data: productsArr, maxCount: productsArr.length, success: true });
     } catch (err) {
         console.error(err);
         next(err);
@@ -367,6 +577,7 @@ export const updateProductById = async (req, res, next) => {
                 el.languageId = req.body.languageId
                 if (productWithLanguageObj) {
                     await ProductWithLanguage.findByIdAndUpdate(productWithLanguageObj._id, el).exec()
+                    // await Product.findByIdAndUpdate(el.productI, el).exec()
                 }
                 else {
                     await new ProductWithLanguage(el).save()
