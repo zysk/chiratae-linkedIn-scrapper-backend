@@ -42,9 +42,6 @@ export const addProduct = async (req, res, next) => {
     }
 };
 
-
-
-
 export const getProducts = async (req, res, next) => {
     try {
         let addedProductsArr = await ProductGroups.find().lean().exec()
@@ -79,9 +76,9 @@ export const getProductById = async (req, res, next) => {
         if (!productGroupsObj) {
             throw new Error("Product Not Found !!");
         }
-        console.log(productGroupsObj, "productGroupsObj")
+        // console.log(productGroupsObj, "productGroupsObj")
 
-        console.log(req.query.languageId, "req.query.languageId")
+        // console.log(req.query.languageId, "req.query.languageId")
 
 
         let languageObj = {}
@@ -90,18 +87,23 @@ export const getProductById = async (req, res, next) => {
             languageObj = await Language.findById(req.query.languageId).exec()
         }
 
-        console.log(languageObj)
+
 
         if (productGroupsObj.productsArr) {
             for (const ele of productGroupsObj.productsArr) {
+
+                console.log({ productId: ele.productId, languageId: req.query.languageId }, "{ productId: ele.productId, languageId: req.query.languageId }")
                 if (req.query.languageId && languageObj && `${languageObj.name}`.toLowerCase() != "english") {
                     let productObj = await ProductWithLanguage.findOne({ productId: ele.productId, languageId: req.query.languageId }).exec()
+                    console.log(productObj, productObj?.languageId, productObj?.name, "product");
                     if (productObj) {
                         ele.productObj = productObj
                     }
+                    // productId: '637daf7591736bf30f30565a',
+                    //     languageId: '6378a7e07b80cc71f69007af',
                     else {
                         let productObj = await Product.findById(ele.productId).exec()
-                        console.log(productObj, "productObj")
+                        console.log(productObj?.fileArr, "productObj", ele.productId)
                         if (productObj) {
                             ele.productObj = {
                                 _id: productObj._id,
@@ -122,7 +124,7 @@ export const getProductById = async (req, res, next) => {
                                     precisionAgriculture: productObj?.featureChecklist?.precisionAgriculture,
                                     weatherForecast: productObj?.featureChecklist?.weatherForecast,
                                     soilHealth: productObj?.featureChecklist?.soilHealth,
-                                    infieldanalytics: productObj?.featureChecklist?.infieldanalytics,
+                                    farmAnalytics: productObj?.featureChecklist?.farmAnalytics,
                                     fieldAndEquipmentRecords: productObj?.featureChecklist?.fieldAndEquipmentRecords,
                                     harvestAnalysis: productObj?.featureChecklist?.harvestAnalysis,
                                     hardwareAndConnectivity: productObj?.featureChecklist?.hardwareAndConnectivity,
@@ -145,7 +147,7 @@ export const getProductById = async (req, res, next) => {
                                     isFreeTrialAvailable: productObj?.customerSupport?.isFreeTrialAvailable,
                                     typeOfCustomerSupport: productObj?.customerSupport?.typeOfCustomerSupport,
                                     trainingAvailable: productObj?.customerSupport?.trainingAvailable,
-                                    isTrainingFree: "",
+                                    isTrainingFree: productObj?.customerSupport?.isTrainingFree,
                                     typeOfTrainings: productObj?.customerSupport?.typeOfTrainings,
                                 },
                                 installation: {
@@ -159,7 +161,9 @@ export const getProductById = async (req, res, next) => {
                                     valuePropositions: "",
                                     competitors: "",
                                 },
-                                media: [],
+                                fileArr: productObj?.fileArr,
+                                mediaLinksArr: productObj?.mediaLinksArr,
+                                caseStudies: productObj?.caseStudies,
                             }
                         }
                         else {
@@ -226,14 +230,16 @@ export const getProductById = async (req, res, next) => {
                                     valuePropositions: "",
                                     competitors: "",
                                 },
-                                media: [],
+                                fileArr: [],
+                                mediaLinksArr: [],
+                                caseStudies: [],
                             }
                         }
                     }
                 }
                 else {
                     let productObj = await Product.findById(ele.productId).exec()
-                    console.log(productObj, "productObj");
+                    // console.log(productObj, "productObj");
                     if (productObj) {
                         ele.productObj = productObj
                     }
@@ -303,7 +309,9 @@ export const getProductById = async (req, res, next) => {
                                 valuePropositions: "",
                                 competitors: "",
                             },
-                            media: [],
+                            fileArr: [],
+                            mediaLinksArr: [],
+                            caseStudies: [],
                         }
                     }
                 }
@@ -317,7 +325,6 @@ export const getProductById = async (req, res, next) => {
         next(err);
     }
 };
-
 
 export const getProductByProductId = async (req, res, next) => {
     try {
@@ -339,7 +346,6 @@ export const getProductByProductId = async (req, res, next) => {
         next(err);
     }
 };
-
 
 //////////////////this api returns array of products which are displayed on category page in website (the array is filtered using the filters given on category page)
 export const getFilteredProducts = async (req, res, next) => {
@@ -574,28 +580,23 @@ export const getFilteredProducts = async (req, res, next) => {
 
 export const updateProductById = async (req, res, next) => {
     try {
-        // console.log(req.params.id)
-        // let productObj = await Product.findOne({ _id: req.params.id }).exec();
-        // if (!productObj) {
-        //     throw new Error("Product Not Found !!");
-        // }
         let languageObj = {}
-
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec()
         }
-
         if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
             for (const el of req.body.productArr) {
 
-                if (el.fileArr.fileArr && el.fileArr.fileArr.length > 0) {
+                if (el.fileArr && el.fileArr.length > 0) {
                     el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
-                }
 
-                for (const ele of el.fileArr) {
-                    if (ele.url != "" && ele.url.includes("base64")) {
-                        ele.url = await storeFileAndReturnNameBase64(ele.url);
+                    for (const ele of el.fileArr) {
+                        if (ele.url != "" && ele.url.includes("base64")) {
+                            ele.url = await storeFileAndReturnNameBase64(ele.url);
+                        }
                     }
+                } else {
+                    delete el.fileArr
                 }
 
                 let productWithoutLanguageObj = await Product.findOne({ _id: el.productId }).exec()
@@ -606,49 +607,40 @@ export const updateProductById = async (req, res, next) => {
 
                     let obj = {
                         languageSupported: el.languageSupported,
-                        featureChecklist: {
-                            softwareDescription: el.featureChecklist.softwareDescription,
-                            softwareType: el.featureChecklist.softwareType,
-                            softwareData: el.featureChecklist.softwareData,
-                            farmAdmin: el.featureChecklist.farmAdmin,
-                            accountAccess: el.featureChecklist.accountAccess,
-                            usersPerAccount: el.featureChecklist.usersPerAccount,
-                            modeOfUse: el.featureChecklist.modeOfUse,
-                            cropPlanning: el.featureChecklist.cropPlanning,
-                            operationalPlanning: el.featureChecklist.operationalPlanning,
-                            precisionAgriculture: el.featureChecklist.precisionAgriculture,
-                            weatherForecast: el.featureChecklist.weatherForecast,
-                            soilHealth: el.featureChecklist.soilHealth,
-                            farmAnalytics: el.featureChecklist.farmAnalytics,
-                            fieldAndEquipmentRecords: el.featureChecklist.fieldAndEquipmentRecords,
-                            harvestAnalysis: el.featureChecklist.harvestAnalysis,
-                            hardwareAndConnectivity: el.featureChecklist.hardwareAndConnectivity,
-                            accounting: el.featureChecklist.accounting,
-                        },
-                        targetCustomer: {
-                            marketsServed: el.targetCustomer.marketsServed,
-                            country: el.targetCustomer.country,
-                            typesOfFarmsServed: el.targetCustomer.typesOfFarmsServed,
-                            customers: el.targetCustomer.customers,
-                            farmSize: el.targetCustomer.farmSize,
-                            relevantCrops: el.targetCustomer.relevantCrops,
-                        },
-                        customerSupport: {
-                            isFreeTrialAvailable: el.customerSupport.isFreeTrialAvailable,
-                            typeOfCustomerSupport: el.customerSupport.typeOfCustomerSupport,
-                            trainingAvailable: el.customerSupport.trainingAvailable,
-                            isTrainingFree: el.customerSupport.isTrainingFree,
-                            typeOfTrainings: el.customerSupport.typeOfTrainings,
-                        },
-                        installation: {
-                            sofwareUse: el.installation.sofwareUse,
-                            pricingModel: el.installation.pricingModel,
-                        },
-                        mediaLinksArr: el.mediaLinksArr.mediaLinksArr,
-                        caseStudies: el.caseStudies.caseStudies,
+                        "featureChecklist.softwareDescription": el.featureChecklist.softwareDescription,
+                        "featureChecklist.softwareType": el.featureChecklist.softwareType,
+                        "featureChecklist.softwareData": el.featureChecklist.softwareData,
+                        "featureChecklist.farmAdmin": el.featureChecklist.farmAdmin,
+                        "featureChecklist.accountAccess": el.featureChecklist.accountAccess,
+                        "featureChecklist.usersPerAccount": el.featureChecklist.usersPerAccount,
+                        "featureChecklist.modeOfUse": el.featureChecklist.modeOfUse,
+                        "featureChecklist.cropPlanning": el.featureChecklist.cropPlanning,
+                        "featureChecklist.operationalPlanning": el.featureChecklist.operationalPlanning,
+                        "featureChecklist.precisionAgriculture": el.featureChecklist.precisionAgriculture,
+                        "featureChecklist.weatherForecast": el.featureChecklist.weatherForecast,
+                        "featureChecklist.soilHealth": el.featureChecklist.soilHealth,
+                        "featureChecklist.farmAnalytics": el.featureChecklist.farmAnalytics,
+                        "featureChecklist.fieldAndEquipmentRecords": el.featureChecklist.fieldAndEquipmentRecords,
+                        "featureChecklist.harvestAnalysis": el.featureChecklist.harvestAnalysis,
+                        "featureChecklist.hardwareAndConnectivity": el.featureChecklist.hardwareAndConnectivity,
+                        "featureChecklist.accounting": el.featureChecklist.accounting,
+                        "targetCustomer.marketsServed": el.targetCustomer.marketsServed,
+                        "targetCustomer.country": el.targetCustomer.country,
+                        "targetCustomer.typesOfFarmsServed": el.targetCustomer.typesOfFarmsServed,
+                        "targetCustomer.customers": el.targetCustomer.customers,
+                        "targetCustomer.farmSize": el.targetCustomer.farmSize,
+                        "targetCustomer.relevantCrops": el.targetCustomer.relevantCrops,
+                        "customerSupport.isFreeTrialAvailable": el.customerSupport.isFreeTrialAvailable,
+                        "customerSupport.typeOfCustomerSupport": el.customerSupport.typeOfCustomerSupport,
+                        "customerSupport.trainingAvailable": el.customerSupport.trainingAvailable,
+                        "customerSupport.isTrainingFree": el.customerSupport.isTrainingFree,
+                        "customerSupport.typeOfTrainings": el.customerSupport.typeOfTrainings,
+                        "installation.sofwareUse": el.installation.sofwareUse,
+                        "installation.pricingModel": el.installation.pricingModel,
+                        mediaLinksArr: el.mediaLinksArr,
+                        caseStudies: el.caseStudies,
                     }
-
-                    await ProductWithLanguage.updateMany({ productId: productWithoutLanguageObj._id }, obj).exec();
+                    await ProductWithLanguage.updateMany({ productId: productWithoutLanguageObj._id }, { $set: obj }).exec();
                 }
                 else {
                     await new Product(el).save()
@@ -658,13 +650,19 @@ export const updateProductById = async (req, res, next) => {
         else {
             for (const el of req.body.productArr) {
                 let productWithLanguageObj = await ProductWithLanguage.findOne({ productId: el.productId, languageId: req.body.languageId }).exec()
-                if (el.fileArr.fileArr && el.fileArr.fileArr.length > 0) {
-                    el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
-                }
-                for (const ele of el.fileArr) {
-                    if (ele.url != "" && ele.url.includes("base64")) {
-                        ele.url = await storeFileAndReturnNameBase64(ele.url);
+                if (el.fileArr && el.fileArr.length > 0) {
+                    // el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
+                    for (const ele of el.fileArr) {
+                        if (ele.url != "" && ele.url.includes("base64")) {
+                            ele.url = await storeFileAndReturnNameBase64(ele.url);
+                        }
+                        else {
+                            ele.url = ele.url
+                        }
                     }
+                }
+                else {
+                    delete el.fileArr
                 }
                 el.languageId = req.body.languageId
                 if (productWithLanguageObj) {
@@ -676,54 +674,45 @@ export const updateProductById = async (req, res, next) => {
 
                 let obj = {
                     languageSupported: el.languageSupported,
-                    featureChecklist: {
-                        softwareDescription: el.featureChecklist.softwareDescription,
-                        softwareType: el.featureChecklist.softwareType,
-                        softwareData: el.featureChecklist.softwareData,
-                        farmAdmin: el.featureChecklist.farmAdmin,
-                        accountAccess: el.featureChecklist.accountAccess,
-                        usersPerAccount: el.featureChecklist.usersPerAccount,
-                        modeOfUse: el.featureChecklist.modeOfUse,
-                        cropPlanning: el.featureChecklist.cropPlanning,
-                        operationalPlanning: el.featureChecklist.operationalPlanning,
-                        precisionAgriculture: el.featureChecklist.precisionAgriculture,
-                        weatherForecast: el.featureChecklist.weatherForecast,
-                        soilHealth: el.featureChecklist.soilHealth,
-                        farmAnalytics: el.featureChecklist.farmAnalytics,
-                        fieldAndEquipmentRecords: el.featureChecklist.fieldAndEquipmentRecords,
-                        harvestAnalysis: el.featureChecklist.harvestAnalysis,
-                        hardwareAndConnectivity: el.featureChecklist.hardwareAndConnectivity,
-                        accounting: el.featureChecklist.accounting,
-                    },
-                    targetCustomer: {
-                        marketsServed: el.targetCustomer.marketsServed,
-                        country: el.targetCustomer.country,
-                        typesOfFarmsServed: el.targetCustomer.typesOfFarmsServed,
-                        customers: el.targetCustomer.customers,
-                        farmSize: el.targetCustomer.farmSize,
-                        relevantCrops: el.targetCustomer.relevantCrops,
-                    },
-                    customerSupport: {
-                        isFreeTrialAvailable: el.customerSupport.isFreeTrialAvailable,
-                        typeOfCustomerSupport: el.customerSupport.typeOfCustomerSupport,
-                        trainingAvailable: el.customerSupport.trainingAvailable,
-                        isTrainingFree: el.customerSupport.isTrainingFree,
-                        typeOfTrainings: el.customerSupport.typeOfTrainings,
-                    },
-                    installation: {
-                        sofwareUse: el.installation.sofwareUse,
-                        pricingModel: el.installation.pricingModel,
-                    },
-                    fileArr: el.fileArr,
+                    "featureChecklist.softwareDescription": el.featureChecklist.softwareDescription,
+                    "featureChecklist.softwareType": el.featureChecklist.softwareType,
+                    "featureChecklist.softwareData": el.featureChecklist.softwareData,
+                    "featureChecklist.farmAdmin": el.featureChecklist.farmAdmin,
+                    "featureChecklist.accountAccess": el.featureChecklist.accountAccess,
+                    "featureChecklist.usersPerAccount": el.featureChecklist.usersPerAccount,
+                    "featureChecklist.modeOfUse": el.featureChecklist.modeOfUse,
+                    "featureChecklist.cropPlanning": el.featureChecklist.cropPlanning,
+                    "featureChecklist.operationalPlanning": el.featureChecklist.operationalPlanning,
+                    "featureChecklist.precisionAgriculture": el.featureChecklist.precisionAgriculture,
+                    "featureChecklist.weatherForecast": el.featureChecklist.weatherForecast,
+                    "featureChecklist.soilHealth": el.featureChecklist.soilHealth,
+                    "featureChecklist.farmAnalytics": el.featureChecklist.farmAnalytics,
+                    "featureChecklist.fieldAndEquipmentRecords": el.featureChecklist.fieldAndEquipmentRecords,
+                    "featureChecklist.harvestAnalysis": el.featureChecklist.harvestAnalysis,
+                    "featureChecklist.hardwareAndConnectivity": el.featureChecklist.hardwareAndConnectivity,
+                    "featureChecklist.accounting": el.featureChecklist.accounting,
+                    "targetCustomer.marketsServed": el.targetCustomer.marketsServed,
+                    "targetCustomer.country": el.targetCustomer.country,
+                    "targetCustomer.typesOfFarmsServed": el.targetCustomer.typesOfFarmsServed,
+                    "targetCustomer.customers": el.targetCustomer.customers,
+                    "targetCustomer.farmSize": el.targetCustomer.farmSize,
+                    "targetCustomer.relevantCrops": el.targetCustomer.relevantCrops,
+                    "customerSupport.isFreeTrialAvailable": el.customerSupport.isFreeTrialAvailable,
+                    "customerSupport.typeOfCustomerSupport": el.customerSupport.typeOfCustomerSupport,
+                    "customerSupport.trainingAvailable": el.customerSupport.trainingAvailable,
+                    "customerSupport.isTrainingFree": el.customerSupport.isTrainingFree,
+                    "customerSupport.typeOfTrainings": el.customerSupport.typeOfTrainings,
+                    "installation.sofwareUse": el.installation.sofwareUse,
+                    "installation.pricingModel": el.installation.pricingModel,
                     mediaLinksArr: el.mediaLinksArr,
                     caseStudies: el.caseStudies,
                 }
-                if (el.fileArr.fileArr && el.fileArr.fileArr.length > 0) {
-                    obj.fileArr = el.fileArr.fileArr
+                if (el.fileArr && el.fileArr.length > 0) {
+                    obj.fileArr = el.fileArr
                 }
                 console.log(JSON.stringify(obj, null, 2), "hardwareAndConnectivity", el.productId)
 
-                let productWithoutLanguageObj = await Product.findByIdAndUpdate(el.productId, obj, { new: true }).exec()
+                let productWithoutLanguageObj = await Product.findByIdAndUpdate(el.productId, { $set: obj }, { new: true }).exec()
                 console.log(JSON.stringify(productWithoutLanguageObj, null, 2), "productWithoutLanguageObj")
                 console.log(productWithoutLanguageObj._id, "productWithoutLanguageObj", el.productId)
 

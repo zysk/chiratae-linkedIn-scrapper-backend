@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 let productWithLanguage = mongoose.Schema(
     {
         name: String,
+        productId: String,
+        languageId: String,
         languageSupported: [{
             label: String,
             value: String
