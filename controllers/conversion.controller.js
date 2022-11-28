@@ -1,4 +1,5 @@
 import Conversion from "../models/conversion.model";
+import ConversionBackup from "../models/conversionBackup.model";
 import Language from "../models/language.model";
 
 export const AddConversion = async (req, res, next) => {
@@ -7,6 +8,7 @@ export const AddConversion = async (req, res, next) => {
 
         for (const el of req.body) {
             await Conversion.findOneAndUpdate({ languageId: el.languageId }, { ...el }, { upsert: true }).exec()
+            await ConversionBackup.findOneAndUpdate({ languageId: el.languageId }, { ...el }, { upsert: true }).exec()
         }
 
         res.status(200).json({ message: "Conversions created", success: true });
