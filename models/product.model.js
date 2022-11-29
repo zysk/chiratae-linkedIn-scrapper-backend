@@ -94,10 +94,10 @@ let product = mongoose.Schema(
                 label: String,
                 value: String
             }],
-            customers: {
+            customers: [{
                 label: String,
                 value: String,
-            },
+            }],
             otherCustomers: String,
             farmSize: [{
                 label: String,
