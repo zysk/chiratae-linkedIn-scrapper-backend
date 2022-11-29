@@ -326,10 +326,33 @@ export const getProductById = async (req, res, next) => {
     }
 };
 
+export const getComparisionProductsProducts = async (req, res, next) => {
+    try {
+        console.log(req.query, "req.query")
+        let tempArr = req.query.productArr
+        tempArr = tempArr.split(",")
+
+        let productArr = await Product.find({ _id: { $in: [...tempArr] } }).lean().exec()
+        if (!productArr) {
+            throw new Error("Product Not found ")
+        }
+        for (const el of productArr) {
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+            console.log(productGroupsObj, "productGroupsObj")
+            if (productGroupsObj) {
+                el.productGroupsObj = productGroupsObj
+            }
+        }
+
+        res.status(200).json({ message: "Products Found", data: productArr, success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+};
+
 export const getProductByProductId = async (req, res, next) => {
     try {
-
-
         let productObj = await Product.findById(req.params.id).lean().exec()
         if (!productObj) {
             throw new Error("Product Not found ")
@@ -368,8 +391,8 @@ export const getFilteredProducts = async (req, res, next) => {
             let targetUserObj = propertiesArr.find(el => el.name == "Target User");
             let languageObj = propertiesArr.find(el => el.name == "Language");
             let technologyObj = propertiesArr.find(el => el.name == "Technology");
-            let marketsServedObj = propertiesArr.find(el => el.name == "Markets Served");
-            let featuresObj = propertiesArr.find(el => el.name == "Features");
+            // let marketsServedObj = propertiesArr.find(el => el.name == "Markets Served");
+            // let featuresObj = propertiesArr.find(el => el.name == "Features");
             if (softwareDescriptionObj) {
                 query = {
                     ...query,
@@ -442,90 +465,90 @@ export const getFilteredProducts = async (req, res, next) => {
                     ]
                 }
             }
-            if (marketsServedObj) {
-                query = {
-                    ...query,
-                    $and: [
-                        ...marketsServedObj?.values.map(
-                            el => ({
-                                "targetCustomer.marketsServed.value": el.value
-                            })
-                        )
-                    ]
-                }
-            }
-            if (featuresObj) {
-                query = {
-                    ...query,
-                    $or: [
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.farmAdmin.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.cropPlanning.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.precisionAgriculture.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.weatherForecast.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.harvestAnalysis.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.soilHealth.value": el.value
-                                    })
-                                )
-                            ]
-                        },
-                        {
-                            $and: [
-                                ...featuresObj?.values.map(
-                                    el => ({
-                                        "featureChecklist.farmAnalytics.value": el.value
-                                    })
-                                )
-                            ]
-                        },
+            // if (marketsServedObj) {
+            //     query = {
+            //         ...query,
+            //         $and: [
+            //             ...marketsServedObj?.values.map(
+            //                 el => ({
+            //                     "targetCustomer.marketsServed.value": el.value
+            //                 })
+            //             )
+            //         ]
+            //     }
+            // }
+            // if (featuresObj) {
+            //     query = {
+            //         ...query,
+            //         $or: [
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.farmAdmin.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.cropPlanning.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.precisionAgriculture.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.weatherForecast.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.harvestAnalysis.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.soilHealth.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
+            //             {
+            //                 $and: [
+            //                     ...featuresObj?.values.map(
+            //                         el => ({
+            //                             "featureChecklist.farmAnalytics.value": el.value
+            //                         })
+            //                     )
+            //                 ]
+            //             },
 
-                    ]
+            //         ]
 
-                }
-            }
+            //     }
+            // }
         }
 
         if (req.query.farmSize && req.query.farmSize != "{}" && JSON.parse(req.query.farmSize).value) {
@@ -546,9 +569,9 @@ export const getFilteredProducts = async (req, res, next) => {
 
         console.log(languageObj, "languageObj")
 
-        if (`${languageObj.name}`.toLowerCase() == "english") {
-            productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).lean().exec()
-
+        if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
+            productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ "name": req.query.sort }).lean().exec()
+            console.log(productsArr[0], "productsArr")
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
                 el.productGroupObj = productGroupObj
@@ -561,7 +584,7 @@ export const getFilteredProducts = async (req, res, next) => {
             query = { ...query, languageId: req.query.languageId };
             console.log(query, "ProductWithLanguage")
 
-            productsArr = await ProductWithLanguage.find(query).skip(itemsPerPage * page).limit(itemsPerPage).exec()
+            productsArr = await ProductWithLanguage.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ "name": req.query.sort }).exec()
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
                 el.productGroupObj = productGroupObj
