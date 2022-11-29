@@ -611,8 +611,6 @@ export const updateProductById = async (req, res, next) => {
             for (const el of req.body.productArr) {
 
                 if (el.fileArr && el.fileArr.length > 0) {
-                    el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
-
                     for (const ele of el.fileArr) {
                         if (ele.url != "" && ele.url.includes("base64")) {
                             ele.url = await storeFileAndReturnNameBase64(ele.url);
@@ -663,6 +661,11 @@ export const updateProductById = async (req, res, next) => {
                         mediaLinksArr: el.mediaLinksArr,
                         caseStudies: el.caseStudies,
                     }
+                    if (el.fileArr && el.fileArr.length > 0) {
+                        obj.fileArr = el.fileArr
+                    }
+
+
                     await ProductWithLanguage.updateMany({ productId: productWithoutLanguageObj._id }, { $set: obj }).exec();
                 }
                 else {
