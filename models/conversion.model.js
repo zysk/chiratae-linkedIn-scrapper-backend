@@ -15,6 +15,7 @@ let conversion = mongoose.Schema(
 
         selectAll: String,
 
+        trialLink: String,
         managerforhandlingsalesleads: String,
         contactPersonDetailsForCeressy: String,
         accountAccessDesctiption: String,
@@ -548,7 +549,6 @@ let conversion = mongoose.Schema(
         global: String,
         whoareyourbiggestcompetitorsCompaniesandproductnames: String,
         multipleSelections: String,
-
         //////Media
         media: String,
         doyouhavethefollowingmediaavailableIfyescouldyoupleaseshareitviaemail: String,
@@ -557,8 +557,6 @@ let conversion = mongoose.Schema(
         linkstoproductvideosorphotos: String,
         pleaseEnterlinksformedia: String,
         linkstoproductreviewsthatwecanuseonourplatform: String,
-
-
         termsConditions: String,
         igivepermissiontolistmycompanysproductonCeressyplatformusingtheinformationprovidedinthislistingform: String,
         ihavereadandagreedtoCeressystermsandconditionsfortheuseoftheceressyplatform: String,

@@ -1,6 +1,7 @@
 // import authorizeJwt from "../middlewares/auth.middleware";
 
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
+import { escapeRegExp } from "../helpers/regexHelpers";
 import Language from "../models/language.model";
 import Product from "../models/product.model";
 import ProductGroups from "../models/productGroups.model";
@@ -362,6 +363,20 @@ export const getProductByProductId = async (req, res, next) => {
         if (productGroupsObj) {
             productObj.productGroupsObj = productGroupsObj
         }
+        console.log(productObj?.targetCustomer?.customers.map(el => ({ value: el.value })), "productObj?.targetCustomer?.customers.map(el => el.value)")
+
+        let relatedProductsArr = await Product.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map(el => el.value)] } }).lean().exec()
+        console.log(relatedProductsArr)
+        if (relatedProductsArr) {
+            for (const el of relatedProductsArr) {
+                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                if (productGroupsObj) {
+                    el.productGroupsObj = productGroupsObj
+                }
+            }
+            productObj.relatedProductsArr = relatedProductsArr
+        }
+
 
         res.status(200).json({ message: "Products Found", data: productObj, success: true });
     } catch (err) {
@@ -603,12 +618,25 @@ export const getFilteredProducts = async (req, res, next) => {
 
 export const updateProductById = async (req, res, next) => {
     try {
+
+
+        console.log(req.body, "req.body")
         let languageObj = {}
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec()
         }
+
+
+
+        let tempProductsArr = []
+
+
+
         if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
             for (const el of req.body.productArr) {
+
+
+
 
                 if (el.fileArr && el.fileArr.length > 0) {
                     for (const ele of el.fileArr) {
@@ -623,9 +651,6 @@ export const updateProductById = async (req, res, next) => {
                 let productWithoutLanguageObj = await Product.findOne({ _id: el.productId }).exec()
                 if (productWithoutLanguageObj) {
                     await Product.findByIdAndUpdate(productWithoutLanguageObj._id, el).exec()
-
-                    await ProductGroups.findOneAndUpdate({ "productArr.productId": productWithoutLanguageObj._id }, { reviewsArr: req.body.reviewsArr }).exec()
-
                     let obj = {
                         languageSupported: el.languageSupported,
                         "featureChecklist.softwareDescription": el.featureChecklist.softwareDescription,
@@ -669,7 +694,8 @@ export const updateProductById = async (req, res, next) => {
                     await ProductWithLanguage.updateMany({ productId: productWithoutLanguageObj._id }, { $set: obj }).exec();
                 }
                 else {
-                    await new Product(el).save()
+                    let productObj = await new Product(el).save()
+                    tempProductsArr.push(productObj)
                 }
             }
         }
@@ -745,6 +771,9 @@ export const updateProductById = async (req, res, next) => {
             }
         }
 
+        tempProductsArr = tempProductsArr.map(el => ({ productId: el._id }))
+        await ProductGroups.findByIdAndUpdate(req.body.productGroupId, { ...req.body, $push: { productsArr: { $each: tempProductsArr } } }).exec()
+
         res.status(200).json({ message: "Products Updated", success: true });
     } catch (err) {
         console.error(err);
@@ -765,6 +794,42 @@ export const DeleteProductById = async (req, res, next) => {
         await ProductGroups.findByIdAndDelete(req.params.id).exec()
 
         res.status(200).json({ message: "Products Deleted", success: true });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+};
+
+
+
+export const searchProductByName = async (req, res, next) => {
+    try {
+        console.log(req.query.productName, "req.query.productName")
+        console.log(req.query, "req.query.productName")
+
+        let languageObj = {};
+        let productArr = [];
+        if (req.query.languageId) {
+            languageObj = await Language.findById(req.query.languageId).exec()
+        }
+
+
+        if (languageObj && `${languageObj.name}`.toLowerCase() != "english") {
+            productArr = await ProductWithLanguage.find({ "name": { "$regex": `${req.query.productName}`, "$options": "i" } }).lean().exec()
+        }
+        else {
+
+            productArr = await Product.find({ "name": { "$regex": `${req.query.productName}`, "$options": "i" } }).lean().exec()
+        }
+        for (const el of productArr) {
+            let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec()
+            el.productGroupObj = productGroupObj
+        }
+        console.log(productArr && productArr.length)
+
+        productArr = productArr.map(el => ({ name: el.name, _id: el._id, shortDescription: el.shortDescription, productImage: el.productGroupObj.companyLogo }));
+
+        res.status(200).json({ message: "Found Products", data: productArr, success: true });
     } catch (err) {
         console.error(err);
         next(err);

@@ -12,6 +12,10 @@ import product from "./routes/product.routes";
 //routes
 import usersRouter from "./routes/users.routes";
 import conversionRouter from "./routes/conversion.routes";
+import contactRouter from "./routes/contact.routes";
+import partnerRouter from "./routes/partner.routes";
+import leadRouter from "./routes/lead.routes";
+import homepageBannerRouter from "./routes/homepageBanner.routes";
 
 const app = express();
 app.use(cors());
@@ -33,6 +37,10 @@ app.use("/users", usersRouter);
 app.use("/product", product);
 app.use("/language", languageRouter);
 app.use("/conversion", conversionRouter);
+app.use("/contact", contactRouter);
+app.use("/partner", partnerRouter);
+app.use("/lead", leadRouter);
+app.use("/homepageBanner", homepageBannerRouter);
 
 app.use(errorHandler);
 

@@ -120,6 +120,7 @@ let productWithLanguage = mongoose.Schema(
                 label: String,
                 value: String,
             },
+            trialLink: String,
             typeOfCustomerSupport: [{
                 label: String,
                 value: String
