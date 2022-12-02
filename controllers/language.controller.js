@@ -45,7 +45,7 @@ export const updateLanguage = async (req, res, next) => {
         if (!LanguageExistsObj) {
             throw new Error("Language not found , you might have already deleted it please reload the page once.");
         }
-        await Language.findByIdAndUpdate(req.params.id, { name: req.body.name, isActive: req.body.isActive }).exec();
+        await Language.findByIdAndUpdate(req.params.id, { name: req.body.name, shortName: req.body.shortName, isActive: req.body.isActive }).exec();
 
         res.status(200).json({ message: `Language Updated`, success: true });
     } catch (error) {
