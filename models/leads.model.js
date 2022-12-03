@@ -10,6 +10,7 @@ let lead = mongoose.Schema(
             value: String,
             label: String,
         },
+        productId: String,
         farmSize: String,
         type: String,
     },
