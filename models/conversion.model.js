@@ -563,6 +563,8 @@ let conversion = mongoose.Schema(
         iwouldliketobeaddedtoCeressynewslettersmarketingpromotionalactivities: String,
 
         save: String,
+        greenHouses: String,
+        verticalIndoorFarm: String,
     },
     { timestamps: String, }
 );

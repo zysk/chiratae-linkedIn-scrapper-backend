@@ -406,8 +406,6 @@ export const getFilteredProducts = async (req, res, next) => {
             let targetUserObj = propertiesArr.find(el => el.name == "Target User");
             let languageObj = propertiesArr.find(el => el.name == "Language");
             let technologyObj = propertiesArr.find(el => el.name == "Technology");
-            // let marketsServedObj = propertiesArr.find(el => el.name == "Markets Served");
-            // let featuresObj = propertiesArr.find(el => el.name == "Features");
             if (softwareDescriptionObj) {
                 query = {
                     ...query,
@@ -480,102 +478,24 @@ export const getFilteredProducts = async (req, res, next) => {
                     ]
                 }
             }
-            // if (marketsServedObj) {
-            //     query = {
-            //         ...query,
-            //         $and: [
-            //             ...marketsServedObj?.values.map(
-            //                 el => ({
-            //                     "targetCustomer.marketsServed.value": el.value
-            //                 })
-            //             )
-            //         ]
-            //     }
-            // }
-            // if (featuresObj) {
-            //     query = {
-            //         ...query,
-            //         $or: [
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.farmAdmin.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.cropPlanning.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.precisionAgriculture.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.weatherForecast.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.harvestAnalysis.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.soilHealth.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-            //             {
-            //                 $and: [
-            //                     ...featuresObj?.values.map(
-            //                         el => ({
-            //                             "featureChecklist.farmAnalytics.value": el.value
-            //                         })
-            //                     )
-            //                 ]
-            //             },
-
-            //         ]
-
-            //     }
-            // }
         }
+        console.log(typeof req.query.farmSize, "@@@@@@@@@@FARM")
+        if (req.query.farmSize != "undefined" && req.query.farmSize && req.query.farmSize != "{}" && req.query.farmSize != undefined && req.query.farmSize != null) {
 
-        if (req.query.farmSize && req.query.farmSize != "{}" && JSON.parse(req.query.farmSize).value) {
-            let value = JSON.parse(req.query.farmSize).value
-            if (value) {
-                if (value == "500  ha") {
-                    query = { ...query, "targetCustomer.farmSize.value": "500+ ha" }
-                }
-                else {
-                    query = { ...query, "targetCustomer.farmSize.value": value }
+            if (req.query.farmSize) {
+
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                let value = JSON.parse(req.query.farmSize).value
+                if (value) {
+                    if (value == "500  ha") {
+                        query = { ...query, "targetCustomer.farmSize.value": "500+ ha" }
+                    }
+                    else {
+                        query = { ...query, "targetCustomer.farmSize.value": value }
+                    }
                 }
             }
+
         }
         let languageObj = await Language.findById(req.query.languageId).exec()
 
