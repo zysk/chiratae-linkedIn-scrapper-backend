@@ -22,6 +22,7 @@ import homepageConversionRouter from "./routes/homepageConversion.routes";
 import categoryPageConversionRouter from "./routes/categorypageConversion.routes";
 import productpageConversionRouter from "./routes/productpageConversion.routes";
 import headerFooterConversionRouter from "./routes/HeaderFooterConversion.routes";
+import dashboardRouter from "./routes/dsahboard.routes";
 
 const app = express();
 app.use(cors());
@@ -53,6 +54,7 @@ app.use("/homepageConversion", homepageConversionRouter);
 app.use("/categoryPageConversion", categoryPageConversionRouter);
 app.use("/productPageConversion", productpageConversionRouter);
 app.use("/headerFooterConversion", headerFooterConversionRouter);
+app.use("/dashboard", dashboardRouter);
 
 app.use(errorHandler);
 
