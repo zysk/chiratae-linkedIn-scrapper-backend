@@ -11,7 +11,7 @@ router.get("/getFilteredProducts", getFilteredProducts);
 router.get("/getComparisionProductsProducts", getComparisionProductsProducts);
 router.get("/getProductById/:id", getProductById);
 router.get("/searchProductByName", searchProductByName);
-router.get("/getProductByProductId/:id", getProductByProductId);
+router.get("/getProductByProductId/:id/:languageId", getProductByProductId);
 router.patch("/updateById/:id", updateProductById);
 router.delete("/deleteById/:id", DeleteProductById);
 

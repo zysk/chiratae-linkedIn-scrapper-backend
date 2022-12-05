@@ -54,6 +54,8 @@ let productConversion = mongoose.Schema(
         headquarters: String,
         founded: String,
         marketsServed: String,
+        startingFrom: String,
+        read: String,
     },
     { timestamps: true }
 );

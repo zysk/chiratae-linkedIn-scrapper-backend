@@ -3,6 +3,7 @@
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { escapeRegExp } from "../helpers/regexHelpers";
 import Language from "../models/language.model";
+import Conversion from "../models/conversion.model";
 import Product from "../models/product.model";
 import ProductGroups from "../models/productGroups.model";
 import ProductWithLanguage from "../models/productWithLanguage.model";
@@ -354,29 +355,60 @@ export const getComparisionProductsProducts = async (req, res, next) => {
 
 export const getProductByProductId = async (req, res, next) => {
     try {
-        let productObj = await Product.findById(req.params.id).lean().exec()
-        if (!productObj) {
-            throw new Error("Product Not found ")
-        }
-        let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id }).exec();
-        console.log(productGroupsObj, "productGroupsObj")
-        if (productGroupsObj) {
-            productObj.productGroupsObj = productGroupsObj
-        }
-        console.log(productObj?.targetCustomer?.customers.map(el => ({ value: el.value })), "productObj?.targetCustomer?.customers.map(el => el.value)")
 
-        let relatedProductsArr = await Product.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map(el => el.value)] } }).lean().exec()
-        console.log(relatedProductsArr)
-        if (relatedProductsArr) {
-            for (const el of relatedProductsArr) {
-                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
-                if (productGroupsObj) {
-                    el.productGroupsObj = productGroupsObj
-                }
+        let languageObj = {}
+        if (req.params.languageId) {
+            languageObj = await Language.findById(req.params.languageId).exec()
+        }
+        let productObj = {}
+
+
+        console.log(languageObj, "languageObj")
+
+        if (`${languageObj?.name}`.toLowerCase() == "english") {
+            productObj = await Product.findById(req.params.id).lean().exec()
+            if (!productObj) {
+                throw new Error("Product Not found ")
             }
-            productObj.relatedProductsArr = relatedProductsArr
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id }).exec();
+            if (productGroupsObj) {
+                productObj.productGroupsObj = productGroupsObj
+            }
+
+            let relatedProductsArr = await Product.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map(el => el?.value)] } }).lean().exec()
+            if (relatedProductsArr) {
+                for (const el of relatedProductsArr) {
+                    let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                    if (productGroupsObj) {
+                        el.productGroupsObj = productGroupsObj
+                    }
+                }
+                // productObj.relatedProductsArr = relatedProductsArr
+            }
+        }
+        else {
+            productObj = await ProductWithLanguage.findById(req.params.id).lean().exec()
+            if (!productObj) {
+                throw new Error("Product Not found ")
+            }
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj.productId }).exec();
+            if (productGroupsObj) {
+                productObj.productGroupsObj = productGroupsObj
+            }
+
+            let relatedProductsArr = await ProductWithLanguage.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map(el => el?.value)] } }).lean().exec()
+            if (relatedProductsArr) {
+                // productObj.relatedProductsArr = relatedProductsArr
+            }
+
+
+
+
         }
 
+
+
+        console.log(JSON.stringify(productObj, null, 2))
 
         res.status(200).json({ message: "Products Found", data: productObj, success: true });
     } catch (err) {
@@ -412,7 +444,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...softwareDescriptionObj?.values.map(
                             el => ({
-                                "featureChecklist.softwareDescription.value": el.value
+                                "featureChecklist.softwareDescription.value": el?.value
                             })
                         ),
                     ]
@@ -424,7 +456,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...pricingObj?.values.map(
                             el => ({
-                                "installation.pricingModel.value": el.value
+                                "installation.pricingModel.value": el?.value
                             })
                         )
                     ]
@@ -436,7 +468,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...farmTypeObj?.values.map(
                             el => ({
-                                "targetCustomer.typesOfFarmsServed.value": el.value
+                                "targetCustomer.typesOfFarmsServed.value": el?.value
                             })
                         )
                     ]
@@ -448,7 +480,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...targetUserObj?.values.map(
                             el => ({
-                                "targetCustomer.customers.value": el.value
+                                "targetCustomer.customers.value": el?.value
                             })
                         )
                     ]
@@ -460,7 +492,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...languageObj?.values.map(
                             el => ({
-                                "languageSupported.value": el.value
+                                "languageSupported.value": el?.value
                             })
                         )
                     ]
@@ -472,7 +504,7 @@ export const getFilteredProducts = async (req, res, next) => {
                     $and: [
                         ...technologyObj?.values.map(
                             el => ({
-                                "featureChecklist.softwareData.value": el.value
+                                "featureChecklist.softwareData.value": el?.value
                             })
                         )
                     ]
@@ -540,12 +572,25 @@ export const updateProductById = async (req, res, next) => {
     try {
 
 
-        console.log(req.body, "req.body")
+        // console.log(req.body, "req.body")
         let languageObj = {}
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec()
         }
 
+        let englishObj = await Language.findOne({ name: new RegExp(`^English$`) }).exec()
+        if (!englishObj) {
+            throw new Error("English language not found please contact admin")
+        }
+        let englishConversionObj = await Conversion.findOne({ languageId: englishObj._id }).lean().exec()
+
+        let englishConversionArr = []
+
+        for (const key in englishConversionObj) {
+            if (Object.hasOwnProperty.call(englishConversionObj, key)) {
+                englishConversionArr.push({ key: key, value: englishConversionObj[key] })
+            }
+        }
 
 
         let tempProductsArr = []
@@ -554,10 +599,6 @@ export const updateProductById = async (req, res, next) => {
 
         if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
             for (const el of req.body.productArr) {
-
-
-
-
                 if (el.fileArr && el.fileArr.length > 0) {
                     for (const ele of el.fileArr) {
                         if (ele.url != "" && ele.url.includes("base64")) {
@@ -571,47 +612,294 @@ export const updateProductById = async (req, res, next) => {
                 let productWithoutLanguageObj = await Product.findOne({ _id: el.productId }).exec()
                 if (productWithoutLanguageObj) {
                     await Product.findByIdAndUpdate(productWithoutLanguageObj._id, el).exec()
-                    let obj = {
-                        languageSupported: el.languageSupported,
-                        "featureChecklist.softwareDescription": el.featureChecklist.softwareDescription,
-                        "featureChecklist.softwareType": el.featureChecklist.softwareType,
-                        "featureChecklist.softwareData": el.featureChecklist.softwareData,
-                        "featureChecklist.farmAdmin": el.featureChecklist.farmAdmin,
-                        "featureChecklist.accountAccess": el.featureChecklist.accountAccess,
-                        "featureChecklist.usersPerAccount": el.featureChecklist.usersPerAccount,
-                        "featureChecklist.modeOfUse": el.featureChecklist.modeOfUse,
-                        "featureChecklist.cropPlanning": el.featureChecklist.cropPlanning,
-                        "featureChecklist.operationalPlanning": el.featureChecklist.operationalPlanning,
-                        "featureChecklist.precisionAgriculture": el.featureChecklist.precisionAgriculture,
-                        "featureChecklist.weatherForecast": el.featureChecklist.weatherForecast,
-                        "featureChecklist.soilHealth": el.featureChecklist.soilHealth,
-                        "featureChecklist.farmAnalytics": el.featureChecklist.farmAnalytics,
-                        "featureChecklist.fieldAndEquipmentRecords": el.featureChecklist.fieldAndEquipmentRecords,
-                        "featureChecklist.harvestAnalysis": el.featureChecklist.harvestAnalysis,
-                        "featureChecklist.hardwareAndConnectivity": el.featureChecklist.hardwareAndConnectivity,
-                        "featureChecklist.accounting": el.featureChecklist.accounting,
-                        "targetCustomer.marketsServed": el.targetCustomer.marketsServed,
-                        "targetCustomer.country": el.targetCustomer.country,
-                        "targetCustomer.typesOfFarmsServed": el.targetCustomer.typesOfFarmsServed,
-                        "targetCustomer.customers": el.targetCustomer.customers,
-                        "targetCustomer.farmSize": el.targetCustomer.farmSize,
-                        "targetCustomer.relevantCrops": el.targetCustomer.relevantCrops,
-                        "customerSupport.isFreeTrialAvailable": el.customerSupport.isFreeTrialAvailable,
-                        "customerSupport.typeOfCustomerSupport": el.customerSupport.typeOfCustomerSupport,
-                        "customerSupport.trainingAvailable": el.customerSupport.trainingAvailable,
-                        "customerSupport.isTrainingFree": el.customerSupport.isTrainingFree,
-                        "customerSupport.typeOfTrainings": el.customerSupport.typeOfTrainings,
-                        "installation.sofwareUse": el.installation.sofwareUse,
-                        "installation.pricingModel": el.installation.pricingModel,
-                        mediaLinksArr: el.mediaLinksArr,
-                        caseStudies: el.caseStudies,
-                    }
-                    if (el.fileArr && el.fileArr.length > 0) {
-                        obj.fileArr = el.fileArr
-                    }
+                    let productWithLanguageArr = await ProductWithLanguage.find({ productId: productWithoutLanguageObj._id }).exec()
 
+                    for (const elx of productWithLanguageArr) {
+                        let conversionObj = await Conversion.findOne({ languageId: elx.languageId }).exec()
 
-                    await ProductWithLanguage.updateMany({ productId: productWithoutLanguageObj._id }, { $set: obj }).exec();
+                        let obj = {
+                            languageSupported: el?.languageSupported?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.softwareType": el?.featureChecklist?.softwareType?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.softwareData": el?.featureChecklist?.softwareData?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.accountAccess.value": el?.featureChecklist?.accountAccess?.value,
+                            "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "featureChecklist.accounting": el?.featureChecklist?.accounting?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.country": el?.targetCustomer?.country?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.customers": el?.targetCustomer?.customers?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.farmSize": el?.targetCustomer?.farmSize?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "customerSupport.isFreeTrialAvailable.value": el?.customerSupport?.isFreeTrialAvailable?.value,
+                            "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "customerSupport.trainingAvailable.value": el?.customerSupport?.trainingAvailable?.value,
+                            "customerSupport.isTrainingFree.value": el?.customerSupport?.isTrainingFree?.value,
+                            "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "installation.sofwareUse": el?.installation?.sofwareUse?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            "installation.pricingModel": el?.installation?.pricingModel?.map(el => {
+                                if (englishConversionArr.find(elx => elx.value == el?.value)) {
+                                    let obj = {
+                                        value: el?.value
+                                    }
+                                    let tempValue = conversionObj[englishConversionArr.find(elx => elx.value == el?.value)?.value]
+                                    obj.label = tempValue
+                                    return obj
+                                }
+                            }),
+                            mediaLinksArr: el.mediaLinksArr,
+                            caseStudies: el.caseStudies,
+                        }
+                        if (el.fileArr && el.fileArr.length > 0) {
+                            obj.fileArr = el.fileArr
+                        }
+                        await ProductWithLanguage.findByIdAndUpdate(elx._id, { $set: obj }).exec();
+                    }
                 }
                 else {
                     let productObj = await new Product(el).save()
@@ -645,37 +933,277 @@ export const updateProductById = async (req, res, next) => {
                 }
 
                 let obj = {
-                    languageSupported: el.languageSupported,
-                    "featureChecklist.softwareDescription": el.featureChecklist.softwareDescription,
-                    "featureChecklist.softwareType": el.featureChecklist.softwareType,
-                    "featureChecklist.softwareData": el.featureChecklist.softwareData,
-                    "featureChecklist.farmAdmin": el.featureChecklist.farmAdmin,
-                    "featureChecklist.accountAccess": el.featureChecklist.accountAccess,
-                    "featureChecklist.usersPerAccount": el.featureChecklist.usersPerAccount,
-                    "featureChecklist.modeOfUse": el.featureChecklist.modeOfUse,
-                    "featureChecklist.cropPlanning": el.featureChecklist.cropPlanning,
-                    "featureChecklist.operationalPlanning": el.featureChecklist.operationalPlanning,
-                    "featureChecklist.precisionAgriculture": el.featureChecklist.precisionAgriculture,
-                    "featureChecklist.weatherForecast": el.featureChecklist.weatherForecast,
-                    "featureChecklist.soilHealth": el.featureChecklist.soilHealth,
-                    "featureChecklist.farmAnalytics": el.featureChecklist.farmAnalytics,
-                    "featureChecklist.fieldAndEquipmentRecords": el.featureChecklist.fieldAndEquipmentRecords,
-                    "featureChecklist.harvestAnalysis": el.featureChecklist.harvestAnalysis,
-                    "featureChecklist.hardwareAndConnectivity": el.featureChecklist.hardwareAndConnectivity,
-                    "featureChecklist.accounting": el.featureChecklist.accounting,
-                    "targetCustomer.marketsServed": el.targetCustomer.marketsServed,
-                    "targetCustomer.country": el.targetCustomer.country,
-                    "targetCustomer.typesOfFarmsServed": el.targetCustomer.typesOfFarmsServed,
-                    "targetCustomer.customers": el.targetCustomer.customers,
-                    "targetCustomer.farmSize": el.targetCustomer.farmSize,
-                    "targetCustomer.relevantCrops": el.targetCustomer.relevantCrops,
-                    "customerSupport.isFreeTrialAvailable": el.customerSupport.isFreeTrialAvailable,
-                    "customerSupport.typeOfCustomerSupport": el.customerSupport.typeOfCustomerSupport,
-                    "customerSupport.trainingAvailable": el.customerSupport.trainingAvailable,
-                    "customerSupport.isTrainingFree": el.customerSupport.isTrainingFree,
-                    "customerSupport.typeOfTrainings": el.customerSupport.typeOfTrainings,
-                    "installation.sofwareUse": el.installation.sofwareUse,
-                    "installation.pricingModel": el.installation.pricingModel,
+                    languageSupported: el?.languageSupported?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+                    }),
+                    "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+                    }),
+                    "featureChecklist.softwareType": el?.featureChecklist?.softwareType?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+                    }),
+                    "featureChecklist.softwareData": el?.featureChecklist?.softwareData?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.accountAccess.value": el?.featureChecklist?.accountAccess?.value,
+                    "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "featureChecklist.accounting": el?.featureChecklist?.accounting?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.country": el?.targetCustomer?.country?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.customers": el?.targetCustomer?.customers?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.farmSize": el?.targetCustomer?.farmSize?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "customerSupport.isFreeTrialAvailable.value": el?.customerSupport?.isFreeTrialAvailable?.value,
+                    "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "customerSupport.trainingAvailable.value": el?.customerSupport?.trainingAvailable?.value,
+                    "customerSupport.isTrainingFree.value": el?.customerSupport?.isTrainingFree?.value,
+                    "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "installation.sofwareUse": el?.installation?.sofwareUse?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
+                    "installation.pricingModel": el?.installation?.pricingModel?.map(el => {
+                        if (englishConversionArr.find(elm => elm.value == el?.value)?.value) {
+                            let obj = {
+                                value: el?.value
+                            }
+                            obj.label = englishConversionArr.find(elm => elm.value == el?.value)?.value
+                            return obj
+                        }
+
+                    }),
                     mediaLinksArr: el.mediaLinksArr,
                     caseStudies: el.caseStudies,
                 }
@@ -691,8 +1219,8 @@ export const updateProductById = async (req, res, next) => {
             }
         }
 
-        tempProductsArr = tempProductsArr.map(el => ({ productId: el._id }))
-        await ProductGroups.findByIdAndUpdate(req.body.productGroupId, { ...req.body, $push: { productsArr: { $each: tempProductsArr } } }).exec()
+        // tempProductsArr = tempProductsArr.map(el => ({ productId: el._id }))
+        // await ProductGroups.findByIdAndUpdate(req.body.productGroupId, { ...req.body, $push: { productsArr: { $each: tempProductsArr } } }).exec()
 
         res.status(200).json({ message: "Products Updated", success: true });
     } catch (err) {

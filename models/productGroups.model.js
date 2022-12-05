@@ -5,6 +5,7 @@ let productGroups = mongoose.Schema(
         companyName: String,
         companyMail: String,
         companyPhone: String,
+        languageId: String,
         website: String,
         companyLogo: String,
         companyFoundingDate: String,
