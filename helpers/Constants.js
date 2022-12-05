@@ -1511,3 +1511,143 @@ export const LanguageList = [
 
 
   ]
+
+export const marketsServedList = [
+  {
+    label: `${generalTerms?.global}`,
+    value: `${generalTerms?.global}`
+  },
+  {
+    label: `${generalTerms?.europeanunion}`,
+    value: `${generalTerms?.europeanunion}`
+  },
+  {
+    label: `${generalTerms?.restofeurope}`,
+    value: `${generalTerms?.restofeurope}`
+  },
+  {
+    label: `${generalTerms?.africa}`,
+    value: `${generalTerms?.africa}`
+  },
+  {
+    label: `${generalTerms?.northamerica}`,
+    value: `${generalTerms?.northamerica}`
+  },
+  {
+    label: `${generalTerms?.southamerica}`,
+    value: `${generalTerms?.southamerica}`
+  },
+  {
+    label: `${generalTerms?.centralamericaandcaribbean}`,
+    value: `${generalTerms?.centralamericaandcaribbean}`
+  },
+  {
+    label: `${generalTerms?.asia}`,
+    value: `${generalTerms?.asia}`
+  },
+  {
+    label: `${generalTerms?.oceania}`,
+    value: `${generalTerms?.oceania}`
+  },
+]
+
+export const farmTypeList = [
+  {
+    label: `${generalTerms?.fieldcrops}`,
+    value: `${generalTerms?.fieldcrops}`,
+  },
+  {
+    label: `${generalTerms?.vegetables}`,
+    value: `${generalTerms?.vegetables}`,
+  },
+  {
+    label: `${generalTerms?.orchards}`,
+    value: `${generalTerms?.orchards}`,
+  },
+  {
+    label: `${generalTerms?.vineyards}`,
+    value: `${generalTerms?.vineyards}`,
+  },
+  {
+    label: `${generalTerms?.nuts}`,
+    value: `${generalTerms?.nuts}`,
+  },
+  {
+    label: `${generalTerms?.fruits}`,
+    value: `${generalTerms?.fruits}`,
+  },
+  {
+    label: `${generalTerms?.flowers}`,
+    value: `${generalTerms?.flowers}`,
+  },
+  {
+    label: `${generalTerms?.protectedcropsgreenhousesnethouses}`,
+    value: `${generalTerms?.protectedcropsgreenhousesnethouses}`,
+  },
+  {
+    label: `${generalTerms?.urbanfarms}`,
+    value: `${generalTerms?.urbanfarms}`,
+  },
+  {
+    label: `${generalTerms?.nurseries}`,
+    value: `${generalTerms?.nurseries}`,
+  },
+  {
+    label: `${generalTerms?.groves}`,
+    value: `${generalTerms?.groves}`,
+  },
+  {
+    label: `${generalTerms?.plantations}`,
+    value: `${generalTerms?.plantations}`,
+  },
+]
+
+export const coustmersList = [
+  {
+    label: `${generalTerms?.growers}`,
+    value: `${generalTerms?.growers}`,
+  },
+  {
+    label: `${generalTerms?.agribusinesses}`,
+    value: `${generalTerms?.agribusinesses}`,
+  },
+  {
+    label: `${generalTerms?.cooperatives}`,
+    value: `${generalTerms?.cooperatives}`,
+  },
+  {
+    label: `${generalTerms?.contractors}`,
+    value: `${generalTerms?.contractors}`,
+  },
+  {
+    label: `${generalTerms?.cropAdvisor}`,
+    value: `${generalTerms?.cropAdvisor}`,
+  },
+  {
+    label: `${generalTerms?.Otherpleasespecify}`,
+    value: `${generalTerms?.Otherpleasespecify}`,
+  },
+]
+
+export const farmSizeList = [
+  {
+    label: `${generalTerms?.lessthan} 4 ${generalTerms?.ha}`,
+    value: `${generalTerms?.lessthan} 4 ${generalTerms?.ha}`,
+  },
+  {
+    label: `5-50 ${generalTerms?.ha}`,
+    value: `5-50 ${generalTerms?.ha}`,
+  },
+  {
+    label: `51-100 ${generalTerms?.ha}`,
+    value: `51-100 ${generalTerms?.ha}`,
+  },
+  {
+    label: `101-499 ${generalTerms?.ha}`,
+    value: `101-499 ${generalTerms?.ha}`,
+  },
+  {
+    label: `500+ ${generalTerms?.ha}`,
+    value: `500+ ${generalTerms?.ha}`,
+  },
+]

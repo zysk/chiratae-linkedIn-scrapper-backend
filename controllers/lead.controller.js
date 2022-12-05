@@ -24,3 +24,19 @@ export const getLead = async (req, res, next) => {
         next(error);
     }
 };
+export const updateLead = async (req, res, next) => {
+    try {
+        console.log(req.body,"leadddddd")
+        let LanguageExistsObj = await Lead.findById(req.params.id).exec();
+        if (!LanguageExistsObj) {
+            throw new Error("Lead not found , you might have already deleted it please reload the page once.");
+        }
+        await Lead.findByIdAndUpdate(req.params.id, { status:req.body.status }).exec();
+
+        res.status(200).json({ message: `Lead Updated`, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+

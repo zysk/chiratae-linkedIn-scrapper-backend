@@ -3,7 +3,7 @@ import Product from "../models/product.model";
 import ProductGroups from "../models/productGroups.model";
 import ProductWithLanguage from "../models/productWithLanguage.model";
 import leadsModel from "../models/leads.model";
-import { CountryLsit, LanguageList } from "../helpers/Constants";
+import { CountryLsit, coustmersList, farmSizeList, farmTypeList, LanguageList, marketsServedList } from "../helpers/Constants";
 
 
 export const getDashBoard = async (req, res, next) => {
@@ -12,6 +12,7 @@ export const getDashBoard = async (req, res, next) => {
         let totalCompany = await ProductGroups.countDocuments().exec();
         let totalProducts = await Product.countDocuments().exec();
         let totalLead = await leadsModel.countDocuments().exec();
+        let leadArr  = await leadsModel.find({}).exec();
         let countryProducts = CountryLsit;
         for (let index = 0; index < countryProducts.length; index++) {
             let country = countryProducts[index];
@@ -26,6 +27,36 @@ export const getDashBoard = async (req, res, next) => {
              languageProducts[index].count  = ProductsCount;
         }
 
+        let marketsServedProducts = marketsServedList;
+        for (let index = 0; index < marketsServedProducts.length; index++) {
+            let country = marketsServedProducts[index];
+             let ProductsCount = await Product.countDocuments({"targetCustomer.marketsServed.value":country.value}).exec();
+             marketsServedProducts[index].count  = ProductsCount;
+        }
+
+        let farmTypeProducts = farmTypeList;
+        for (let index = 0; index < farmTypeProducts.length; index++) {
+            let country = farmTypeProducts[index];
+             let ProductsCount = await Product.countDocuments({"targetCustomer.typesOfFarmsServed.value":country.value}).exec();
+             farmTypeProducts[index].count  = ProductsCount;
+        }
+
+
+        let customerProducts = coustmersList;
+        for (let index = 0; index < customerProducts.length; index++) {
+            let country = customerProducts[index];
+             let ProductsCount = await Product.countDocuments({"targetCustomer.customers.value":country.value}).exec();
+             customerProducts[index].count  = ProductsCount;
+        }
+
+        let farmSizeProducts = farmSizeList;
+        for (let index = 0; index < farmSizeProducts.length; index++) {
+            let country = farmSizeProducts[index];
+             let ProductsCount = await Product.countDocuments({"targetCustomer.farmSize.value":country.value}).exec();
+             farmSizeProducts[index].count  = ProductsCount;
+        }
+
+
         let producArr = await Product.find({}).lean().exec();
         for (let index = 0; index < producArr.length; index++) {
             let element = producArr[index];
@@ -39,10 +70,15 @@ export const getDashBoard = async (req, res, next) => {
         totalLead,
         countryProducts,
         languageProducts,
-        producArr
+        marketsServedProducts,
+        farmTypeProducts,
+        farmSizeProducts,
+        customerProducts,
+        producArr,
+        leadArr
        }
        
-        res.status(200).json({ message: "Contacts found",data:data,  success: true });
+        res.status(200).json({ message: "Dashboards List",data:data,  success: true });
     } catch (error) {
         console.error(error);
         next(error);

@@ -6,6 +6,7 @@ let contact = mongoose.Schema(
         email: String,
         phone: String,
         message: String,
+        status: { type: String, default: "Created" },
     },
     { timestamps: true }
 );

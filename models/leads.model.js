@@ -13,6 +13,7 @@ let lead = mongoose.Schema(
         productId: String,
         farmSize: String,
         type: String,
+        status: { type: String, default: "Created" },
     },
     { timestamps: true }
 );
