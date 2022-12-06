@@ -45,7 +45,9 @@ export const addProduct = async (req, res, next) => {
 
 export const getProducts = async (req, res, next) => {
     try {
-        let addedProductsArr = await ProductGroups.find().lean().exec();
+        let languageObj = await Language.findOne({ name: "English" }).exec();
+
+        let addedProductsArr = await ProductGroups.find({ languageId: languageObj._id }).lean().exec();
 
         if (req.query.returnProductData) {
             for (const el of addedProductsArr) {
@@ -71,14 +73,13 @@ export const getProducts = async (req, res, next) => {
 
 export const getProductById = async (req, res, next) => {
     try {
-        console.log(req.params.id);
-        let productGroupsObj = await ProductGroups.findOne({ _id: req.params.id }).lean().exec();
+        console.log(req.query.productsArr, req.query.languageId);
+        let productGroupsObj = await ProductGroups.findOne({ "productArr.productId": { $in: [req.query.productsArr] }, languageId: req.query.languageId })
+            .lean()
+            .exec();
         if (!productGroupsObj) {
             throw new Error("Product Not Found !!");
         }
-        // console.log(productGroupsObj, "productGroupsObj")
-
-        // console.log(req.query.languageId, "req.query.languageId")
 
         let languageObj = {};
 
@@ -429,8 +430,8 @@ export const getFilteredProducts = async (req, res, next) => {
             let technologyObj = propertiesArr.find((el) => el.name == "Technology");
             if (softwareDescriptionObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...softwareDescriptionObj?.values.map((el) => ({
                             "featureChecklist.softwareDescription.value": el?.value,
                         })),
@@ -439,8 +440,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (pricingObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...pricingObj?.values.map((el) => ({
                             "installation.pricingModel.value": el?.value,
                         })),
@@ -449,8 +450,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (farmTypeObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...farmTypeObj?.values.map((el) => ({
                             "targetCustomer.typesOfFarmsServed.value": el?.value,
                         })),
@@ -459,8 +460,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (targetUserObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...targetUserObj?.values.map((el) => ({
                             "targetCustomer.customers.value": el?.value,
                         })),
@@ -469,8 +470,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (languageObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...languageObj?.values.map((el) => ({
                             "languageSupported.value": el?.value,
                         })),
@@ -479,8 +480,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (technologyObj) {
                 query = {
-                    ...query,
                     $and: [
+                        ...query,
                         ...technologyObj?.values.map((el) => ({
                             "featureChecklist.softwareData.value": el?.value,
                         })),
@@ -507,7 +508,7 @@ export const getFilteredProducts = async (req, res, next) => {
         let productsArr = [];
         let productsCount = 0;
 
-        console.log(languageObj, "languageObj");
+        console.log(query, "query");
 
         if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
             productsArr = await Product.find(query)
@@ -1279,21 +1280,22 @@ export const updateProductById = async (req, res, next) => {
         }
 
         tempProductsWithLanguageArr = tempProductsWithLanguageArr.map((el) => ({ productId: `${el._id}` }));
-        console.log(tempProductsWithLanguageArr, "tempProductsWithLanguageArr");
         let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, "productsArr.productId": { $in: [...tempProductsWithLanguageArr.map((el) => el?.productId)] } }).exec();
-        console.log(productGroupObj, "productGroupObj", req.body);
         delete req.body._id;
 
         if (productGroupObj) {
-            let remainingProductGroupsArr = await ProductGroups.find({ languageId: { $ne: req.body.languageId }, isEnglishModel: false, "productsArr.productId": { $in: [...productGroupObj.productsArr.map((el) => el?.productId)] } }).exec();
-            console.log("CONSOLEING REMAINING PRODUCT ARR", remainingProductGroupsArr, productGroupObj);
+            let remainingProductGroupsArr = await ProductGroups.find({ languageId: { $ne: req.body.languageId }, "productsArr.productId": { $in: [...productGroupObj.productsArr.map((el) => el?.productId)] } }).exec();
             if (remainingProductGroupsArr && remainingProductGroupsArr.length > 0) {
-                // await ProductGroups.updateMany({ _id: { $in: [...remainingProductGroupsArr.map(el => el._id)] } }, { $set: { productsArr: [...tempProductsWithoutLanguageArr], productCount: tempProductsWithoutLanguageArr.length } }).exec()
+                await ProductGroups.updateMany(
+                    { _id: { $in: [...remainingProductGroupsArr.map((el) => el._id)] } },
+                    { $set: { productsArr: [...tempProductsWithoutLanguageArr], productCount: tempProductsWithoutLanguageArr.length } }
+                ).exec();
             }
-            //
-            // await ProductGroups.findOneAndUpdate({ languageId: req.body.languageId, "productsArr.productId": { $in: [...tempProductsWithLanguageArr.map(el => el?.productId)] } }, { ...req.body, productCount: tempProductsWithLanguageArr.length, $set: { productsArr: [...tempProductsWithLanguageArr] } }).exec()
+            await ProductGroups.findOneAndUpdate(
+                { languageId: req.body.languageId, "productsArr.productId": { $in: [...tempProductsWithLanguageArr.map((el) => el?.productId)] } },
+                { ...req.body, productCount: tempProductsWithLanguageArr.length, $set: { productsArr: [...tempProductsWithLanguageArr] } }
+            ).exec();
         } else {
-            console.log("LAST ELSE CASE ADDING NEW PRODDUCT HERE");
             await new ProductGroups({ ...req.body, productCount: tempProductsWithLanguageArr.length, productsArr: tempProductsWithLanguageArr }).save();
         }
 

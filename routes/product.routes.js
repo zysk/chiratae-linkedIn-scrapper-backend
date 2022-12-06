@@ -9,7 +9,7 @@ router.post("/addProduct", addProduct);
 router.get("/getProducts", getProducts);
 router.get("/getFilteredProducts", getFilteredProducts);
 router.get("/getComparisionProductsProducts", getComparisionProductsProducts);
-router.get("/getProductById/:id", getProductById);
+router.get("/getProductById/", getProductById);
 router.get("/searchProductByName", searchProductByName);
 router.get("/getProductByProductId/:id/:languageId", getProductByProductId);
 router.patch("/updateById/:id", updateProductById);
