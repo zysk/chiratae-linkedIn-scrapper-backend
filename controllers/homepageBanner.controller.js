@@ -23,9 +23,8 @@ export const getHomePageBanner = async (req, res, next) => {
     try {
         let query = {}
         if (req.query.visibleOnHomePage) {
-            query = { visibleOnHomePage: true }
+            query = { visibleOnHomePage: req.query.visibleOnHomePage }
         }
-
 
         let HomepageBannerArr = await HomepageBanner.find(query).exec();
         res.status(200).json({ message: "HomepageBanners found", data: HomepageBannerArr, success: true });

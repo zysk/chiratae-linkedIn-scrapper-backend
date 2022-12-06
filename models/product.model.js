@@ -8,6 +8,7 @@ let product = mongoose.Schema(
             value: String
         }],
         shortDescription: String,
+        languageId: String,
         longDescripton: String,
         featureChecklist: {
             softwareDescription: [{
