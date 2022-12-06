@@ -31,7 +31,7 @@ export const addProduct = async (req, res, next) => {
         }
         let addedProductsArr = await Product.insertMany([...arr]);
 
-        await ProductGroups({ ...req.body, productsArr: addedProductsArr.map((el) => ({ productId: el._id })) }).save();
+        await ProductGroups({ ...req.body, isEnglishModel: true, productsArr: addedProductsArr.map((el) => ({ productId: el._id })) }).save();
 
         //handle stock logs here
         // await new StockLogs({}).save()
@@ -548,7 +548,6 @@ export const getFilteredProducts = async (req, res, next) => {
 
 export const updateProductById = async (req, res, next) => {
     try {
-        // console.log(req.body, "req.body")
         let languageObj = {};
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec();
@@ -568,8 +567,8 @@ export const updateProductById = async (req, res, next) => {
             }
         }
 
-        let tempProductsArr = [];
-
+        let tempProductsWithLanguageArr = [];
+        let tempProductsWithoutLanguageArr = [];
         if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
             for (const el of req.body.productArr) {
                 if (el.fileArr && el.fileArr.length > 0) {
@@ -584,287 +583,341 @@ export const updateProductById = async (req, res, next) => {
 
                 let productWithoutLanguageObj = await Product.findOne({ _id: el.productId }).exec();
                 if (productWithoutLanguageObj) {
-                    await Product.findByIdAndUpdate(productWithoutLanguageObj._id, el).exec();
+                    let tempProductObj = await Product.findByIdAndUpdate(productWithoutLanguageObj._id, el).exec();
                     let productWithLanguageArr = await ProductWithLanguage.find({ productId: productWithoutLanguageObj._id }).exec();
 
                     for (const elx of productWithLanguageArr) {
                         let conversionObj = await Conversion.findOne({ languageId: elx.languageId }).exec();
 
                         let obj = {
-                            languageSupported: el?.languageSupported?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.softwareType": el?.featureChecklist?.softwareType?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.softwareData": el?.featureChecklist?.softwareData?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
+                            languageSupported: el?.languageSupported
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.softwareType": el?.featureChecklist?.softwareType
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.softwareData": el?.featureChecklist?.softwareData
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
                             "featureChecklist.accountAccess.value": el?.featureChecklist?.accountAccess?.value,
-                            "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "featureChecklist.accounting": el?.featureChecklist?.accounting?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.country": el?.targetCustomer?.country?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.customers": el?.targetCustomer?.customers?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.farmSize": el?.targetCustomer?.farmSize?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
+                            "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "featureChecklist.accounting": el?.featureChecklist?.accounting
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.country": el?.targetCustomer?.country
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.customers": el?.targetCustomer?.customers
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.farmSize": el?.targetCustomer?.farmSize
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
                             "customerSupport.isFreeTrialAvailable.value": el?.customerSupport?.isFreeTrialAvailable?.value,
-                            "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
+                            "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
                             "customerSupport.trainingAvailable.value": el?.customerSupport?.trainingAvailable?.value,
                             "customerSupport.isTrainingFree.value": el?.customerSupport?.isTrainingFree?.value,
-                            "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "installation.sofwareUse": el?.installation?.sofwareUse?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
-                            "installation.pricingModel": el?.installation?.pricingModel?.map((el) => {
-                                if (englishConversionArr.find((elx) => elx.value == el?.value)) {
-                                    let obj = {
-                                        value: el?.value,
-                                    };
-                                    let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
-                                    obj.label = tempValue;
-                                    return obj;
-                                }
-                            }),
+                            "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "installation.sofwareUse": el?.installation?.sofwareUse
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
+                            "installation.pricingModel": el?.installation?.pricingModel
+                                ?.map((el) => {
+                                    if (englishConversionArr.find((elx) => elx.value == el?.value)) {
+                                        let obj = {
+                                            value: el?.value,
+                                        };
+                                        let tempValue = conversionObj[englishConversionArr.find((elx) => elx.value == el?.value)?.value];
+                                        obj.label = tempValue;
+                                        return obj;
+                                    }
+                                })
+                                .filter((elm) => elm),
                             mediaLinksArr: el.mediaLinksArr,
                             caseStudies: el.caseStudies,
                         };
@@ -873,297 +926,376 @@ export const updateProductById = async (req, res, next) => {
                         }
                         await ProductWithLanguage.findByIdAndUpdate(elx._id, { $set: obj }).exec();
                     }
+                    tempProductsWithLanguageArr.push(tempProductObj);
                 } else {
                     let productObj = await new Product(el).save();
-                    tempProductsArr.push(productObj);
+                    tempProductsWithLanguageArr.push(productObj);
                 }
             }
         } else {
             for (const el of req.body.productArr) {
                 let productWithLanguageObj = await ProductWithLanguage.findOne({ productId: el.productId, languageId: req.body.languageId }).exec();
-                if (el.fileArr && el.fileArr.length > 0) {
-                    // el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
-                    for (const ele of el.fileArr) {
-                        if (ele.url != "" && ele.url.includes("base64")) {
-                            ele.url = await storeFileAndReturnNameBase64(ele.url);
-                        } else {
-                            ele.url = ele.url;
-                        }
-                    }
-                } else {
-                    delete el.fileArr;
-                }
-                el.languageId = req.body.languageId;
-                if (productWithLanguageObj) {
-                    await ProductWithLanguage.findByIdAndUpdate(productWithLanguageObj._id, el).exec();
-                } else {
-                    await new ProductWithLanguage(el).save();
-                }
+                delete el._id;
 
                 let obj = {
-                    languageSupported: el?.languageSupported?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.softwareType": el?.featureChecklist?.softwareType?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.softwareData": el?.featureChecklist?.softwareData?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
+                    languageId: `${englishObj._id}`,
+                    languageSupported: el?.languageSupported
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.softwareDescription": el?.featureChecklist?.softwareDescription
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.softwareType": el?.featureChecklist?.softwareType
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.softwareData": el?.featureChecklist?.softwareData
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.farmAdmin": el?.featureChecklist?.farmAdmin
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
                     "featureChecklist.accountAccess.value": el?.featureChecklist?.accountAccess?.value,
-                    "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "featureChecklist.accounting": el?.featureChecklist?.accounting?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.country": el?.targetCustomer?.country?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.customers": el?.targetCustomer?.customers?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.farmSize": el?.targetCustomer?.farmSize?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
+                    "featureChecklist.usersPerAccount": el?.featureChecklist?.usersPerAccount
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.modeOfUse": el?.featureChecklist?.modeOfUse
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.cropPlanning": el?.featureChecklist?.cropPlanning
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.operationalPlanning": el?.featureChecklist?.operationalPlanning
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.precisionAgriculture": el?.featureChecklist?.precisionAgriculture
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.weatherForecast": el?.featureChecklist?.weatherForecast
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.soilHealth": el?.featureChecklist?.soilHealth
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.farmAnalytics": el?.featureChecklist?.farmAnalytics
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.fieldAndEquipmentRecords": el?.featureChecklist?.fieldAndEquipmentRecords
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.harvestAnalysis": el?.featureChecklist?.harvestAnalysis
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.hardwareAndConnectivity": el?.featureChecklist?.hardwareAndConnectivity
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "featureChecklist.accounting": el?.featureChecklist?.accounting
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.marketsServed": el?.targetCustomer?.marketsServed
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.country": el?.targetCustomer?.country
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.typesOfFarmsServed": el?.targetCustomer?.typesOfFarmsServed
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.customers": el?.targetCustomer?.customers
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.farmSize": el?.targetCustomer?.farmSize
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "targetCustomer.relevantCrops": el?.targetCustomer?.relevantCrops
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
                     "customerSupport.isFreeTrialAvailable.value": el?.customerSupport?.isFreeTrialAvailable?.value,
-                    "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
+                    "customerSupport.typeOfCustomerSupport": el?.customerSupport?.typeOfCustomerSupport
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
                     "customerSupport.trainingAvailable.value": el?.customerSupport?.trainingAvailable?.value,
                     "customerSupport.isTrainingFree.value": el?.customerSupport?.isTrainingFree?.value,
-                    "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "installation.sofwareUse": el?.installation?.sofwareUse?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
-                    "installation.pricingModel": el?.installation?.pricingModel?.map((el) => {
-                        if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
-                            let obj = {
-                                value: el?.value,
-                            };
-                            obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
-                            return obj;
-                        }
-                    }),
+                    "customerSupport.typeOfTrainings": el?.customerSupport?.typeOfTrainings
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "installation.sofwareUse": el?.installation?.sofwareUse
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
+                    "installation.pricingModel": el?.installation?.pricingModel
+                        ?.map((el) => {
+                            if (englishConversionArr.find((elm) => elm.value == el?.value)?.value) {
+                                let obj = {
+                                    value: el?.value,
+                                };
+                                obj.label = englishConversionArr.find((elm) => elm.value == el?.value)?.value;
+                                return obj;
+                            }
+                        })
+                        .filter((elm) => elm),
                     mediaLinksArr: el.mediaLinksArr,
                     caseStudies: el.caseStudies,
                 };
                 if (el.fileArr && el.fileArr.length > 0) {
                     obj.fileArr = el.fileArr;
                 }
-                console.log(JSON.stringify(obj, null, 2), "hardwareAndConnectivity", el.productId);
+                if (productWithLanguageObj) {
+                    if (el.fileArr && el.fileArr.length > 0) {
+                        // el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
+                        for (const ele of el.fileArr) {
+                            if (ele.url != "" && ele.url.includes("base64")) {
+                                ele.url = await storeFileAndReturnNameBase64(ele.url);
+                            } else {
+                                ele.url = ele.url;
+                            }
+                        }
+                    } else {
+                        delete el.fileArr;
+                    }
+                    el.languageId = req.body.languageId;
+                    let productWithLanguageObjTemp = await ProductWithLanguage.findByIdAndUpdate(productWithLanguageObj._id, el).exec();
+                    tempProductsWithLanguageArr.push(productWithLanguageObjTemp);
+                } else {
+                    el.languageId = req.body.languageId;
+                    let productWithLanguageObjNew = await new ProductWithLanguage(el).save();
+                    tempProductsWithLanguageArr.push(productWithLanguageObjNew);
+                }
 
-                let productWithoutLanguageObj = await Product.findByIdAndUpdate(el.productId, { $set: obj }, { new: true }).exec();
-                console.log(JSON.stringify(productWithoutLanguageObj, null, 2), "productWithoutLanguageObj");
-                console.log(productWithoutLanguageObj._id, "productWithoutLanguageObj", el.productId);
+                let productWithoutLanguageObjExisting = await Product.findByIdAndUpdate(el.productId, { $set: obj }, { new: true }).exec();
+                if (productWithoutLanguageObjExisting) {
+                    tempProductsWithoutLanguageArr.push(productWithoutLanguageObjExisting);
+                } else {
+                    let productWithoutLanguageObjNew = await new Product(obj).save();
+                    tempProductsWithoutLanguageArr.push(productWithoutLanguageObjNew);
+                }
             }
         }
 
-        // tempProductsArr = tempProductsArr.map(el => ({ productId: el._id }))
-        // await ProductGroups.findByIdAndUpdate(req.body.productGroupId, { ...req.body, $push: { productsArr: { $each: tempProductsArr } } }).exec()
+        tempProductsWithLanguageArr = tempProductsWithLanguageArr.map((el) => ({ productId: `${el._id}` }));
+        console.log(tempProductsWithLanguageArr, "tempProductsWithLanguageArr");
+        let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, "productsArr.productId": { $in: [...tempProductsWithLanguageArr.map((el) => el?.productId)] } }).exec();
+        console.log(productGroupObj, "productGroupObj", req.body);
+        delete req.body._id;
+
+        if (productGroupObj) {
+            let remainingProductGroupsArr = await ProductGroups.find({ languageId: { $ne: req.body.languageId }, isEnglishModel: false, "productsArr.productId": { $in: [...productGroupObj.productsArr.map((el) => el?.productId)] } }).exec();
+            console.log("CONSOLEING REMAINING PRODUCT ARR", remainingProductGroupsArr, productGroupObj);
+            if (remainingProductGroupsArr && remainingProductGroupsArr.length > 0) {
+                // await ProductGroups.updateMany({ _id: { $in: [...remainingProductGroupsArr.map(el => el._id)] } }, { $set: { productsArr: [...tempProductsWithoutLanguageArr], productCount: tempProductsWithoutLanguageArr.length } }).exec()
+            }
+            //
+            // await ProductGroups.findOneAndUpdate({ languageId: req.body.languageId, "productsArr.productId": { $in: [...tempProductsWithLanguageArr.map(el => el?.productId)] } }, { ...req.body, productCount: tempProductsWithLanguageArr.length, $set: { productsArr: [...tempProductsWithLanguageArr] } }).exec()
+        } else {
+            console.log("LAST ELSE CASE ADDING NEW PRODDUCT HERE");
+            await new ProductGroups({ ...req.body, productCount: tempProductsWithLanguageArr.length, productsArr: tempProductsWithLanguageArr }).save();
+        }
 
         res.status(200).json({ message: "Products Updated", success: true });
     } catch (err) {
@@ -1494,12 +1626,8 @@ export const searchProductByName = async (req, res, next) => {
             ],
         };
         if (languageObj && `${languageObj.name}`.toLowerCase() != "english") {
-            productArr = await ProductWithLanguage.find(searchQuery)
-                .lean()
-                .exec();
+            productArr = await ProductWithLanguage.find(searchQuery).lean().exec();
         } else {
-           
-
             productArr = await Product.find(searchQuery).lean().exec();
         }
         for (const el of productArr) {

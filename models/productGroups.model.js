@@ -14,11 +14,15 @@ let productGroups = mongoose.Schema(
         companyRepName: String,
         companyRepMail: String,
         companyRepPhone: String,
+        isEnglishModel: {
+            type: Boolean,
+            default: false,
+        },
         companyCountryArr: [
             {
                 label: String,
                 value: String,
-            }
+            },
         ],
         productType: {
             value: String,
@@ -33,22 +37,27 @@ let productGroups = mongoose.Schema(
                     {
                         label: String,
                         value: String,
-                    }
+                    },
                 ],
-            }
+            },
         ],
         productCount: String,
         productsArr: [
             {
                 productId: String,
-            }
+            },
+        ],
+        originalProductArr: [
+            {
+                productId: String,
+            },
         ],
         reviewsArr: [
             {
                 url: String,
                 name: String,
-            }
-        ]
+            },
+        ],
     },
     { timestamps: true }
 );
