@@ -6,7 +6,6 @@ export const AddHomePageBanner = async (req, res, next) => {
         if (req.body.imageUrl) {
             req.body.imageUrl = await storeFileAndReturnNameBase64(req.body.imageUrl)
         }
-
         // console.log(req.body)
         // console.log(new RegExp(`^${req.body.name}$`))
         // let LanguageObj = await HomepageBanner.findOne({ name: new RegExp(`^${req.body.name}$`) }).exec();
@@ -17,7 +16,6 @@ export const AddHomePageBanner = async (req, res, next) => {
         next(error);
     }
 };
-
 
 export const getHomePageBanner = async (req, res, next) => {
     try {

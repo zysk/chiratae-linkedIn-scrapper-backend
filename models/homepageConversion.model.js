@@ -39,6 +39,7 @@ let homePageConversion = mongoose.Schema(
         benifit3: String,
         benifit4: String,
         benifit4: String,
+        benifit5: String,
         getStarted: String,
         whoWeAre: String,
         whoWeAreDescription: String,
