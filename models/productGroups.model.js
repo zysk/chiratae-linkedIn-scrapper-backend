@@ -52,11 +52,7 @@ let productGroups = mongoose.Schema(
                 productId: String,
             },
         ],
-        originalproductsArr: [
-            {
-                productId: String,
-            }
-        ],
+        
         reviewsArr: [
             {
                 url: String,
