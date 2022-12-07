@@ -616,8 +616,8 @@ export const getFilteredProducts = async (req, res, next) => {
             let technologyObj = propertiesArr.find((el) => el.name == "Technology");
             if (softwareDescriptionObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...softwareDescriptionObj?.values.map((el) => ({
                             "featureChecklist.softwareDescription.value": el?.value,
                         })),
@@ -626,8 +626,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (pricingObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...pricingObj?.values.map((el) => ({
                             "installation.pricingModel.value": el?.value,
                         })),
@@ -636,8 +636,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (farmTypeObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...farmTypeObj?.values.map((el) => ({
                             "targetCustomer.typesOfFarmsServed.value": el?.value,
                         })),
@@ -646,8 +646,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (targetUserObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...targetUserObj?.values.map((el) => ({
                             "targetCustomer.customers.value": el?.value,
                         })),
@@ -656,8 +656,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (languageObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...languageObj?.values.map((el) => ({
                             "languageSupported.value": el?.value,
                         })),
@@ -666,8 +666,8 @@ export const getFilteredProducts = async (req, res, next) => {
             }
             if (technologyObj) {
                 query = {
+                    ...query,
                     $and: [
-                        ...query,
                         ...technologyObj?.values.map((el) => ({
                             "featureChecklist.softwareData.value": el?.value,
                         })),
