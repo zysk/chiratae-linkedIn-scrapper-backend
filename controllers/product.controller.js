@@ -606,6 +606,11 @@ export const getFilteredProducts = async (req, res, next) => {
         if (req.query.itemsPerPage) {
             itemsPerPage = req.query.itemsPerPage;
         }
+
+
+        console.log(JSON.stringify(JSON.parse(req.query.properties), null, 2), "q1")
+
+
         if (req.query.properties && req.query.properties != "[]" && JSON.parse(req.query.properties).length > 0) {
             let propertiesArr = JSON.parse(req.query.properties);
             let softwareDescriptionObj = propertiesArr.find((el) => el.name == "Farming Needs");
@@ -614,64 +619,42 @@ export const getFilteredProducts = async (req, res, next) => {
             let targetUserObj = propertiesArr.find((el) => el.name == "Target User");
             let languageObj = propertiesArr.find((el) => el.name == "Language");
             let technologyObj = propertiesArr.find((el) => el.name == "Technology");
-            if (softwareDescriptionObj) {
+
+            if (softwareDescriptionObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...softwareDescriptionObj?.values.map((el) => ({
-                            "featureChecklist.softwareDescription.value": el?.value,
-                        })),
-                    ],
+                    "featureChecklist.softwareDescription.value": { $in: softwareDescriptionObj?.values.map(el => el.value) }
                 };
             }
-            if (pricingObj) {
+            if (pricingObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...pricingObj?.values.map((el) => ({
-                            "installation.pricingModel.value": el?.value,
-                        })),
-                    ],
+                    "installation.pricingModel.value": { $in: pricingObj?.values.map(el => el?.value) },
                 };
             }
-            if (farmTypeObj) {
+            if (farmTypeObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...farmTypeObj?.values.map((el) => ({
-                            "targetCustomer.typesOfFarmsServed.value": el?.value,
-                        })),
-                    ],
+                    "targetCustomer.typesOfFarmsServed.value": { $in: farmTypeObj?.values.map((el) => el?.value) },
                 };
             }
-            if (targetUserObj) {
+            if (targetUserObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...targetUserObj?.values.map((el) => ({
-                            "targetCustomer.customers.value": el?.value,
-                        })),
-                    ],
+                    "targetCustomer.customers.value": { $in: targetUserObj?.values.map((el) => el?.value) },
+
                 };
             }
-            if (languageObj) {
+            if (languageObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...languageObj?.values.map((el) => ({
-                            "languageSupported.value": el?.value,
-                        })),
-                    ],
+                    "languageSupported.value": { $in: languageObj?.values.map((el) => el?.value) },
                 };
             }
-            if (technologyObj) {
+            if (technologyObj?.values?.length) {
                 query = {
                     ...query,
-                    $and: [
-                        ...technologyObj?.values.map((el) => ({
-                            "featureChecklist.softwareData.value": el?.value,
-                        })),
-                    ],
+                    "featureChecklist.softwareData.value": { $in: technologyObj?.values.map((el) => el?.value) },
                 };
             }
         }
@@ -698,7 +681,6 @@ export const getFilteredProducts = async (req, res, next) => {
 
         if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
             productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
-            console.log(productsArr[0], "productsArr");
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
                 el.productGroupObj = productGroupObj;
@@ -706,7 +688,6 @@ export const getFilteredProducts = async (req, res, next) => {
             productsCount = await Product.find(query).count().exec();
         } else {
             query = { ...query, languageId: req.query.languageId };
-            console.log(query, "ProductWithLanguage");
             productsArr = await ProductWithLanguage.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
@@ -716,7 +697,6 @@ export const getFilteredProducts = async (req, res, next) => {
             productsCount = await ProductWithLanguage.find(query).count().exec();
         }
 
-        console.log(productsArr, "productsArr")
         res.status(200).json({ message: "Filtered Products Found", data: productsArr, maxCount: productsCount, success: true });
     } catch (err) {
         console.error(err);
