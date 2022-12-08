@@ -89,19 +89,19 @@ export const getProductById = async (req, res, next) => {
 
         if (!productGroupsObj) {
             // create new product group here
-            let tempProductObj=await ProductGroups.findOne({ "productArr.productId": { $in: [req.query.productsArr] }}).lean().exec();
-            console.log("ELSE CASE PRODUCT",tempProductObj)
-            if(tempProductObj){
+            let tempProductObj = await ProductGroups.findOne({ "productArr.productId": { $in: [req.query.productsArr] } }).lean().exec();
+            console.log("ELSE CASE PRODUCT", tempProductObj)
+            if (tempProductObj) {
 
-            for (const ele of tempProductObj.productsArr) {
+                for (const ele of tempProductObj.productsArr) {
                     let productObj = await ProductWithLanguage.findOne({ productId: ele.productId, languageId: tempProductObj.languageId }).exec();
-                    if(!productObj){
-                        productObj=await  Product.findOne({ productId: ele.productId, languageId: tempProductObj.languageId }).exec();
+                    if (!productObj) {
+                        productObj = await Product.findOne({ productId: ele.productId, languageId: tempProductObj.languageId }).exec();
                     }
                     if (productObj) {
                         ele.productObj = productObj;
                     }
-    
+
                     else {
                         let productObj = await Product.findById(ele.productId).exec();
                         if (productObj) {
@@ -235,10 +235,10 @@ export const getProductById = async (req, res, next) => {
                             };
                         }
                     }
+                }
+                // let tempResObj=await new ProductGroups(internalObj).save()
+                resultObj = { ...tempProductObj };
             }
-            // let tempResObj=await new ProductGroups(internalObj).save()
-            resultObj={...tempProductObj};
-        }
 
 
 
@@ -250,87 +250,166 @@ export const getProductById = async (req, res, next) => {
         if (req.query.languageId) {
             languageObj = await Language.findById(req.query.languageId).exec();
         }
-        if(productGroupsObj && productGroupsObj._id!=""){
+        if (productGroupsObj && productGroupsObj._id != "") {
 
             if (productGroupsObj.productsArr) {
                 for (const ele of productGroupsObj.productsArr) {
                     // console.log({ productId: ele.productId, languageId: req.query.languageId }, "{ productId: ele.productId, languageId: req.query.languageId }");
                     if (req.query.languageId && languageObj && `${languageObj.name}`.toLowerCase() != "english") {
-                    let productObj = await ProductWithLanguage.findOne({ _id: ele.productId }).exec();
-                    console.log(productObj, productObj?.languageId, productObj?.name, "product");
-                    if (productObj) {
-                        ele.productObj = productObj;
-                    }
-                    // productId: '637daf7591736bf30f30565a',
-                    //     languageId: '6378a7e07b80cc71f69007af',
-                    else {
-                        let productObj = await Product.findById(ele.productId).exec();
-                        console.log(productObj?.fileArr, "productObj", ele.productId);
+                        let productObj = await ProductWithLanguage.findOne({ _id: ele.productId }).exec();
+                        console.log(productObj, productObj?.languageId, productObj?.name, "product");
                         if (productObj) {
-                            ele.productObj = {
-                                _id: productObj._id,
-                                name: "",
-                                languageSupported: productObj?.languageSupported,
-                                shortDescription: "",
-                                longDescripton: "",
-                                featureChecklist: {
-                                    softwareDescription: productObj?.featureChecklist?.softwareDescription,
-                                    softwareType: productObj?.featureChecklist?.softwareType,
-                                    softwareData: productObj?.featureChecklist?.softwareData,
-                                    farmAdmin: productObj?.featureChecklist?.farmAdmin,
-                                    accountAccess: productObj?.featureChecklist?.accountAccess,
-                                    usersPerAccount: productObj?.featureChecklist?.usersPerAccount,
-                                    modeOfUse: productObj?.featureChecklist?.modeOfUse,
-                                    cropPlanning: productObj?.featureChecklist?.cropPlanning,
-                                    operationalPlanning: productObj?.featureChecklist?.operationalPlanning,
-                                    precisionAgriculture: productObj?.featureChecklist?.precisionAgriculture,
-                                    weatherForecast: productObj?.featureChecklist?.weatherForecast,
-                                    soilHealth: productObj?.featureChecklist?.soilHealth,
-                                    farmAnalytics: productObj?.featureChecklist?.farmAnalytics,
-                                    fieldAndEquipmentRecords: productObj?.featureChecklist?.fieldAndEquipmentRecords,
-                                    harvestAnalysis: productObj?.featureChecklist?.harvestAnalysis,
-                                    hardwareAndConnectivity: productObj?.featureChecklist?.hardwareAndConnectivity,
-                                    accounting: productObj?.featureChecklist?.accounting,
-                                    others: "",
-                                },
-                                targetCustomer: {
-                                    marketsServed: productObj?.targetCustomer?.marketsServed,
-                                    typesOfFarmsServed: productObj?.targetCustomer?.typesOfFarmsServed,
-                                    country: productObj?.targetCustomer.country,
-                                    customers: productObj?.targetCustomer?.customers,
-                                    farmSize: productObj?.targetCustomer?.farmSize,
-                                    typeOfLeads: "",
-                                    relevantCrops: productObj?.targetCustomer?.relevantCrops,
-                                    otherRelevantCrops: "",
-                                    capatibleWith: "",
-                                    inCompatibeWith: "",
-                                },
-                                customerSupport: {
-                                    isFreeTrialAvailable: productObj?.customerSupport?.isFreeTrialAvailable,
-                                    typeOfCustomerSupport: productObj?.customerSupport?.typeOfCustomerSupport,
-                                    trainingAvailable: productObj?.customerSupport?.trainingAvailable,
-                                    isTrainingFree: productObj?.customerSupport?.isTrainingFree,
-                                    typeOfTrainings: productObj?.customerSupport?.typeOfTrainings,
-                                },
-                                installation: {
-                                    sofwareUse: productObj?.installation?.sofwareUse,
-                                    averageTime: "",
-                                    averageFees: "",
-                                    pricingModel: productObj?.installation?.pricingModel,
-                                    pricingDetails: "",
-                                    differentSubscription: "",
-                                    additionalAddOn: "",
-                                    valuePropositions: "",
-                                    competitors: "",
-                                },
-                                fileArr: productObj?.fileArr,
-                                mediaLinksArr: productObj?.mediaLinksArr,
-                                caseStudies: productObj?.caseStudies,
-                            };
+                            ele.productObj = productObj;
+                        }
+                        // productId: '637daf7591736bf30f30565a',
+                        //     languageId: '6378a7e07b80cc71f69007af',
+                        else {
+                            let productObj = await Product.findById(ele.productId).exec();
+                            console.log(productObj?.fileArr, "productObj", ele.productId);
+                            if (productObj) {
+                                ele.productObj = {
+                                    _id: productObj._id,
+                                    name: "",
+                                    languageSupported: productObj?.languageSupported,
+                                    shortDescription: "",
+                                    longDescripton: "",
+                                    featureChecklist: {
+                                        softwareDescription: productObj?.featureChecklist?.softwareDescription,
+                                        softwareType: productObj?.featureChecklist?.softwareType,
+                                        softwareData: productObj?.featureChecklist?.softwareData,
+                                        farmAdmin: productObj?.featureChecklist?.farmAdmin,
+                                        accountAccess: productObj?.featureChecklist?.accountAccess,
+                                        usersPerAccount: productObj?.featureChecklist?.usersPerAccount,
+                                        modeOfUse: productObj?.featureChecklist?.modeOfUse,
+                                        cropPlanning: productObj?.featureChecklist?.cropPlanning,
+                                        operationalPlanning: productObj?.featureChecklist?.operationalPlanning,
+                                        precisionAgriculture: productObj?.featureChecklist?.precisionAgriculture,
+                                        weatherForecast: productObj?.featureChecklist?.weatherForecast,
+                                        soilHealth: productObj?.featureChecklist?.soilHealth,
+                                        farmAnalytics: productObj?.featureChecklist?.farmAnalytics,
+                                        fieldAndEquipmentRecords: productObj?.featureChecklist?.fieldAndEquipmentRecords,
+                                        harvestAnalysis: productObj?.featureChecklist?.harvestAnalysis,
+                                        hardwareAndConnectivity: productObj?.featureChecklist?.hardwareAndConnectivity,
+                                        accounting: productObj?.featureChecklist?.accounting,
+                                        others: "",
+                                    },
+                                    targetCustomer: {
+                                        marketsServed: productObj?.targetCustomer?.marketsServed,
+                                        typesOfFarmsServed: productObj?.targetCustomer?.typesOfFarmsServed,
+                                        country: productObj?.targetCustomer.country,
+                                        customers: productObj?.targetCustomer?.customers,
+                                        farmSize: productObj?.targetCustomer?.farmSize,
+                                        typeOfLeads: "",
+                                        relevantCrops: productObj?.targetCustomer?.relevantCrops,
+                                        otherRelevantCrops: "",
+                                        capatibleWith: "",
+                                        inCompatibeWith: "",
+                                    },
+                                    customerSupport: {
+                                        isFreeTrialAvailable: productObj?.customerSupport?.isFreeTrialAvailable,
+                                        typeOfCustomerSupport: productObj?.customerSupport?.typeOfCustomerSupport,
+                                        trainingAvailable: productObj?.customerSupport?.trainingAvailable,
+                                        isTrainingFree: productObj?.customerSupport?.isTrainingFree,
+                                        typeOfTrainings: productObj?.customerSupport?.typeOfTrainings,
+                                    },
+                                    installation: {
+                                        sofwareUse: productObj?.installation?.sofwareUse,
+                                        averageTime: "",
+                                        averageFees: "",
+                                        pricingModel: productObj?.installation?.pricingModel,
+                                        pricingDetails: "",
+                                        differentSubscription: "",
+                                        additionalAddOn: "",
+                                        valuePropositions: "",
+                                        competitors: "",
+                                    },
+                                    fileArr: productObj?.fileArr,
+                                    mediaLinksArr: productObj?.mediaLinksArr,
+                                    caseStudies: productObj?.caseStudies,
+                                };
+                            } else {
+                                ele.productObj = {
+                                    name: "",
+                                    languageSupported: [],
+                                    shortDescription: "",
+                                    longDescripton: "",
+                                    featureChecklist: {
+                                        softwareDescription: [],
+                                        softwareType: [],
+                                        softwareData: [],
+                                        farmAdmin: [],
+                                        accountAccess: {
+                                            value: "",
+                                        },
+                                        usersPerAccount: [],
+                                        modeOfUse: [],
+                                        cropPlanning: [],
+                                        operationalPlanning: [],
+                                        precisionAgriculture: [],
+                                        weatherForecast: [],
+                                        soilHealth: [],
+                                        farmAnalytics: [],
+                                        fieldAndEquipmentRecords: [],
+                                        harvestAnalysis: [],
+                                        hardwareAndConnectivity: [],
+                                        accounting: [],
+                                        others: "",
+                                    },
+                                    targetCustomer: {
+                                        marketsServed: [],
+                                        typesOfFarmsServed: [],
+                                        customers: {
+                                            value: "",
+                                        },
+                                        country: [],
+                                        farmSize: [],
+                                        typeOfLeads: "",
+                                        relevantCrops: [],
+                                        otherRelevantCrops: "",
+                                        capatibleWith: "",
+                                        inCompatibeWith: "",
+                                    },
+                                    customerSupport: {
+                                        isFreeTrialAvailable: {
+                                            value: "",
+                                        },
+                                        typeOfCustomerSupport: [],
+                                        trainingAvailable: {
+                                            value: "",
+                                        },
+                                        isTrainingFree: "",
+                                        typeOfTrainings: [],
+                                    },
+                                    installation: {
+                                        sofwareUse: [],
+                                        averageTime: "",
+                                        averageFees: "",
+                                        pricingModel: [],
+                                        pricingDetails: "",
+                                        differentSubscription: "",
+                                        additionalAddOn: "",
+                                        valuePropositions: "",
+                                        competitors: "",
+                                    },
+                                    fileArr: [],
+                                    mediaLinksArr: [],
+                                    caseStudies: [],
+                                };
+                            }
+                        }
+                    } else {
+                        let productObj = await Product.findById(ele.productId).exec();
+                        // console.log(productObj, "productObj");
+                        if (productObj) {
+                            ele.productObj = productObj;
                         } else {
                             ele.productObj = {
                                 name: "",
-                                languageSupported: [],
+                                languageSupported: [
+                                    {
+                                        value: "",
+                                    },
+                                ],
                                 shortDescription: "",
                                 longDescripton: "",
                                 featureChecklist: {
@@ -358,10 +437,10 @@ export const getProductById = async (req, res, next) => {
                                 targetCustomer: {
                                     marketsServed: [],
                                     typesOfFarmsServed: [],
+                                    country: [],
                                     customers: {
                                         value: "",
                                     },
-                                    country: [],
                                     farmSize: [],
                                     typeOfLeads: "",
                                     relevantCrops: [],
@@ -397,95 +476,16 @@ export const getProductById = async (req, res, next) => {
                             };
                         }
                     }
-                } else {
-                    let productObj = await Product.findById(ele.productId).exec();
-                    // console.log(productObj, "productObj");
-                    if (productObj) {
-                        ele.productObj = productObj;
-                    } else {
-                        ele.productObj = {
-                            name: "",
-                            languageSupported: [
-                                {
-                                    value: "",
-                                },
-                            ],
-                            shortDescription: "",
-                            longDescripton: "",
-                            featureChecklist: {
-                                softwareDescription: [],
-                                softwareType: [],
-                                softwareData: [],
-                                farmAdmin: [],
-                                accountAccess: {
-                                    value: "",
-                                },
-                                usersPerAccount: [],
-                                modeOfUse: [],
-                                cropPlanning: [],
-                                operationalPlanning: [],
-                                precisionAgriculture: [],
-                                weatherForecast: [],
-                                soilHealth: [],
-                                farmAnalytics: [],
-                                fieldAndEquipmentRecords: [],
-                                harvestAnalysis: [],
-                                hardwareAndConnectivity: [],
-                                accounting: [],
-                                others: "",
-                            },
-                            targetCustomer: {
-                                marketsServed: [],
-                                typesOfFarmsServed: [],
-                                country: [],
-                                customers: {
-                                    value: "",
-                                },
-                                farmSize: [],
-                                typeOfLeads: "",
-                                relevantCrops: [],
-                                otherRelevantCrops: "",
-                                capatibleWith: "",
-                                inCompatibeWith: "",
-                            },
-                            customerSupport: {
-                                isFreeTrialAvailable: {
-                                    value: "",
-                                },
-                                typeOfCustomerSupport: [],
-                                trainingAvailable: {
-                                    value: "",
-                                },
-                                isTrainingFree: "",
-                                typeOfTrainings: [],
-                            },
-                            installation: {
-                                sofwareUse: [],
-                                averageTime: "",
-                                averageFees: "",
-                                pricingModel: [],
-                                pricingDetails: "",
-                                differentSubscription: "",
-                                additionalAddOn: "",
-                                valuePropositions: "",
-                                competitors: "",
-                            },
-                            fileArr: [],
-                            mediaLinksArr: [],
-                            caseStudies: [],
-                        };
-                    }
                 }
             }
-        }
 
         }
 
-        if( productGroupsObj?._id && productGroupsObj?._id!=""){
-            resultObj=productGroupsObj;
+        if (productGroupsObj?._id && productGroupsObj?._id != "") {
+            resultObj = productGroupsObj;
         }
-        
-        
+
+
         // console.log(JSON.stringify(productGroupsObj, null, 2), "productGroupsObj")
 
         res.status(200).json({ message: "Products Found", data: productGroupsObj, success: true });
@@ -500,21 +500,43 @@ export const getComparisionProductsProducts = async (req, res, next) => {
         console.log(req.query, "req.query");
         let tempArr = req.query.productArr;
         tempArr = tempArr.split(",");
-
-        let productArr = await Product.find({ _id: { $in: [...tempArr] } })
-            .lean()
-            .exec();
-        if (!productArr) {
-            throw new Error("Product Not found ");
-        }
-        for (const el of productArr) {
-            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
-            console.log(productGroupsObj, "productGroupsObj");
-            if (productGroupsObj) {
-                el.productGroupsObj = productGroupsObj;
+        let englishObj = await Language.findOne({ name: "English" }).exec()
+        let productArr = []
+        console.log(englishObj)
+        if (englishObj && englishObj.name && englishObj._id == req.query.languageId) {
+            productArr = await Product.find({ _id: { $in: [...tempArr] } })
+                .lean()
+                .exec();
+            if (!productArr) {
+                throw new Error("Product Not found to compare for the products you selected");
+            }
+            for (const el of productArr) {
+                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                console.log(productGroupsObj, "productGroupsObj");
+                if (productGroupsObj) {
+                    el.productGroupsObj = productGroupsObj;
+                }
             }
         }
 
+        else {
+            console.log("inside")
+            productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] } })
+                .lean()
+                .exec();
+            if (!productArr) {
+                throw new Error("Product Not found ");
+            }
+            for (const el of productArr) {
+                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                console.log(productGroupsObj, "productGroupsObj");
+                if (productGroupsObj) {
+                    el.productGroupsObj = productGroupsObj;
+                }
+            }
+        }
+
+        console.log(productArr, " productArr")
         res.status(200).json({ message: "Products Found", data: productArr, success: true });
     } catch (err) {
         console.error(err);
@@ -535,7 +557,7 @@ export const getProductByProductId = async (req, res, next) => {
         if (`${languageObj?.name}`.toLowerCase() == "english") {
             productObj = await Product.findById(req.params.id).lean().exec();
             if (!productObj) {
-                throw new Error("Product Not found ");
+                throw new Error("Product not found for the language you selected");
             }
             let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id }).exec();
             if (productGroupsObj) {
@@ -593,6 +615,7 @@ export const getFilteredProducts = async (req, res, next) => {
         if (req.query.itemsPerPage) {
             itemsPerPage = req.query.itemsPerPage;
         }
+
         if (req.query.properties && req.query.properties != "[]" && JSON.parse(req.query.properties).length > 0) {
             let propertiesArr = JSON.parse(req.query.properties);
             let softwareDescriptionObj = propertiesArr.find((el) => el.name == "Farming Needs");
@@ -601,71 +624,47 @@ export const getFilteredProducts = async (req, res, next) => {
             let targetUserObj = propertiesArr.find((el) => el.name == "Target User");
             let languageObj = propertiesArr.find((el) => el.name == "Language");
             let technologyObj = propertiesArr.find((el) => el.name == "Technology");
-            if (softwareDescriptionObj) {
+
+            if (softwareDescriptionObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...softwareDescriptionObj?.values.map((el) => ({
-                            "featureChecklist.softwareDescription.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "featureChecklist.softwareDescription.value": { $in: softwareDescriptionObj?.values.map(el => el.value) }
                 };
             }
-            if (pricingObj) {
+            if (pricingObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...pricingObj?.values.map((el) => ({
-                            "installation.pricingModel.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "installation.pricingModel.value": { $in: pricingObj?.values.map(el => el?.value) },
                 };
             }
-            if (farmTypeObj) {
+            if (farmTypeObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...farmTypeObj?.values.map((el) => ({
-                            "targetCustomer.typesOfFarmsServed.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "targetCustomer.typesOfFarmsServed.value": { $in: farmTypeObj?.values.map((el) => el?.value) },
                 };
             }
-            if (targetUserObj) {
+            if (targetUserObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...targetUserObj?.values.map((el) => ({
-                            "targetCustomer.customers.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "targetCustomer.customers.value": { $in: targetUserObj?.values.map((el) => el?.value) },
+
                 };
             }
-            if (languageObj) {
+            if (languageObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...languageObj?.values.map((el) => ({
-                            "languageSupported.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "languageSupported.value": { $in: languageObj?.values.map((el) => el?.value) },
                 };
             }
-            if (technologyObj) {
+            if (technologyObj?.values?.length) {
                 query = {
-                    $and: [
-                        ...query,
-                        ...technologyObj?.values.map((el) => ({
-                            "featureChecklist.softwareData.value": el?.value,
-                        })),
-                    ],
+                    ...query,
+                    "featureChecklist.softwareData.value": { $in: technologyObj?.values.map((el) => el?.value) },
                 };
             }
         }
-        console.log(typeof req.query.farmSize, "@@@@@@@@@@FARM");
         if (req.query.farmSize != "undefined" && req.query.farmSize && req.query.farmSize != "{}" && req.query.farmSize != undefined && req.query.farmSize != null) {
             if (req.query.farmSize) {
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 let value = JSON.parse(req.query.farmSize).value;
                 if (value) {
                     if (value == "500  ha") {
@@ -681,33 +680,20 @@ export const getFilteredProducts = async (req, res, next) => {
         let productsArr = [];
         let productsCount = 0;
 
-        console.log(query, "query");
 
         if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
-            productsArr = await Product.find(query)
-                .skip(itemsPerPage * page)
-                .limit(itemsPerPage)
-                .sort({ name: req.query.sort })
-                .lean()
-                .exec();
-            console.log(productsArr[0], "productsArr");
+            productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
             for (const el of productsArr) {
-                let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
                 el.productGroupObj = productGroupObj;
             }
-
             productsCount = await Product.find(query).count().exec();
         } else {
             query = { ...query, languageId: req.query.languageId };
-            console.log(query, "ProductWithLanguage");
-
-            productsArr = await ProductWithLanguage.find(query)
-                .skip(itemsPerPage * page)
-                .limit(itemsPerPage)
-                .sort({ name: req.query.sort })
-                .exec();
+            productsArr = await ProductWithLanguage.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
             for (const el of productsArr) {
-                let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
+
                 el.productGroupObj = productGroupObj;
             }
             productsCount = await ProductWithLanguage.find(query).count().exec();
@@ -1109,12 +1095,12 @@ export const updateProductById = async (req, res, next) => {
         } else {
             for (const el of req.body.productArr) {
                 let productWithLanguageObj = await ProductWithLanguage.findOne({ _id: el.productId, languageId: req.body.languageId }).exec();
-               if(productWithLanguageObj){
-                    
-               }
-               else{
+                if (productWithLanguageObj) {
 
-               }
+                }
+                else {
+
+                }
                 // delete el._id;
 
                 let obj = {
@@ -1489,8 +1475,8 @@ export const updateProductById = async (req, res, next) => {
 
 
 
-export const updateProductsById=async(req,res,next)=>{
-    try{
+export const updateProductsById = async (req, res, next) => {
+    try {
         let languageObj = {};
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec();
@@ -1510,44 +1496,44 @@ export const updateProductsById=async(req,res,next)=>{
             }
         }
 
-        let englishCaseProductArr=[];
-        if(languageObj && `${languageObj.name}`.toLowerCase() == "english"){
+        let englishCaseProductArr = [];
+        if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
 
 
             /// for english products
 
-            
-            for(let el of req.body.productArr){
+
+            for (let el of req.body.productArr) {
                 //check for existing product
-                let productExistCheck=await Product.findById(el?.productId).lean().exec();
-                if(productExistCheck){
+                let productExistCheck = await Product.findById(el?.productId).lean().exec();
+                if (productExistCheck) {
                     //product exist here so update product now
-                    let tempProductObj=await Product.findByIdAndUpdate(el?.productId,el).exec();
+                    let tempProductObj = await Product.findByIdAndUpdate(el?.productId, el).exec();
                     englishCaseProductArr.push(tempProductObj)
                 }
-                else{
+                else {
                     /// add new product
-                    let productObj = await new Product({...el,languageId:req.body.languageId}).save();
+                    let productObj = await new Product({ ...el, languageId: req.body.languageId }).save();
                     englishCaseProductArr.push(productObj);
                 }
             }
 
         }
-        else{
+        else {
 
             //for other language products
 
-            for(let el of req.body.productArr){
+            for (let el of req.body.productArr) {
                 //check for existing product
-                let productExistCheck=await ProductWithLanguage.findById(el?.productId).lean().exec();
-                if(productExistCheck){
+                let productExistCheck = await ProductWithLanguage.findById(el?.productId).lean().exec();
+                if (productExistCheck) {
                     //product exist here so update product now
-                    let tempProductObj=await ProductWithLanguage.findByIdAndUpdate(el?.productId,el).exec();
+                    let tempProductObj = await ProductWithLanguage.findByIdAndUpdate(el?.productId, el).exec();
                     englishCaseProductArr.push(tempProductObj)
                 }
-                else{
+                else {
                     /// add new product
-                    let obj={...el,languageId:req.body.languageId}
+                    let obj = { ...el, languageId: req.body.languageId }
                     delete obj._id
                     let productObj = await new ProductWithLanguage(obj).save();
                     englishCaseProductArr.push(productObj);
@@ -1560,21 +1546,21 @@ export const updateProductsById=async(req,res,next)=>{
 
 
         /// handling product group here
-        console.log(req.body,englishCaseProductArr)
+        console.log(req.body, englishCaseProductArr)
         let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, "productsArr.productId": { $in: [...englishCaseProductArr.map((el) => el?._id)] } }).exec();
-        console.log(productGroupObj,"PROD GROUP")
+        console.log(productGroupObj, "PROD GROUP")
         if (productGroupObj) {
-           /// product Group exist here
-           delete req.body._id
-            await ProductGroups.findByIdAndUpdate(productGroupObj?._id,{ ...req.body,productCount:englishCaseProductArr.length,productsArr:englishCaseProductArr.map(el=>({productId:el._id}))}).exec()
+            /// product Group exist here
+            delete req.body._id
+            await ProductGroups.findByIdAndUpdate(productGroupObj?._id, { ...req.body, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).exec()
 
         } else {
-            await new ProductGroups({ ...req.body, _id:null,productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el=>({productId:el._id})) }).save();
+            await new ProductGroups({ ...req.body, _id: null, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).save();
         }
 
-        res.status(200).json({ message: 'Product Updated',success: true });
+        res.status(200).json({ message: 'Product Updated', success: true });
     }
-    catch(error){
+    catch (error) {
         next(error)
     }
 }

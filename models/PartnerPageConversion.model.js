@@ -4,7 +4,7 @@ let partnerConversion = mongoose.Schema(
     {
         languageId: { type: mongoose.Types.ObjectId },
         languageName: String,
-        becomeasupplier: String,
+        becomeaSupplier: String,
         howitWork: String,
         getListed: String,
         getListedDescription: String,

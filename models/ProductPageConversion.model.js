@@ -49,6 +49,7 @@ let productConversion = mongoose.Schema(
         noUsecasefound: String,
         getaQuote: String,
         startFreeTrial: String,
+        pricingModel: String,
         bookaDemo: String,
         aboutCompany: String,
         headquarters: String,
