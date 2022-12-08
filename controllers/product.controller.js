@@ -74,10 +74,19 @@ export const getProducts = async (req, res, next) => {
 export const getProductById = async (req, res, next) => {
     try {
         let resultObj={}
-        console.log(req.query.productsArr, req.query.languageId);
-        let productGroupsObj = await ProductGroups.findOne({ "productArr.productId": { $in: [req.query.productsArr] }, languageId: req.query.languageId })
+        console.log(typeof req.query.productArr, req.query.languageId);
+        let reqProductArr=[]
+        if(req.query.productArr!=""){
+            console.log(req.query.productArr)
+            reqProductArr=req.query.productArr.split(',')
+        }
+        console.log(reqProductArr)
+        let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": { $in: reqProductArr }, languageId: req.query.languageId })
             .lean()
             .exec();
+
+            console.log("productgroup first",productGroupsObj)
+
         if (!productGroupsObj) {
             // create new product group here
             let tempProductObj=await ProductGroups.findOne({ "productArr.productId": { $in: [req.query.productsArr] }}).lean().exec();
