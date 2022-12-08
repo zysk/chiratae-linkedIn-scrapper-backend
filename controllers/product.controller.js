@@ -64,28 +64,152 @@ export const getProducts = async (req, res, next) => {
             }
         }
 
-        res.status(200).json({ message: "Products Found", data: addedProductsArr, success: true });
+        res.status(200).json({ message: "Products Found ", data: addedProductsArr, success: true });
     } catch (err) {
         console.error(err);
         next(err);
     }
 };
 
+/**
+ * 
+ * req.query.productGroupId // this will always be the english one
+ * req.query.languageId
+ */
+export const getProductGroupById = async (req, res, next) => {
+    try {
+        let resultObj = {}
+        let productGroupId = req.query.productGroupId;
+        let languageId = req.query.languageId;
+        let productGroupsObj = await ProductGroups.findById(productGroupId).lean().exec();
+        let isEnglish = true;
+        if (!productGroupsObj)
+            throw new Error("Product Group dosent exist")
+
+        if (productGroupsObj.languageId != languageId) { // not english
+            isEnglish = false;
+            let tempProductGroupObj = await ProductGroups.findOne({ mainGroup: productGroupId, languageId: languageId }).lean().exec()
+            if (tempProductGroupObj) {
+                productGroupsObj = tempProductGroupObj
+            }
+        }
+        if (productGroupsObj.productsArr) {
+            for (const ele of productGroupsObj.productsArr) {
+                let productObj = {};
+                if (!isEnglish) {
+                    productObj = await ProductWithLanguage.findOne({ _id: ele.productId }).exec();
+                }
+                if (isEnglish) {
+                    productObj = await Product.findById(ele.productId).exec();
+                }
+                if (productObj) {
+                    ele.productObj = productObj;
+                } else {
+                    ele.productObj = {
+                        name: "",
+                        languageSupported: [
+                            {
+                                value: "",
+                            },
+                        ],
+                        shortDescription: "",
+                        longDescripton: "",
+                        featureChecklist: {
+                            softwareDescription: [],
+                            softwareType: [],
+                            softwareData: [],
+                            farmAdmin: [],
+                            accountAccess: {
+                                value: "",
+                            },
+                            usersPerAccount: [],
+                            modeOfUse: [],
+                            cropPlanning: [],
+                            operationalPlanning: [],
+                            precisionAgriculture: [],
+                            weatherForecast: [],
+                            soilHealth: [],
+                            farmAnalytics: [],
+                            fieldAndEquipmentRecords: [],
+                            harvestAnalysis: [],
+                            hardwareAndConnectivity: [],
+                            accounting: [],
+                            others: "",
+                        },
+                        targetCustomer: {
+                            marketsServed: [],
+                            typesOfFarmsServed: [],
+                            country: [],
+                            customers: {
+                                value: "",
+                            },
+                            farmSize: [],
+                            typeOfLeads: "",
+                            relevantCrops: [],
+                            otherRelevantCrops: "",
+                            capatibleWith: "",
+                            inCompatibeWith: "",
+                        },
+                        customerSupport: {
+                            isFreeTrialAvailable: {
+                                value: "",
+                            },
+                            typeOfCustomerSupport: [],
+                            trainingAvailable: {
+                                value: "",
+                            },
+                            isTrainingFree: "",
+                            typeOfTrainings: [],
+                        },
+                        installation: {
+                            sofwareUse: [],
+                            averageTime: "",
+                            averageFees: "",
+                            pricingModel: [],
+                            pricingDetails: "",
+                            differentSubscription: "",
+                            additionalAddOn: "",
+                            valuePropositions: "",
+                            competitors: "",
+                        },
+                        fileArr: [],
+                        mediaLinksArr: [],
+                        caseStudies: [],
+                    };
+                }
+            }
+        }
+
+
+
+
+
+
+        res.status(200).json({ message: "Product Group Found", data: productGroupsObj, success: true });
+
+
+
+    } catch (error) {
+        console.error(error)
+        next(error)
+    }
+}
+
 export const getProductById = async (req, res, next) => {
     try {
-        let resultObj={}
+        let resultObj = {}
         console.log(typeof req.query.productArr, req.query.languageId);
-        let reqProductArr=[]
-        if(req.query.productArr!=""){
+        let reqProductArr = []
+        if (req.query.productArr != "") {
             console.log(req.query.productArr)
-            reqProductArr=req.query.productArr.split(',')
+            reqProductArr = req.query.productArr.split(',')
         }
         console.log(reqProductArr)
         let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": { $in: reqProductArr }, languageId: req.query.languageId })
             .lean()
             .exec();
 
-            console.log("productgroup first",productGroupsObj)
+        console.log("productgroup first", productGroupsObj)
 
         if (!productGroupsObj) {
             // create new product group here

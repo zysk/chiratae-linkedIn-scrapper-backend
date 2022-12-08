@@ -18,6 +18,7 @@ let productGroups = mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        mainGroupId:String,
         companyCountryArr: [
             {
                 label: String,

@@ -1,6 +1,6 @@
 import express from "express";
 import {
-    addProduct, getProductById, getProducts, updateProductById, getFilteredProducts, DeleteProductById, getProductByProductId, getComparisionProductsProducts, searchProductByName, updateProductsById
+    addProduct, getProductById, getProducts, updateProductById, getFilteredProducts, DeleteProductById, getProductByProductId, getComparisionProductsProducts, searchProductByName, updateProductsById, getProductGroupById
 } from "../controllers/product.controller";
 
 let router = express.Router();
@@ -10,6 +10,7 @@ router.get("/getProducts", getProducts);
 router.get("/getFilteredProducts", getFilteredProducts);
 router.get("/getComparisionProductsProducts", getComparisionProductsProducts);
 router.get("/getProductById/", getProductById);
+router.get("/getProductGroupById/", getProductGroupById);
 router.get("/searchProductByName", searchProductByName);
 router.get("/getProductByProductId/:id/:languageId", getProductByProductId);
 router.patch("/updateById/:id", updateProductsById);
