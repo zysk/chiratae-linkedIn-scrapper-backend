@@ -607,10 +607,6 @@ export const getFilteredProducts = async (req, res, next) => {
             itemsPerPage = req.query.itemsPerPage;
         }
 
-
-        console.log(JSON.stringify(JSON.parse(req.query.properties), null, 2), "q1")
-
-
         if (req.query.properties && req.query.properties != "[]" && JSON.parse(req.query.properties).length > 0) {
             let propertiesArr = JSON.parse(req.query.properties);
             let softwareDescriptionObj = propertiesArr.find((el) => el.name == "Farming Needs");
@@ -658,10 +654,8 @@ export const getFilteredProducts = async (req, res, next) => {
                 };
             }
         }
-        console.log(typeof req.query.farmSize, "@@@@@@@@@@FARM");
         if (req.query.farmSize != "undefined" && req.query.farmSize && req.query.farmSize != "{}" && req.query.farmSize != undefined && req.query.farmSize != null) {
             if (req.query.farmSize) {
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 let value = JSON.parse(req.query.farmSize).value;
                 if (value) {
                     if (value == "500  ha") {
@@ -677,7 +671,6 @@ export const getFilteredProducts = async (req, res, next) => {
         let productsArr = [];
         let productsCount = 0;
 
-        console.log(query, "query");
 
         if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
             productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
