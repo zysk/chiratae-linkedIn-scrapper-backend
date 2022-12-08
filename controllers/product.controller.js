@@ -87,9 +87,9 @@ export const getProductGroupById = async (req, res, next) => {
             throw new Error("Product Group dosent exist")
 
         if (productGroupsObj.languageId != languageId) { // not english
-            isEnglish = false;
             let tempProductGroupObj = await ProductGroups.findOne({ mainGroup: productGroupId, languageId: languageId }).lean().exec()
             if (tempProductGroupObj) {
+                isEnglish = false;
                 productGroupsObj = tempProductGroupObj
             }
         }
@@ -1601,6 +1601,7 @@ export const updateProductById = async (req, res, next) => {
 
 export const updateProductsById = async (req, res, next) => {
     try {
+        console.log(req.body)
         let languageObj = {};
         if (req.body.languageId) {
             languageObj = await Language.findById(req.body.languageId).exec();
@@ -1623,43 +1624,82 @@ export const updateProductsById = async (req, res, next) => {
         let englishCaseProductArr = [];
         if (languageObj && `${languageObj.name}`.toLowerCase() == "english") {
 
-
+            console.log("In english case")
             /// for english products
 
 
             for (let el of req.body.productArr) {
                 //check for existing product
-                let productExistCheck = await Product.findById(el?.productId).lean().exec();
+                let productExistCheck = await Product.findOne({ _id: el?._id, languageId: req.body.languageId }).lean().exec();
                 if (productExistCheck) {
                     //product exist here so update product now
-                    let tempProductObj = await Product.findByIdAndUpdate(el?.productId, el).exec();
+                    let tempObj = {
+                        ...el,
+                        _id: undefined,
+                    }
+                    delete tempObj._id
+                    let tempProductObj = await Product.findByIdAndUpdate(productExistCheck?._id, tempObj).exec();
                     englishCaseProductArr.push(tempProductObj)
                 }
                 else {
                     /// add new product
-                    let productObj = await new Product({ ...el, languageId: req.body.languageId }).save();
+                    let tempObj = {
+                        ...el,
+                        languageId: req.body.languageId,
+                        _id: null
+                    }
+
+                    let productObj = await new Product(tempObj).save();
                     englishCaseProductArr.push(productObj);
                 }
             }
 
         }
         else {
-
+            console.log("In other case")
             //for other language products
+
+            // for (let el of req.body.productArr) {
+            //     //check for existing product
+            //     let productExistCheck = await ProductWithLanguage.findById(el?.).lean().exec();
+            //     if (productExistCheck) {
+            //         //product exist here so update product now
+            //         let tempProductObj = await ProductWithLanguage.findByIdAndUpdate(el?.productId, el).exec();
+            //         englishCaseProductArr.push(tempProductObj)
+            //     }
+            //     else {
+            //         /// add new product
+            //         let obj = { ...el, languageId: req.body.languageId }
+            //         delete obj._id
+            //         let productObj = await new ProductWithLanguage(obj).save();
+            //         englishCaseProductArr.push(productObj);
+            //     }
+            // }
+
 
             for (let el of req.body.productArr) {
                 //check for existing product
-                let productExistCheck = await ProductWithLanguage.findById(el?.productId).lean().exec();
+                let productExistCheck = await ProductWithLanguage.findOne({ _id: el?._id, languageId: req.body.languageId }).lean().exec();
                 if (productExistCheck) {
+                    let tempObj = {
+                        ...el,
+                        _id: undefined,
+                    }
+                    delete tempObj._id
                     //product exist here so update product now
-                    let tempProductObj = await ProductWithLanguage.findByIdAndUpdate(el?.productId, el).exec();
+                    let tempProductObj = await ProductWithLanguage.findByIdAndUpdate(productExistCheck?._id, tempObj).exec();
                     englishCaseProductArr.push(tempProductObj)
                 }
                 else {
                     /// add new product
-                    let obj = { ...el, languageId: req.body.languageId }
-                    delete obj._id
-                    let productObj = await new ProductWithLanguage(obj).save();
+                    let tempObj = {
+                        ...el,
+                        languageId: req.body.languageId,
+                        _id: undefined
+                    }
+
+                    delete tempObj._id
+                    let productObj = await new ProductWithLanguage(tempObj).save();
                     englishCaseProductArr.push(productObj);
                 }
             }
@@ -1670,16 +1710,45 @@ export const updateProductsById = async (req, res, next) => {
 
 
         /// handling product group here
-        console.log(req.body, englishCaseProductArr)
-        let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, "productsArr.productId": { $in: [...englishCaseProductArr.map((el) => el?._id)] } }).exec();
+        // // console.log(req.body, englishCaseProductArr)
+        // let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, "productsArr.productId": { $in: [...englishCaseProductArr.map((el) => el?._id)] } }).exec();
+        // // console.log(productGroupObj, "PROD GROUP")
+        // if (productGroupObj) {
+        //     /// product Group exist here
+        //     delete req.body._id
+        //     await ProductGroups.findByIdAndUpdate(productGroupObj?._id, { ...req.body, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).exec()
+
+        // } else {
+        //     await new ProductGroups({ ...req.body, _id: null, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).save();
+        // }
+
+        // / handling product group here
+        console.log(englishCaseProductArr)
+        let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, _id: req.body.productGroupId }).exec();
         console.log(productGroupObj, "PROD GROUP")
         if (productGroupObj) {
             /// product Group exist here
-            delete req.body._id
-            await ProductGroups.findByIdAndUpdate(productGroupObj?._id, { ...req.body, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).exec()
+
+            let tempObj = {
+                ...req.body,
+                productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })),
+                _id: undefined
+            }
+            delete tempObj._id;
+
+            // delete req.body._id
+            await ProductGroups.findByIdAndUpdate(productGroupObj?._id, tempObj).exec()
 
         } else {
-            await new ProductGroups({ ...req.body, _id: null, productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })) }).save();
+            let tempObj = {
+                ...req.body,
+                productCount: englishCaseProductArr.length, productsArr: englishCaseProductArr.map(el => ({ productId: el._id })),
+                languageId: req.body.languageId,
+                mainGroupId: req.body.productGroupId,
+                _id: undefined
+            }
+            delete tempObj._id
+            await new ProductGroups(tempObj).save();
         }
 
         res.status(200).json({ message: 'Product Updated', success: true });
