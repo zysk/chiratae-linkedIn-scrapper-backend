@@ -693,12 +693,12 @@ export const getProductByProductId = async (req, res, next) => {
                 .exec();
             if (relatedProductsArr) {
                 for (const el of relatedProductsArr) {
-                    let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                    let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, isEnglishModel: true }).exec();
                     if (productGroupsObj) {
                         el.productGroupsObj = productGroupsObj;
                     }
                 }
-                // productObj.relatedProductsArr = relatedProductsArr
+                productObj.relatedProductsArr = relatedProductsArr
             }
         } else {
             productObj = await ProductWithLanguage.findById(req.params.id).lean().exec();
@@ -714,7 +714,13 @@ export const getProductByProductId = async (req, res, next) => {
                 .lean()
                 .exec();
             if (relatedProductsArr) {
-                // productObj.relatedProductsArr = relatedProductsArr
+                for (const el of relatedProductsArr) {
+                    let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, isEnglishModel: false }).exec();
+                    if (productGroupsObj) {
+                        el.productGroupsObj = productGroupsObj;
+                    }
+                }
+                productObj.relatedProductsArr = relatedProductsArr
             }
         }
 
