@@ -710,21 +710,23 @@ export const getProductByProductId = async (req, res, next) => {
                 productObj.productGroupsObj = productGroupsObj;
             }
 
-            let relatedProductsArr = await ProductWithLanguage.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map((el) => el?.value)] } })
+            let relatedProductsArr = await ProductWithLanguage.find({ _id: { $ne: productObj._id }, "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map((el) => el?.value)] } })
                 .lean()
                 .exec();
             if (relatedProductsArr) {
                 for (const el of relatedProductsArr) {
                     let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, isEnglishModel: false }).exec();
+                    console.log(productGroupsObj, "productGroupsObj")
                     if (productGroupsObj) {
                         el.productGroupsObj = productGroupsObj;
                     }
                 }
-                productObj.relatedProductsArr = relatedProductsArr
+
+                productObj.relatedProductsArr = relatedProductsArr.filter(el => el.productGroupsObj && el.productGroupsObj.companyName)
             }
         }
 
-        console.log(JSON.stringify(productObj, null, 2));
+        // console.log(JSON.stringify(productObj, null, 2));
 
         res.status(200).json({ message: "Products Found", data: productObj, success: true });
     } catch (err) {
@@ -823,12 +825,14 @@ export const getFilteredProducts = async (req, res, next) => {
             productsArr = await ProductWithLanguage.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
-
+                console.log(productGroupObj, "productGroupObj")
                 el.productGroupObj = productGroupObj;
             }
             productsCount = await ProductWithLanguage.find(query).count().exec();
         }
-
+        console.log(productsArr.map(el => el?.productGroupObj?.companyName))
+        productsArr = productsArr.filter(el => el.productGroupObj && el.productGroupObj.companyName)
+        // console.log(productsArr)
         res.status(200).json({ message: "Filtered Products Found", data: productsArr, maxCount: productsCount, success: true });
     } catch (err) {
         console.error(err);

@@ -57,6 +57,12 @@ let productConversion = mongoose.Schema(
         marketsServed: String,
         startingFrom: String,
         read: String,
+        slightlycompatible: String,
+        highlycompatible: String,
+        partiallycompatible: String,
+        notcompatible: String,
+        businessType: String,
+        youreAlmostThere: String,
     },
     { timestamps: true }
 );

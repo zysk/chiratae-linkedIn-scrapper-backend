@@ -44,6 +44,8 @@ let aboutUsConversion = mongoose.Schema(
         emailValue: String,
         officeHours: String,
         officeHoursValue: String,
+        byCheckingThis: String,
+        andOur: String,
     },
     { timestamps: true }
 );
