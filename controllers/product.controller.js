@@ -688,7 +688,7 @@ export const getProductByProductId = async (req, res, next) => {
                 productObj.productGroupsObj = productGroupsObj;
             }
 
-            let relatedProductsArr = await Product.find({ "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map((el) => el?.value)] } })
+            let relatedProductsArr = await Product.find({ _id: { $ne: productObj._id }, "targetCustomer.customers.value": { $in: [...productObj?.targetCustomer?.customers.map((el) => el?.value)] } })
                 .lean()
                 .exec();
             if (relatedProductsArr) {
