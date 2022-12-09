@@ -87,7 +87,7 @@ export const getProductGroupById = async (req, res, next) => {
             throw new Error("Product Group dosent exist")
 
         if (productGroupsObj.languageId != languageId) { // not english
-            let tempProductGroupObj = await ProductGroups.findOne({ mainGroup: productGroupId, languageId: languageId }).lean().exec()
+            let tempProductGroupObj = await ProductGroups.findOne({ mainGroupId: productGroupId, languageId: languageId }).lean().exec()
             if (tempProductGroupObj) {
                 isEnglish = false;
                 productGroupsObj = tempProductGroupObj
