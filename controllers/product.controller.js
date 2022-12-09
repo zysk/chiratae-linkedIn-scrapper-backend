@@ -1637,6 +1637,7 @@ export const updateProductsById = async (req, res, next) => {
             for (let el of req.body.productArr) {
                 //check for existing product
                 let productExistCheck = await Product.findOne({ _id: el?._id, languageId: req.body.languageId }).lean().exec();
+                console.log(productExistCheck, "PROD")
                 if (productExistCheck) {
                     //product exist here so update product now
                     let tempObj = {
@@ -1652,9 +1653,9 @@ export const updateProductsById = async (req, res, next) => {
                     let tempObj = {
                         ...el,
                         languageId: req.body.languageId,
-                        _id: null
+                        _id: undefined
                     }
-
+                    delete tempObj._id
                     let productObj = await new Product(tempObj).save();
                     englishCaseProductArr.push(productObj);
                 }
@@ -1729,7 +1730,7 @@ export const updateProductsById = async (req, res, next) => {
         // }
 
         // / handling product group here
-        console.log(englishCaseProductArr)
+        console.log(englishCaseProductArr, "ENG")
         let productGroupObj = await ProductGroups.findOne({ languageId: req.body.languageId, _id: req.body.productGroupId }).exec();
         console.log(productGroupObj, "PROD GROUP")
         if (productGroupObj) {
