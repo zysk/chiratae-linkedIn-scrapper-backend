@@ -565,6 +565,11 @@ let conversion = mongoose.Schema(
         save: String,
         greenHouses: String,
         verticalIndoorFarm: String,
+        farmTypes: String,
+        collapseAll: String,
+        expandAll: String,
+        viewProfile: String,
+
     },
     { timestamps: String, }
 );
