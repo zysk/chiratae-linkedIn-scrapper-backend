@@ -683,7 +683,7 @@ export const getProductByProductId = async (req, res, next) => {
             if (!productObj) {
                 throw new Error("Product not found for the language you selected");
             }
-            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id }).exec();
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id, languageId: req.params.languageId }).exec();
             if (productGroupsObj) {
                 productObj.productGroupsObj = productGroupsObj;
             }
@@ -705,7 +705,7 @@ export const getProductByProductId = async (req, res, next) => {
             if (!productObj) {
                 throw new Error("Product Not found ");
             }
-            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj.productId }).exec();
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj.productId, languageId: req.params.languageId }).exec();
             if (productGroupsObj) {
                 productObj.productGroupsObj = productGroupsObj;
             }
@@ -752,7 +752,7 @@ export const getFilteredProducts = async (req, res, next) => {
             let propertiesArr = JSON.parse(req.query.properties);
             let softwareDescriptionObj = propertiesArr.find((el) => el.name == "Farming Needs");
             let pricingObj = propertiesArr.find((el) => el.name == "Pricing");
-            let farmTypeObj = propertiesArr.find((el) => el.name == "Farm Type");
+            let farmTypeObj = propertiesArr.find((el) => el.name == "Farm type");
             let targetUserObj = propertiesArr.find((el) => el.name == "Target User");
             let languageObj = propertiesArr.find((el) => el.name == "Language");
             let technologyObj = propertiesArr.find((el) => el.name == "Technology");
@@ -814,6 +814,7 @@ export const getFilteredProducts = async (req, res, next) => {
 
 
         if (!languageObj || `${languageObj.name}`.toLowerCase() == "english") {
+            console.log(query, "query");
             productsArr = await Product.find(query).skip(itemsPerPage * page).limit(itemsPerPage).sort({ name: req.query.sort }).lean().exec();
             for (const el of productsArr) {
                 let productGroupObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: el.languageId }).exec();
