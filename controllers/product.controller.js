@@ -625,6 +625,9 @@ export const getComparisionProductsProducts = async (req, res, next) => {
         let tempArr = req.query.productArr;
         tempArr = tempArr.split(",");
 
+        console.log(req.query, "query")
+
+
         let englishObj = await Language.findOne({ name: "English" }).exec()
         let productArr = []
         console.log(englishObj)
