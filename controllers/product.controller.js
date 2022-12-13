@@ -629,14 +629,14 @@ export const getComparisionProductsProducts = async (req, res, next) => {
         let productArr = []
         console.log(englishObj)
         if (englishObj && englishObj.name && englishObj._id == req.query.languageId) {
-            productArr = await Product.find({ _id: { $in: [...tempArr] }, languageId: req.query.languageId })
+            productArr = await Product.find({ _id: { $in: [...tempArr] } })
                 .lean()
                 .exec();
             if (!productArr) {
                 throw new Error("Product Not found to compare for the products you selected");
             }
             for (const el of productArr) {
-                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: req.query.languageId }).exec();
                 console.log(productGroupsObj, "productGroupsObj");
                 if (productGroupsObj) {
                     el.productGroupsObj = productGroupsObj;
@@ -646,12 +646,12 @@ export const getComparisionProductsProducts = async (req, res, next) => {
 
         else {
             console.log("inside")
-            productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] }, languageId: req.query.languageId }).lean().exec();
+            productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] } }).lean().exec();
             if (!productArr) {
                 throw new Error("Product Not found ");
             }
             for (const el of productArr) {
-                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id }).exec();
+                let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: req.query.languageId }).exec();
                 console.log(productGroupsObj, "productGroupsObj");
                 if (productGroupsObj) {
                     el.productGroupsObj = productGroupsObj;
