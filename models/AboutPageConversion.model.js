@@ -39,6 +39,7 @@ let aboutUsConversion = mongoose.Schema(
         ourOffice: String,
         officeAddress: String,
         officeAddressValue: String,
+        officeAddressValueSecond: String,
         phoneEmail: String,
         phoneValue: String,
         emailValue: String,
