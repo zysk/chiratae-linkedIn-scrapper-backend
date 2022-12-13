@@ -624,11 +624,12 @@ export const getComparisionProductsProducts = async (req, res, next) => {
         console.log(req.query, "req.query");
         let tempArr = req.query.productArr;
         tempArr = tempArr.split(",");
+
         let englishObj = await Language.findOne({ name: "English" }).exec()
         let productArr = []
         console.log(englishObj)
         if (englishObj && englishObj.name && englishObj._id == req.query.languageId) {
-            productArr = await Product.find({ _id: { $in: [...tempArr] } })
+            productArr = await Product.find({ _id: { $in: [...tempArr] }, languageId: req.query.languageId })
                 .lean()
                 .exec();
             if (!productArr) {
@@ -645,9 +646,7 @@ export const getComparisionProductsProducts = async (req, res, next) => {
 
         else {
             console.log("inside")
-            productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] } })
-                .lean()
-                .exec();
+            productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] }, languageId: req.query.languageId }).lean().exec();
             if (!productArr) {
                 throw new Error("Product Not found ");
             }
