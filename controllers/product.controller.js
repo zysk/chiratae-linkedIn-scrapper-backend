@@ -651,7 +651,7 @@ export const getComparisionProductsProducts = async (req, res, next) => {
             console.log("inside")
             productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] } }).lean().exec();
             if (!productArr) {
-                throw new Error("Product Not found ");
+                throw new Error("Product Not found to compare for the products you selected");
             }
             for (const el of productArr) {
                 let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: req.query.languageId }).exec();
@@ -705,7 +705,7 @@ export const getProductByProductId = async (req, res, next) => {
         } else {
             productObj = await ProductWithLanguage.findById(req.params.id).lean().exec();
             if (!productObj) {
-                throw new Error("Product Not found ");
+                throw new Error("Product Not found for the language you selected");
             }
             let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj.productId, languageId: req.params.languageId }).exec();
             if (productGroupsObj) {

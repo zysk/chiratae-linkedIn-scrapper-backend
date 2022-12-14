@@ -1,4 +1,5 @@
 import Lead from "../models/leads.model";
+import Language from "../models/language.model";
 
 export const AddLead = async (req, res, next) => {
     try {
@@ -6,8 +7,18 @@ export const AddLead = async (req, res, next) => {
         // if (LeadObj) {
         //     throw new Error("You are already a Lead")
         // }
+
+
+        let englishObj = await Language.findOne({ name: "English" }).exec()
         await new Lead(req.body).save();
-        res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
+
+
+        if (`${req.body.languageId}` == `${englishObj._id}`) {
+            res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
+        }
+        else {
+            res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Das Unternehmen wird sich in Kürze bei Dir melden.", success: true });
+        }
     } catch (error) {
         console.error(error);
         next(error);
@@ -26,12 +37,12 @@ export const getLead = async (req, res, next) => {
 };
 export const updateLead = async (req, res, next) => {
     try {
-        console.log(req.body,"leadddddd")
+        console.log(req.body, "leadddddd")
         let LanguageExistsObj = await Lead.findById(req.params.id).exec();
         if (!LanguageExistsObj) {
             throw new Error("Lead not found , you might have already deleted it please reload the page once.");
         }
-        await Lead.findByIdAndUpdate(req.params.id, { status:req.body.status }).exec();
+        await Lead.findByIdAndUpdate(req.params.id, { status: req.body.status }).exec();
 
         res.status(200).json({ message: `Lead Updated`, success: true });
     } catch (error) {

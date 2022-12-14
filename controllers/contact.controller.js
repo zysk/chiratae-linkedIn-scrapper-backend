@@ -1,4 +1,5 @@
 import Contact from "../models/contact.model";
+import LanguageModel from "../models/language.model";
 
 export const AddContact = async (req, res, next) => {
     try {
@@ -6,7 +7,16 @@ export const AddContact = async (req, res, next) => {
         // console.log(new RegExp(`^${req.body.name}$`))
         // let LanguageObj = await Contact.findOne({ name: new RegExp(`^${req.body.name}$`) }).exec();
         await new Contact(req.body).save();
-        res.status(200).json({ message: "Thank you for contacting us. We have received your request, we will reach out to you soon !", success: true });
+
+        let englishObj = await LanguageModel.findOne({ name: "English" }).exec()
+
+
+        if (`${req.body.languageId}` == `${englishObj?._id}`) {
+            res.status(200).json({ message: "Thank you for contacting us. We have received your request, we will reach out to you soon !", success: true });
+        }
+        else {
+            res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Wir werden uns in Kürze bei Dir melden.", success: true });
+        }
     } catch (error) {
         console.error(error);
         next(error);

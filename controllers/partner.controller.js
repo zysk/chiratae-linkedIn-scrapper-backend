@@ -1,3 +1,4 @@
+import LanguageModel from "../models/language.model";
 import Partner from "../models/partner.model";
 
 export const Addpartner = async (req, res, next) => {
@@ -7,7 +8,16 @@ export const Addpartner = async (req, res, next) => {
             throw new Error("You are already a partner")
         }
         await new Partner(req.body).save();
-        res.status(200).json({ message: "Thank you for showing interest in partnering with us,  we will reach out to you soon !", success: true });
+
+        let englishObj = await LanguageModel.findOne({ name: "English" }).exec()
+
+
+        if (`${req.body.languageId}` == `${englishObj?._id}`) {
+            res.status(200).json({ message: "Thank you for showing interest in partnering with us,  we will reach out to you soon !", success: true });
+        }
+        else {
+            res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Wir werden uns in Kürze bei Dir melden.", success: true });
+        }
     } catch (error) {
         console.error(error);
         next(error);
