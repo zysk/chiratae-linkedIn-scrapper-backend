@@ -18,6 +18,7 @@ export const AddLead = async (req, res, next) => {
         if (`${req.body.type}`.toLowerCase() == "newsletter") {
             if (`${req.body.languageId}` == `${englishObj._id}`) {
                 res.status(200).json({ message: "Thank you for subscribing to our newsletter !", success: true });
+                console.log("english")
             }
             else {
                 res.status(200).json({ message: "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!", success: true });
