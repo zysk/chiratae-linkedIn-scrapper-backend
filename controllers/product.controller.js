@@ -621,17 +621,11 @@ export const getProductById = async (req, res, next) => {
 
 export const getComparisionProductsProducts = async (req, res, next) => {
     try {
-        console.log(req.query, "req.query");
         let tempArr = req.query.productArr;
         tempArr = tempArr.split(",");
-
-        console.log(req.query, "query")
-
-
         let englishObj = await Language.findOne({ name: "English" }).exec()
         let productArr = []
-        console.log(englishObj)
-        if (englishObj && englishObj.name && englishObj._id == req.query.languageId) {
+        if (englishObj && englishObj?.name && englishObj?._id == req?.query?.languageId) {
             productArr = await Product.find({ _id: { $in: [...tempArr] } })
                 .lean()
                 .exec();
@@ -646,23 +640,18 @@ export const getComparisionProductsProducts = async (req, res, next) => {
                 }
             }
         }
-
         else {
-            console.log("inside")
             productArr = await ProductWithLanguage.find({ _id: { $in: [...tempArr] } }).lean().exec();
             if (!productArr) {
                 throw new Error("Product Not found to compare for the products you selected");
             }
             for (const el of productArr) {
                 let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, languageId: req.query.languageId }).exec();
-                console.log(productGroupsObj, "productGroupsObj");
                 if (productGroupsObj) {
                     el.productGroupsObj = productGroupsObj;
                 }
             }
         }
-
-        console.log(productArr, " productArr")
         res.status(200).json({ message: "Products Found", data: productArr, success: true });
     } catch (err) {
         console.error(err);
@@ -707,7 +696,10 @@ export const getProductByProductId = async (req, res, next) => {
             if (!productObj) {
                 throw new Error("Product Not found for the language you selected");
             }
-            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj.productId, languageId: req.params.languageId }).exec();
+            console.log(productObj, "productObj")
+            console.log(req.params.languageId, "req.params.languageId")
+            let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": productObj._id, languageId: req.params.languageId, isEnglishModel: false }).exec();
+            console.log(productGroupsObj, "productGroupsObj othere Language")
             if (productGroupsObj) {
                 productObj.productGroupsObj = productGroupsObj;
             }
@@ -718,7 +710,6 @@ export const getProductByProductId = async (req, res, next) => {
             if (relatedProductsArr) {
                 for (const el of relatedProductsArr) {
                     let productGroupsObj = await ProductGroups.findOne({ "productsArr.productId": el._id, isEnglishModel: false }).exec();
-                    console.log(productGroupsObj, "productGroupsObj")
                     if (productGroupsObj) {
                         el.productGroupsObj = productGroupsObj;
                     }
@@ -728,7 +719,7 @@ export const getProductByProductId = async (req, res, next) => {
             }
         }
 
-        // console.log(JSON.stringify(productObj, null, 2));
+        console.log(JSON.stringify(productObj.productGroupsObj, null, 2));
 
         res.status(200).json({ message: "Products Found", data: productObj, success: true });
     } catch (err) {
