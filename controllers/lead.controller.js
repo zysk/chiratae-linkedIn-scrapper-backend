@@ -1,19 +1,15 @@
 import Lead from "../models/leads.model";
 import Language from "../models/language.model";
+import Product from "../models/product.model";
+import ProductWithLanguage from "../models/productWithLanguage.model";
 
 export const AddLead = async (req, res, next) => {
     try {
         let LeadObj = await Lead.findOne({ name: new RegExp(`^${req.body.name}$`) }).exec();
-        // if (LeadObj) {
-        //     throw new Error("You are already a Lead")
-        // }
-
 
         let englishObj = await Language.findOne({ name: "English" }).exec()
         await new Lead(req.body).save();
 
-
-        console.log(`${req.body.type}`.toLowerCase() == "newsletter", englishObj._id, req.body.languageId, `${req.body.languageId}` == `${englishObj._id}`, `${req.body.languageId}`, `${englishObj._id}`, "languageId")
         let message = "";
 
         if (`${req.body.type}`.toLowerCase() == "newsletter") {
@@ -33,7 +29,6 @@ export const AddLead = async (req, res, next) => {
             }
         }
 
-
         res.status(200).json({ message: message, success: true });
 
     } catch (error) {
@@ -45,7 +40,24 @@ export const AddLead = async (req, res, next) => {
 
 export const getLead = async (req, res, next) => {
     try {
-        let LeadArr = await Lead.find().exec();
+        let LeadArr = await Lead.find().lean().exec();
+
+        for (const el of LeadArr) {
+            let productObj = {}
+            if (el.productId) {
+                let tempProductObj = await Product.findById(el.productId).exec()
+                if (tempProductObj) {
+                    productObj = tempProductObj
+                }
+                else {
+                    let tempProductObj2 = await ProductWithLanguage.findById(el.productId).exec()
+                    if (tempProductObj2) {
+                        productObj = tempProductObj
+                    }
+                }
+            }
+            el.productObj = productObj
+        }
         res.status(200).json({ message: "Leads found", data: LeadArr, success: true });
     } catch (error) {
         console.error(error);
