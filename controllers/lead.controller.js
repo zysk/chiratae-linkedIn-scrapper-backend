@@ -21,6 +21,7 @@ export const AddLead = async (req, res, next) => {
                 console.log("english")
             }
             else {
+                console.log("german")
                 res.status(200).json({ message: "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!", success: true });
             }
         }
