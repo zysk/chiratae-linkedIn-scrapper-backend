@@ -14,27 +14,28 @@ export const AddLead = async (req, res, next) => {
 
 
         console.log(`${req.body.type}`.toLowerCase() == "newsletter", englishObj._id, req.body.languageId, `${req.body.languageId}` == `${englishObj._id}`, `${req.body.languageId}`, `${englishObj._id}`, "languageId")
+        let message = "";
 
         if (`${req.body.type}`.toLowerCase() == "newsletter") {
-            console.log("inside")
             if (`${req.body.languageId}` == `${englishObj._id}`) {
-                res.status(200).json({ message: "Thank you for subscribing to our newsletter !", success: true });
-                console.log("english")
+                message = "Thank you for subscribing to our newsletter !"
             }
             else {
-                console.log("german")
-                res.status(200).json({ message: "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!", success: true });
+                message = "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!"
             }
         }
         else {
-            console.log("outside")
             if (`${req.body.languageId}` == `${englishObj._id}`) {
-                res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
+                message = "Thank you! We have received your request. Company will get back to you shortly."
             }
             else {
-                res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Das Unternehmen wird sich in Kürze bei Dir melden.", success: true });
+                message = "Vielen Dank! Wir haben deine Anfrage erhalten. Das Unternehmen wird sich in Kürze bei Dir melden."
             }
         }
+
+
+        res.status(200).json({ message: message, success: true });
+
     } catch (error) {
         console.error(error);
         next(error);
