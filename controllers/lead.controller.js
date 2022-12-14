@@ -23,14 +23,13 @@ export const AddLead = async (req, res, next) => {
                 res.status(200).json({ message: "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!", success: true });
             }
         }
-
-
-
-        if (`${req.body.languageId}` == `${englishObj._id}`) {
-            res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
-        }
         else {
-            res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Das Unternehmen wird sich in Kürze bei Dir melden.", success: true });
+            if (`${req.body.languageId}` == `${englishObj._id}`) {
+                res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
+            }
+            else {
+                res.status(200).json({ message: "Vielen Dank! Wir haben deine Anfrage erhalten. Das Unternehmen wird sich in Kürze bei Dir melden.", success: true });
+            }
         }
     } catch (error) {
         console.error(error);
