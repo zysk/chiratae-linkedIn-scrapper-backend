@@ -47,12 +47,12 @@ export const getLead = async (req, res, next) => {
             if (el.productId) {
                 let tempProductObj = await Product.findById(el.productId).exec()
                 if (tempProductObj) {
-                    productObj = tempProductObj
+                    productObj = { name: tempProductObj.name }
                 }
                 else {
                     let tempProductObj2 = await ProductWithLanguage.findById(el.productId).exec()
                     if (tempProductObj2) {
-                        productObj = tempProductObj
+                        productObj = { name: tempProductObj2.name }
                     }
                 }
             }
