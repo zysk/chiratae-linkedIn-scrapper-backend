@@ -13,7 +13,7 @@ export const AddLead = async (req, res, next) => {
         await new Lead(req.body).save();
 
 
-        console.log(`${req.body.type}`.toLowerCase() == "newsletter", englishObj._id, req.body.languageId, "languageId")
+        console.log(`${req.body.type}`.toLowerCase() == "newsletter", englishObj._id, req.body.languageId, `${req.body.languageId}` == `${englishObj._id}`, `${req.body.languageId}`, `${englishObj._id}`, "languageId")
 
         if (`${req.body.type}`.toLowerCase() == "newsletter") {
             if (`${req.body.languageId}` == `${englishObj._id}`) {
