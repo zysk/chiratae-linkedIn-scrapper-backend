@@ -16,6 +16,7 @@ export const AddLead = async (req, res, next) => {
         console.log(`${req.body.type}`.toLowerCase() == "newsletter", englishObj._id, req.body.languageId, `${req.body.languageId}` == `${englishObj._id}`, `${req.body.languageId}`, `${englishObj._id}`, "languageId")
 
         if (`${req.body.type}`.toLowerCase() == "newsletter") {
+            console.log("inside")
             if (`${req.body.languageId}` == `${englishObj._id}`) {
                 res.status(200).json({ message: "Thank you for subscribing to our newsletter !", success: true });
                 console.log("english")
@@ -26,6 +27,7 @@ export const AddLead = async (req, res, next) => {
             }
         }
         else {
+            console.log("outside")
             if (`${req.body.languageId}` == `${englishObj._id}`) {
                 res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
             }
