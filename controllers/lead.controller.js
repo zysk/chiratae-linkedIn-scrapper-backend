@@ -13,6 +13,17 @@ export const AddLead = async (req, res, next) => {
         await new Lead(req.body).save();
 
 
+        if (req.body.type == "NewsLetter") {
+            if (`${req.body.languageId}` == `${englishObj._id}`) {
+                res.status(200).json({ message: "Thank you for subscribing to our newsletter !", success: true });
+            }
+            else {
+                res.status(200).json({ message: "Vielen Dank, dass Sie sich für unseren Newsletter angemeldet haben!", success: true });
+            }
+        }
+
+
+
         if (`${req.body.languageId}` == `${englishObj._id}`) {
             res.status(200).json({ message: "Thank you! We have received your request. Company will get back to you shortly.", success: true });
         }
