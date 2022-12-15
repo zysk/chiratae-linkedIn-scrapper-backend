@@ -1611,6 +1611,8 @@ export const updateProductsById = async (req, res, next) => {
             languageObj = await Language.findById(req.body.languageId).exec();
         }
 
+
+
         let englishObj = await Language.findOne({ name: new RegExp(`^English$`) }).exec();
         if (!englishObj) {
             throw new Error("English language not found please contact admin");
@@ -1634,6 +1636,18 @@ export const updateProductsById = async (req, res, next) => {
 
             for (let el of req.body.productArr) {
                 //check for existing product
+                if (el.fileArr && el.fileArr.length > 0) {
+                    // el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
+                    for (const ele of el.fileArr) {
+                        if (ele.url != "" && ele.url.includes("base64")) {
+                            ele.url = await storeFileAndReturnNameBase64(ele.url);
+                        } else {
+                            ele.url = ele.url;
+                        }
+                    }
+                } else {
+                    delete el.fileArr;
+                }
                 let productExistCheck = await Product.findOne({ _id: el?._id, languageId: req.body.languageId }).lean().exec();
                 console.log(productExistCheck, "PROD")
                 if (productExistCheck) {
@@ -1661,6 +1675,7 @@ export const updateProductsById = async (req, res, next) => {
 
         }
         else {
+
             console.log("In other case")
             //for other language products
 
@@ -1684,6 +1699,19 @@ export const updateProductsById = async (req, res, next) => {
 
             for (let el of req.body.productArr) {
                 //check for existing product
+
+                if (el.fileArr && el.fileArr.length > 0) {
+                    // el.fileArr = el.fileArr.filter(elx => elx.url != "" && elx.url.includes("base64"))
+                    for (const ele of el.fileArr) {
+                        if (ele.url != "" && ele.url.includes("base64")) {
+                            ele.url = await storeFileAndReturnNameBase64(ele.url);
+                        } else {
+                            ele.url = ele.url;
+                        }
+                    }
+                } else {
+                    delete el.fileArr;
+                }
                 let productExistCheck = await ProductWithLanguage.findOne({ _id: el?._id, languageId: req.body.languageId }).lean().exec();
                 if (productExistCheck) {
                     let tempObj = {
