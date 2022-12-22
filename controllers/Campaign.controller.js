@@ -90,8 +90,11 @@ export const searchLinkedin = async (req, res, next) => {
         try {
             let page = await driver.get("https://www.linkedin.com");
 
+            console.log("url:", driver.getcurrenturl())
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
+
+                console.log("url:", driver.getcurrenturl())
                 /////////searching for email/phone field 
                 let accountName = await driver.wait(until.elementsLocated(By.id("session_key")))
                 if (accountName) {
@@ -105,6 +108,8 @@ export const searchLinkedin = async (req, res, next) => {
                     await driver.findElement(By.id("session_password")).sendKeys(`${req.body.password}`)
                 }
                 ///////////searching the login page
+
+                console.log("url:", driver.getcurrenturl())
                 let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)))
                 if (submitbutton) {
                     ///////////submiting the login page
@@ -113,14 +118,18 @@ export const searchLinkedin = async (req, res, next) => {
 
                 console.log("LOGIN")
 
+                console.log("url:", driver.getcurrenturl())
 
                 ////////waiting for the elements to load
                 await driver.sleep(3000)
+                console.log("url:", driver.getcurrenturl())
 
 
                 //////looking for search filter
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
                 console.log("SEARCH INPUT FOUND")
+
+                console.log("url:", driver.getcurrenturl())
                 if (searchInput) {
                     /////////searching for search input on linkedin and entering the query sent by user and submiting the input
                     await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input"]`)).sendKeys(`${req.body.searchQuery}`, Key.ENTER)
