@@ -113,6 +113,11 @@ export const searchLinkedin = async (req, res, next) => {
 
                 console.log("LOGIN")
 
+
+                ////////waiting for the elements to load
+                await driver.sleep(3000)
+
+
                 //////looking for search filter
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
                 console.log("SEARCH INPUT FOUND")
