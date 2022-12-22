@@ -5,7 +5,7 @@ import User from '../models/user.model';
 import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
-import chrome from 'selenium-webdriver/chrome';
+import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { rolesObj } from '../helpers/Constants';
 import CampaignModel from '../models/Campaign.model';
@@ -72,11 +72,14 @@ export const searchLinkedin = async (req, res, next) => {
 
 
 
+        const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+        const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
 
+        let driver = await new Builder().forBrowser("chrome")
+            .setChromeService(serviceBuilder)
 
-
-        let driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build()
+            .setChromeOptions(options).build()
 
         let resultsArr = []
 
