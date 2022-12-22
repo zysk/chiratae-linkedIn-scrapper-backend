@@ -81,6 +81,7 @@ export const searchLinkedin = async (req, res, next) => {
             .setChromeService(serviceBuilder)
 
             .setChromeOptions(options).build()
+        console.log("DRIVER CREATED")
 
         let resultsArr = []
 
@@ -88,6 +89,7 @@ export const searchLinkedin = async (req, res, next) => {
 
         try {
             let page = await driver.get("https://www.linkedin.com");
+
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
                 /////////searching for email/phone field 
@@ -108,6 +110,9 @@ export const searchLinkedin = async (req, res, next) => {
                     ///////////submiting the login page
                     await driver.findElement(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)).click()
                 }
+
+                console.log("LOGIN")
+
                 //////looking for search filter
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
                 if (searchInput) {
