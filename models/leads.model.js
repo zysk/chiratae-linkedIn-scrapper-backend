@@ -1,20 +1,14 @@
 import mongoose from "mongoose";
+import { rolesObj } from "../helpers/Constants";
 
 let lead = mongoose.Schema(
     {
-        name: String,
-        email: String,
-        phone: String,
-        message: String,
-        businessType: {
-            value: String,
-            label: String,
+        clientId: String,
+        campaignId: String,
+        status: {
+            type: String,
+            default: "CREATED"
         },
-        country: String,
-        productId: String,
-        farmSize: String,
-        type: String,
-        status: { type: String, default: "Created" },
     },
     { timestamps: true }
 );

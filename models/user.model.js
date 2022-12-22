@@ -3,30 +3,28 @@ import { rolesObj } from "../helpers/Constants";
 
 let User = mongoose.Schema(
     {
-        email: { type: String },
-        phone: { type: Number },
-        firstName: String,
-        lastName: String,
-        shopName: String,
-        dob: Date,
-        country: String,
-        stateName: String,
-        pincode: String,
-        language: String,
-        alternatePhone: { type: Number },
-        password: { type: String },
-        city: { type: String },
+        /////common fields
+        name: String,
         isActive: { type: Boolean, default: false },
         role: {
             type: String,
             default: rolesObj.USER,
         },
-        panNo: { type: String },
-        aadharNo: { type: Number },
-        visitingCard: { type: String },
-        shopImage: { type: String },
-        onlinePortal: { type: String },
-        kycStatus: { type: String, default: "Pending", enum: ["Pending", "Approve", "Denied"] },
+
+
+
+        /////user fields
+        email: { type: String },
+        phone: { type: Number },
+        employeeId: String,
+        password: String,
+
+        ////////client fields
+        link: String,
+        educationArr: Array,
+        location: String,
+        currentPosition: String,
+
     },
     { timestamps: true }
 );
