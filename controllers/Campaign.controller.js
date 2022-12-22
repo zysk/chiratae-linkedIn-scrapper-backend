@@ -115,12 +115,15 @@ export const searchLinkedin = async (req, res, next) => {
 
                 //////looking for search filter
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
+                console.log("SEARCH INPUT FOUND")
                 if (searchInput) {
                     /////////searching for search input on linkedin and entering the query sent by user and submiting the input
                     await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input"]`)).sendKeys(`${req.body.searchQuery}`, Key.ENTER)
                     ///////////search input filled , now looking for people filter on linkedin
                     let filterClick = await driver.wait(until.elementLocated(By.xpath("//button[text()='People']")))
                     if (filterClick) {
+
+                        console.log("FILTER CLICKED FOUND")
                         //////clicking on people filter 
                         await driver.findElement(By.xpath("//button[text()='People']")).click()
                         /////checking if the page is completely loaded or not 
@@ -194,6 +197,7 @@ export const searchLinkedin = async (req, res, next) => {
                             ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
+                            console.log("SCROLL TO BOTTOM THE FFIRST")
                             ////////locating next button
                             try {
                                 let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000)
@@ -217,6 +221,8 @@ export const searchLinkedin = async (req, res, next) => {
 
                                         ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                         await driver.executeScript(`window.scrollTo(0, 4500)`)
+
+                                        console.log("SCROLL TO BOTTOM THE ALT")
                                         ////////waiting for the elements to load
                                         await driver.sleep(1000)
                                         ////////locating results div
@@ -243,6 +249,9 @@ export const searchLinkedin = async (req, res, next) => {
                                         }
                                         ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                         await driver.executeScript(`window.scrollTo(0, 4500)`)
+
+
+                                        console.log("SCROLL TO BOTTOM THE ALT2 ")
                                         ////////waiting for the elements to load
                                         await driver.sleep(1000)
                                         ////////finding if next button is visible or not
@@ -274,6 +283,8 @@ export const searchLinkedin = async (req, res, next) => {
                                 console.log("else case")
                                 ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
+
+                                console.log("SCROLL TO BOTTOM THE ALT3 ")
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
 
