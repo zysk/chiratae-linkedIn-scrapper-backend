@@ -9,6 +9,7 @@ import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { rolesObj } from '../helpers/Constants';
 import CampaignModel from '../models/Campaign.model';
+import path from 'path';
 let options = new chrome.Options();
 options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
