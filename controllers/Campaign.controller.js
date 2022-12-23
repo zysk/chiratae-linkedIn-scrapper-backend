@@ -10,11 +10,6 @@ import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { rolesObj } from '../helpers/Constants';
 import CampaignModel from '../models/Campaign.model';
 import path from 'path';
-let options = new chrome.Options();
-options.addArguments('--headless');
-options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-options.addArguments('--disable-gpu');
-options.addArguments('--window-size=1280,960');
 
 
 
@@ -71,7 +66,15 @@ export const searchLinkedin = async (req, res, next) => {
             throw new Error("Please add School")
         }
 
+        let proxyAddress = "203.110.240.166:80"
 
+
+        let options = new chrome.Options();
+        options.addArguments('--headless');
+        options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+        options.addArguments('--disable-gpu');
+        options.addArguments('--window-size=1920,1080');
+        // options.addArguments(`--proxy-server=http://${proxyAddress}`)
 
         const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
         const serviceBuilder = new ServiceBuilder(chromeDriverPath);
@@ -88,6 +91,20 @@ export const searchLinkedin = async (req, res, next) => {
         let totalResults = ""
 
         try {
+
+            await driver.get('http://httpbin.org/ip')
+
+            let data = await driver.getPageSource()
+            console.log(data)
+
+            await driver.sleep(3000)
+            data = await driver.getPageSource()
+
+
+            console.log(data)
+
+
+
             let page = await driver.get("https://www.linkedin.com");
 
             console.log("url:", await driver.getCurrentUrl())
