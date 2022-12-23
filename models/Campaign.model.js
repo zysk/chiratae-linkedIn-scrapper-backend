@@ -20,6 +20,10 @@ let Campaign = mongoose.Schema(
         scheduleDate: {
             type: Date,
         },
+        processing: {
+            type: Boolean,
+            default: false,
+        },
         status: {
             type: String,
             default: generalModelStatuses.CREATED

@@ -44,7 +44,7 @@ import { driver as maindriver } from '../app';
 
 export const linkedInLogin = async (req, res, next) => {
     try {
-        let isCaptcha = true
+        let isCaptcha = false
 
         let options = new chrome.Options();
         // options.addArguments('--headless');
@@ -165,26 +165,20 @@ export const linkedInLogin = async (req, res, next) => {
 
 
 
-                let data = await driver.getPageSource()
-                console.log(data)
+                // let data = await driver.getPageSource()
+                // console.log(data)
 
 
-                let session = await driver.getSession()
-                let capabilities = await driver.getCapabilities()
+                // let session = await driver.getSession()
+                // let capabilities = await driver.getCapabilities()
 
 
-                await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
+                // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
 
-                console.log("SESSION ADDED")
-
-                // await driver.sleep(7000)
-                console.log("SESSION ADDED")
-
-                let img = await driver.wait(until.elementLocated(By.xpath(`// iframe[@id="captcha-internal"]`,)))
-                console.log("SESSION ADDED")
 
                 if (url.includes('checkpoint')) { //captcha
                     isCaptcha = true
+                    let img = await driver.wait(until.elementLocated(By.xpath(`// iframe[@id="captcha-internal"]`,)))
                     console.log("Switch to outer outer frame")
                     await driver.switchTo().frame("captcha-internal");
                     console.log("Switch to outer outer frame")
@@ -363,6 +357,14 @@ export const linkedInSearch = async (req, res, next) => {
         console.log("SEARCH INPUT FOUND")
 
         res.status(200).json({ message: 'Processing you can close this window' });
+
+
+        let campaignObj = await new Campaign({
+            ...req.body,
+            processing: true
+            // totalResults: totalResults, resultsArr: clientsArr, isSearched: true 
+        }).save()
+
         console.log("url:", await driver.getCurrentUrl())
         if (searchInput) {
             /////////searching for search input on linkedin and entering the query sent by user and submiting the input
@@ -449,6 +451,20 @@ export const linkedInSearch = async (req, res, next) => {
                     ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                     await driver.executeScript(`window.scrollTo(0, 4500)`)
 
+                    // getting total results
+                    try {
+                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
+                        console.log("TOTAL RESULTS", totalResults)
+
+                        await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, }).save()
+                    } catch (error) {
+                        console.error(error)
+                    }
+
+
+
+
+
                     console.log("SCROLL TO BOTTOM THE FFIRST")
                     ////////locating next button
                     try {
@@ -464,8 +480,6 @@ export const linkedInSearch = async (req, res, next) => {
                                     let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)))
                                     if (resultText) {
                                         ////////getting value of total results
-                                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                        console.log("TOTAL RESULTS", totalResults)
                                     }
                                 } catch (error) {
                                     console.error(error)
@@ -616,7 +630,7 @@ export const linkedInSearch = async (req, res, next) => {
                 console.error(err);
             }
         }
-        await driver.quit();
+        // await driver.quit();
 
 
         let clientsArr = []
@@ -637,13 +651,13 @@ export const linkedInSearch = async (req, res, next) => {
 
         if (clientsArr) {
             clientsArr = clientsArr.map(el => ({ clientId: el._id }))
-            let campaignObj = await new Campaign({ ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save()
+            await Campaign.findByIdAndUpdate(campaignObj._id, { ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save()
             if (campaignObj) {
                 console.log(campaignObj, "el,campaignObj", clientsArr)
                 let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
                 console.log(leadsArr, "leadsArr")
             }
-            let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { resultsArr: clientsArr }).exec()
+            let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { resultsArr: clientsArr, processing: false }).exec()
         }
 
 
