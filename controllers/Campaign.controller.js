@@ -51,12 +51,18 @@ export const searchLinkedin = async (req, res, next) => {
             throw new Error("Campaign with same name already exists")
         }
 
-        if (!req.body.linkedInAccountId) {
-            throw new Error("Please Add Linkedin Account Email")
+        if (!req.body.oneTimeLink) {
+            if (!req.body.linkedInAccountId) {
+                throw new Error("Please Add Linkedin Account Email")
+            }
+            if (!req.body.password) {
+                throw new Error("Please Add Linkedin Account Password")
+            }
         }
-        if (!req.body.password) {
-            throw new Error("Please Add Linkedin Account Password")
-        }
+
+
+
+
         if (!req.body.searchQuery) {
             throw new Error("Please add Search Query")
         }
@@ -122,6 +128,14 @@ export const searchLinkedin = async (req, res, next) => {
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
 
+                // login code start
+                if(req.body.oneTimeLink){
+                    let page = await driver.get(req.body.oneTimeLink); // one time login link
+
+                }
+                else {
+
+
                 console.log("url:", await driver.getCurrentUrl())
                 /////////searching for email/phone field 
                 let accountName = await driver.wait(until.elementsLocated(By.id("session_key")))
@@ -148,13 +162,20 @@ export const searchLinkedin = async (req, res, next) => {
                     await driver.findElement(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)).click()
                 }
 
+                // login code end
+
                 console.log("LOGIN")
 
                 console.log("url:", await driver.getCurrentUrl())
+                }
 
                 ////////waiting for the elements to load
                 await driver.sleep(3000)
                 console.log("url:", await driver.getCurrentUrl())
+
+
+
+
 
 
 
