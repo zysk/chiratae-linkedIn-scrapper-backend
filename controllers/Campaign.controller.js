@@ -109,7 +109,20 @@ export const linkedInLogin = async (req, res, next) => {
             let data = await driver.getPageSource()
 
             let page = await driver.get("https://www.linkedin.com");
+
+
+            driver.sleep(1000)
             console.log("url:", await driver.getCurrentUrl())
+
+
+
+            // check login
+
+
+
+
+
+
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
 
@@ -456,7 +469,7 @@ export const linkedInSearch = async (req, res, next) => {
                     // getting total results
                     try {
                         console.log("FILTER 2")
-                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
+                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
                         console.log("TOTAL RESULTS", totalResults)
 
                         await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, })
@@ -481,7 +494,7 @@ export const linkedInSearch = async (req, res, next) => {
                                 try {
 
                                     console.log("FILTER 3")
-                                    let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)))
+                                    let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                                     if (resultText) {
                                         ////////getting value of total results
                                     }
@@ -561,12 +574,12 @@ export const linkedInSearch = async (req, res, next) => {
                         try {
 
                             console.log("FILTER 4")
-                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)), 5000)
+                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                             if (resultText) {
                                 ////////getting value of total results
 
                                 console.log("FILTER 5")
-                                totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
+                                totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
                                 console.log("TOTAL RESULTS", totalResults)
                             }
                         } catch (error) {
@@ -957,12 +970,12 @@ export const searchLinkedin = async (req, res, next) => {
                                         try {
 
                                             console.log("FILTER 7")
-                                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)))
+                                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                                             if (resultText) {
                                                 ////////getting value of total results
 
                                                 console.log("FILTER 8")
-                                                totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
+                                                totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
                                                 console.log("TOTAL RESULTS", totalResults)
                                             }
                                         } catch (error) {
@@ -1041,12 +1054,12 @@ export const searchLinkedin = async (req, res, next) => {
                                 try {
 
                                     console.log("FILTER 9")
-                                    let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)))
+                                    let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                                     if (resultText) {
                                         ////////getting value of total results
 
                                         console.log("FILTER 10")
-                                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
+                                        totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
                                         console.log("TOTAL RESULTS", totalResults)
                                     }
                                 } catch (error) {
