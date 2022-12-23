@@ -70,7 +70,7 @@ export const searchLinkedin = async (req, res, next) => {
 
 
         let options = new chrome.Options();
-        options.addArguments('--headless');
+        // options.addArguments('--headless');
         options.setPageLoadStrategy(PageLoadStrategy.EAGER)
         options.addArguments('--disable-gpu');
         options.addArguments('--window-size=1920,1080');
@@ -446,10 +446,12 @@ export const searchLinkedin = async (req, res, next) => {
         }
 
         catch (err) {
+            console.error(err)
             next(err)
         }
     }
     catch (err) {
+        console.error(err)
         next(err)
     }
 
