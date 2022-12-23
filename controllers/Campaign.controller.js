@@ -38,6 +38,32 @@ import { driver as maindriver } from '../app';
 ///password: Haier2018@
 
 
+export const checkLinkedInLogin = async (req, res, next) => {
+    try {
+
+        let driver = await maindriver
+        let page = await driver.get("https://www.linkedin.com");
+
+
+        driver.sleep(1000)
+        let isLogin = false
+        let url = await driver.getCurrentUrl()
+        console.log("url:",)
+
+        if (url.includes('feed')) {
+            isLogin = true
+        }
+
+        res.json({
+            isLogin, message: isLogin ? "Already logged in proceeding to search" : "Loging in"
+        })
+
+
+
+    } catch (error) {
+        console.error(error)
+    }
+}
 
 
 
@@ -620,6 +646,7 @@ export const linkedInSearch = async (req, res, next) => {
         /////not for now 
         for (let j = 0; j < lengthOfArray; j++) {
             try {
+                console.log("LinkedIn", j, lengthOfArray)
                 await driver.get(`${resultsArr[j].link}`);
                 await driver.sleep(2000)
 
