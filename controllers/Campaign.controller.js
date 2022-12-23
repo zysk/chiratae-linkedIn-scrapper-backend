@@ -55,7 +55,7 @@ export const checkLinkedInLogin = async (req, res, next) => {
         }
 
         res.json({
-            isLogin, message: isLogin ? "Already logged in proceeding to search" : "Loging in"
+            isLogin, message: isLogin ? "Already logged in proceeding to search" : "Login Required"
         })
 
 
