@@ -74,7 +74,7 @@ export const searchLinkedin = async (req, res, next) => {
         options.setPageLoadStrategy(PageLoadStrategy.EAGER)
         options.addArguments('--disable-gpu');
         options.addArguments('--window-size=1920,1080');
-        // options.addArguments(`--proxy-server=http://${proxyAddress}`)
+        options.addArguments(`--proxy-server=http://${proxyAddress}`)
 
         const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
         const serviceBuilder = new ServiceBuilder(chromeDriverPath);
