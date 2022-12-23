@@ -361,7 +361,8 @@ export const linkedInSearch = async (req, res, next) => {
 
         let campaignObj = await new Campaign({
             ...req.body,
-            processing: true
+            processing: true,
+            status: "PROCESSING"
             // totalResults: totalResults, resultsArr: clientsArr, isSearched: true 
         }).save()
 
@@ -521,7 +522,7 @@ export const linkedInSearch = async (req, res, next) => {
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
                                 ////////finding if next button is visible or not
-                                let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))),5000)
+                                let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))), 1000)
                                 if (nextbuttonIsValid) {
                                     ////////finding if next button is enabled or not
                                     nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]`)).isEnabled()
@@ -657,7 +658,7 @@ export const linkedInSearch = async (req, res, next) => {
                 let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
                 console.log(leadsArr, "leadsArr")
             }
-            let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { resultsArr: clientsArr, processing: false }).exec()
+            let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { resultsArr: clientsArr, processing: false, status: "COMPLETED" }).exec()
         }
 
 
