@@ -456,7 +456,7 @@ export const linkedInSearch = async (req, res, next) => {
                         totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
                         console.log("TOTAL RESULTS", totalResults)
 
-                        await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, }).save()
+                        await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, })
                     } catch (error) {
                         console.error(error)
                     }
@@ -556,7 +556,7 @@ export const linkedInSearch = async (req, res, next) => {
 
                         try {
 
-                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)))
+                            let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                             if (resultText) {
                                 ////////getting value of total results
                                 totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//div//h2[@class="pb2 t-black--light t-14"]`)).getText()
@@ -569,7 +569,7 @@ export const linkedInSearch = async (req, res, next) => {
 
 
                         ////////locating results div
-                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)))
+                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 10000)
                         if (resultElement) {
                             ///////looping through the results
                             for (let i = 0; i < resultElement.length; i++) {
