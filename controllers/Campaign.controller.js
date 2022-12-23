@@ -517,7 +517,7 @@ export const linkedInSearch = async (req, res, next) => {
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
 
 
-                                console.log("SCROLL TO BOTTOM THE ALT2 ")
+                                console.log("SCROLL TO BOTTOM THE ALT3 ")
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
                                 ////////finding if next button is visible or not
