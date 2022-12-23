@@ -14,6 +14,14 @@ import linkedInAccountRouter from "./routes/LinkedInAccounts.routes";
 import proxiesRouter from "./routes/Proxies.routes";
 import leadStatusRouter from "./routes/LeadStatus.routes";
 
+import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
+// const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
+// const chrome = require('./chromedriver').path;
+import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
+import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
+
+
+
 const schedule = require('node-schedule');
 
 const app = express();
@@ -44,5 +52,31 @@ app.use(errorHandler);
 const job = schedule.scheduleJob('0 0 * * *', function () {
     console.log('The answer to life, the universe, and everything!');
 });
+
+
+
+/**
+ * Selenium Setup
+ */
+
+
+let options = new chrome.Options();
+// options.addArguments('--headless');
+options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+options.addArguments('--disable-gpu');
+options.addArguments('--window-size=1920,1080');
+
+const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+
+export const driver = new Promise((resolve, reject) => {
+    resolve(new Builder()
+        .forBrowser("chrome")
+        .setChromeService(serviceBuilder)
+        .setChromeOptions(options).build())
+
+
+})
+
 
 export default app;
