@@ -126,6 +126,14 @@ export const searchLinkedin = async (req, res, next) => {
                 }
                 ///////////searching the login page
 
+
+                data = await driver.getPageSource()
+
+
+                console.log(data)
+
+
+
                 console.log("url:", await driver.getCurrentUrl())
                 let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)))
                 if (submitbutton) {
@@ -140,6 +148,11 @@ export const searchLinkedin = async (req, res, next) => {
                 ////////waiting for the elements to load
                 await driver.sleep(3000)
                 console.log("url:", await driver.getCurrentUrl())
+
+                data = await driver.getPageSource()
+
+
+                console.log(data)
 
 
                 //////looking for search filter
