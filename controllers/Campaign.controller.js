@@ -517,11 +517,11 @@ export const linkedInSearch = async (req, res, next) => {
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
 
 
-                                console.log("SCROLL TO BOTTOM THE ALT3 ")
+                                console.log("SCROLL TO BOTTOM THE ALT3.1 ")
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
                                 ////////finding if next button is visible or not
-                                let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))))
+                                let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))),5000)
                                 if (nextbuttonIsValid) {
                                     ////////finding if next button is enabled or not
                                     nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]`)).isEnabled()
@@ -550,7 +550,7 @@ export const linkedInSearch = async (req, res, next) => {
                         ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                         await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                        console.log("SCROLL TO BOTTOM THE ALT3 ")
+                        console.log("SCROLL TO BOTTOM THE ALT3.2 ")
                         ////////waiting for the elements to load
                         await driver.sleep(1000)
 
@@ -569,7 +569,7 @@ export const linkedInSearch = async (req, res, next) => {
 
 
                         ////////locating results div
-                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 10000)
+                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
                         if (resultElement) {
                             ///////looping through the results
                             for (let i = 0; i < resultElement.length; i++) {
@@ -603,13 +603,13 @@ export const linkedInSearch = async (req, res, next) => {
                 await driver.get(`${resultsArr[j].link}`);
                 await driver.sleep(2000)
 
-                let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 10000)
+                let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000)
                 if (currentPosition) {
                     let currentPositionValue = await driver.findElement(By.xpath(`//div[@class="text-body-medium break-words"]`)).getText()
                     resultsArr[j].currentPosition = currentPositionValue
                 }
 
-                let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 10000)
+                let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 5000)
                 if (location) {
                     let locationValue = await driver.findElement(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)).getText()
                     resultsArr[j].location = locationValue
@@ -651,7 +651,7 @@ export const linkedInSearch = async (req, res, next) => {
 
         if (clientsArr) {
             clientsArr = clientsArr.map(el => ({ clientId: el._id }))
-            await Campaign.findByIdAndUpdate(campaignObj._id, { ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save()
+            await Campaign.findByIdAndUpdate(campaignObj._id, { ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).exec()
             if (campaignObj) {
                 console.log(campaignObj, "el,campaignObj", clientsArr)
                 let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
@@ -1022,7 +1022,7 @@ export const searchLinkedin = async (req, res, next) => {
                                 ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                console.log("SCROLL TO BOTTOM THE ALT3 ")
+                                console.log("SCROLL TO BOTTOM THE ALT3.3 ")
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
 
@@ -1080,13 +1080,13 @@ export const searchLinkedin = async (req, res, next) => {
                     await driver.get(`${resultsArr[j].link}`);
                     await driver.sleep(2000)
 
-                    let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 10000)
+                    let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000)
                     if (currentPosition) {
                         let currentPositionValue = await driver.findElement(By.xpath(`//div[@class="text-body-medium break-words"]`)).getText()
                         resultsArr[j].currentPosition = currentPositionValue
                     }
 
-                    let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 10000)
+                    let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 5000)
                     if (location) {
                         let locationValue = await driver.findElement(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)).getText()
                         resultsArr[j].location = locationValue
@@ -1317,7 +1317,7 @@ export const addScheduledCampaign = async (req, res, next) => {
         // let finalArr = []
 
 
-        // // await driver.wait(until.elementLocated(By.id('foo')), 10000);
+        // // await driver.wait(until.elementLocated(By.id('foo')), 5000);
 
         // let searchInput = await driver.wait(until.elementsLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)))
 
