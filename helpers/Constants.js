@@ -3,6 +3,13 @@ export const rolesObj = {
   USER: "USER",
   CLIENT: "CLIENT",
 };
+export const leadStatusObj = {
+  CREATED: "CREATED",
+  WORKINPROGRESS: "WORKINPROGRESS",
+  CLOSED: "CLOSED",
+  DORMANT: "DORMANT",
+  CONTACTAGAIN: "CONTACTAGAIN",
+};
 
 export const ErrorMessages = {
   EMAIL_EXISTS: "Email already exists",

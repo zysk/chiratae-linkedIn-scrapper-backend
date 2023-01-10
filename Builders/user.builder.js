@@ -41,3 +41,102 @@ export const UserList = (payload) => {
 
     return pipeline;
 };
+
+
+
+
+
+export const leadsList = (payload) => {
+    console.log(payload);
+    let pipeline = [];
+    let matchCondition = [
+        {
+            '$lookup': {
+                'from': 'campaigns',
+                'localField': 'campaignId',
+                'foreignField': '_id',
+                'as': 'campaignObj'
+            }
+        }, {
+            '$unwind': {
+                'path': '$campaignObj',
+                'includeArrayIndex': 'string',
+                'preserveNullAndEmptyArrays': true
+            }
+        }, {
+            '$lookup': {
+                'from': 'users',
+                'localField': 'clientId',
+                'foreignField': '_id',
+                'as': 'clientObj'
+            }
+        }, {
+            '$unwind': {
+                'path': '$clientObj',
+                'includeArrayIndex': 'string',
+                'preserveNullAndEmptyArrays': false
+            }
+        }
+    ]
+
+    let sortCondition = {};
+
+
+
+    if (payload.leadAssignedToId) {
+        matchCondition.push({
+            '$lookup': {
+                'from': 'users',
+                'localField': 'leadAssignedToId',
+                'foreignField': '_id',
+                'as': 'leadAssignedToObj'
+            }
+        })
+        matchCondition.push({
+            '$unwind': {
+                'path': '$leadAssignedToObj',
+                'includeArrayIndex': 'string',
+                'preserveNullAndEmptyArrays': false
+            }
+        })
+    }
+    else {
+        matchCondition.push({
+            '$lookup': {
+                'from': 'users',
+                'localField': 'leadAssignedToId',
+                'foreignField': '_id',
+                'as': 'leadAssignedToObj'
+            }
+        })
+        matchCondition.push({
+            '$unwind': {
+                'path': '$leadAssignedToObj',
+                'preserveNullAndEmptyArrays': true
+            }
+        })
+    }
+
+
+    sortCondition = { createdAt: -1 };
+
+    pipeline.push(
+        ...matchCondition,
+        { $addFields: { checked: false } },
+        { $sort: sortCondition }
+    );
+
+    return pipeline;
+};
+
+
+
+
+
+
+
+
+
+
+
+

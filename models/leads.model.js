@@ -10,6 +10,10 @@ let lead = mongoose.Schema(
             type: String,
             default: "CREATED"
         },
+        rating: {
+            type: Number,
+            default: 0
+        }
     },
     { timestamps: true }
 );

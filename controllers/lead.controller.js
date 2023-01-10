@@ -1,4 +1,5 @@
 
+import { leadsList } from "../Builders/user.builder";
 import Lead from "../models/leads.model";
 
 export const createNewLead = async (req, res, next) => {
@@ -25,7 +26,39 @@ export const getLeads = async (req, res, next) => {
             }
         }
 
-        let LeadStatusArr = await Lead.find(query).populate("clientId").populate("campaignId").populate("leadAssignedToId").exec()
+        let aggregation = [
+            {
+                '$lookup': {
+                    'from': 'campaigns',
+                    'localField': 'campaignId',
+                    'foreignField': '_id',
+                    'as': 'campaignObj'
+                }
+            }, {
+                '$unwind': {
+                    'path': '$campaignObj',
+                    'includeArrayIndex': 'string',
+                    'preserveNullAndEmptyArrays': true
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'clientId',
+                    'foreignField': '_id',
+                    'as': 'clientObj'
+                }
+            }, {
+                '$unwind': {
+                    'path': '$clientObj',
+                    'includeArrayIndex': 'string',
+                    'preserveNullAndEmptyArrays': false
+                }
+            }
+        ]
+
+
+
+        let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec()
         res.status(200).json({ message: "Lead found", data: LeadStatusArr, success: true });
     } catch (error) {
         console.error(error);
