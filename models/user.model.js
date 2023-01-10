@@ -22,6 +22,8 @@ let User = mongoose.Schema(
         ////////client fields
         link: String,
         educationArr: Array,
+        experienceArr: Array,
+        contactInfoArr: Array,
         location: String,
         currentPosition: String,
 

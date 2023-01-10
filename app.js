@@ -13,6 +13,7 @@ import usersRouter from "./routes/users.routes";
 import linkedInAccountRouter from "./routes/LinkedInAccounts.routes";
 import proxiesRouter from "./routes/Proxies.routes";
 import leadStatusRouter from "./routes/LeadStatus.routes";
+import leadRouter from "./routes/Lead.routes";
 
 import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
@@ -43,6 +44,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/users", usersRouter);
 app.use("/campaign", campaignRouter);
+app.use("/lead", leadRouter);
 app.use("/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
@@ -61,7 +63,7 @@ const job = schedule.scheduleJob('0 0 * * *', function () {
 
 
 let options = new chrome.Options();
-options.addArguments('--headless');
+// options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
