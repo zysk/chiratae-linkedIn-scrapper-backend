@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export const UserList = (payload) => {
     console.log(payload);
     let pipeline = [],
@@ -51,26 +53,34 @@ export const leadsList = (payload) => {
     let pipeline = [];
     let matchCondition = [
         {
+            $sort: {
+                'createdAt': -1,
+            },
+        },
+        {
             '$lookup': {
                 'from': 'campaigns',
                 'localField': 'campaignId',
                 'foreignField': '_id',
                 'as': 'campaignObj'
             }
-        }, {
+        },
+        {
             '$unwind': {
                 'path': '$campaignObj',
                 'includeArrayIndex': 'string',
                 'preserveNullAndEmptyArrays': true
             }
-        }, {
+        },
+        {
             '$lookup': {
                 'from': 'users',
                 'localField': 'clientId',
                 'foreignField': '_id',
                 'as': 'clientObj'
             }
-        }, {
+        },
+        {
             '$unwind': {
                 'path': '$clientObj',
                 'includeArrayIndex': 'string',
@@ -79,11 +89,58 @@ export const leadsList = (payload) => {
         }
     ]
 
+
+    //     [
+
+    //     {
+    //         '$skip': payload.skip
+    //     }, {
+    //         '$limit': payload.limit
+    //     },
+    //     {
+    //         '$lookup': {
+    //             'from': 'campaigns',
+    //             'localField': 'campaignId',
+    //             'foreignField': '_id',
+    //             'as': 'campaignObj'
+    //         }
+    //     }, {
+    //         '$unwind': {
+    //             'path': '$campaignObj',
+    //             'includeArrayIndex': 'string',
+    //             'preserveNullAndEmptyArrays': true
+    //         }
+    //     }, {
+    //         '$lookup': {
+    //             'from': 'users',
+    //             'localField': 'clientId',
+    //             'foreignField': '_id',
+    //             'as': 'clientObj'
+    //         }
+    //     }, {
+    //         '$unwind': {
+    //             'path': '$clientObj',
+    //             'includeArrayIndex': 'string',
+    //             'preserveNullAndEmptyArrays': false
+    //         }
+    //     },
+    //     {
+    //         '$sort': {
+    //             createdAt: -1
+    //         }
+    //     },
+    // ]
+
     let sortCondition = {};
 
 
 
     if (payload.leadAssignedToId) {
+        matchCondition.push({
+            '$match': {
+                'leadAssignedToId': mongoose.Types.ObjectId(payload.leadAssignedToId)
+            }
+        })
         matchCondition.push({
             '$lookup': {
                 'from': 'users',
@@ -95,7 +152,6 @@ export const leadsList = (payload) => {
         matchCondition.push({
             '$unwind': {
                 'path': '$leadAssignedToObj',
-                'includeArrayIndex': 'string',
                 'preserveNullAndEmptyArrays': false
             }
         })
@@ -117,13 +173,38 @@ export const leadsList = (payload) => {
         })
     }
 
+    if (payload.filter == "assigned") {
+        matchCondition.push({
+            '$match': {
+                "leadAssignedToId": {
+                    $exists: true,
+                }
+            }
+        })
+    }
+    else if (payload.filter == "un-assigned") {
+        matchCondition.push({
+            '$match': {
+                "leadAssignedToId": {
+                    $exists: false,
+                }
+            }
+        })
+    }
 
-    sortCondition = { createdAt: -1 };
+
+
 
     pipeline.push(
         ...matchCondition,
         { $addFields: { checked: false } },
-        { $sort: sortCondition }
+        {
+            '$skip': payload.skip
+        },
+        {
+            '$limit': payload.limit
+        },
+        // { $sort: sortCondition }
     );
 
     return pipeline;

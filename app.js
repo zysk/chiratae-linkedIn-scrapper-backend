@@ -12,8 +12,9 @@ import campaignRouter from "./routes/Campaign.routes";
 import usersRouter from "./routes/users.routes";
 import linkedInAccountRouter from "./routes/LinkedInAccounts.routes";
 import proxiesRouter from "./routes/Proxies.routes";
-import leadStatusRouter from "./routes/LeadStatus.routes";
 import leadRouter from "./routes/Lead.routes";
+import leadlogsRouter from "./routes/LeadLogs.routes";
+import leadCommentRouter from "./routes/LeadComment.routes";
 
 import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
@@ -34,7 +35,7 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
         console.log("connected to db at " + CONFIG.MONGOURI);
     }
 });
-mongoose.set('debug', true)
+// mongoose.set('debug', true)
 app.use(logger("dev"));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
@@ -45,13 +46,19 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/users", usersRouter);
 app.use("/campaign", campaignRouter);
 app.use("/lead", leadRouter);
-app.use("/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
+app.use("/leadlogs", leadlogsRouter);
+app.use("/leadComments", leadCommentRouter);
 
 app.use(errorHandler);
 
-const job = schedule.scheduleJob('0 0 * * *', function () {
+const job = schedule.scheduleJob('0 23 * * 1-7', function () {
+    console.log("At 23:00 on every day-of-week from Monday through Sunday.")
+    console.log('The answer to life, the universe, and everything!');
+});
+const job2 = schedule.scheduleJob('30 * * * *', function () {
+    console.log("At minute 30.")
     console.log('The answer to life, the universe, and everything!');
 });
 
