@@ -13,7 +13,8 @@ let lead = mongoose.Schema(
         rating: {
             type: Number,
             default: 0
-        }
+        },
+        isSearched: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

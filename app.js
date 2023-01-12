@@ -6,7 +6,6 @@ import logger from "morgan";
 import path from "path";
 import { CONFIG } from "./helpers/Config";
 import { errorHandler } from "./helpers/ErrorHandler";
-
 //routes
 import campaignRouter from "./routes/Campaign.routes";
 import usersRouter from "./routes/users.routes";
@@ -21,6 +20,7 @@ import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdrive
 // const chrome = require('./chromedriver').path;
 import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
+import { getScheduledCampaignsForToday } from "./helpers/ScheduledCampaigns";
 
 
 
@@ -53,22 +53,18 @@ app.use("/leadComments", leadCommentRouter);
 
 app.use(errorHandler);
 
-const job = schedule.scheduleJob('0 23 * * 1-7', function () {
+const job = schedule.scheduleJob('*/1 * * * *', function () {
+    // const job = schedule.scheduleJob('0 23 * * 1-7', function () {
+    console.log("cron running")
+    getScheduledCampaignsForToday()
+
+
     console.log("At 23:00 on every day-of-week from Monday through Sunday.")
-    console.log('The answer to life, the universe, and everything!');
+
 });
-const job2 = schedule.scheduleJob('30 * * * *', function () {
-    console.log("At minute 30.")
-    console.log('The answer to life, the universe, and everything!');
-});
-
-
-
 /**
  * Selenium Setup
  */
-
-
 let options = new chrome.Options();
 options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)

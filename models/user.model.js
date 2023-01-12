@@ -12,7 +12,7 @@ let User = mongoose.Schema(
         },
 
 
-
+        searchCompleted: { type: Boolean, default: false },
         /////user fields
         email: { type: String },
         phone: { type: Number },

@@ -762,7 +762,7 @@ export const linkedInSearch = async (req, res, next) => {
                     let contactInfoLinkExists = await driver.wait(until.elementLocated(By.xpath(`//a[text()="Contact info"]`)), 5000)
                     if (contactInfoLinkExists) {
                         await driver.get(`${currentUrl}/overlay/contact-info/`);
-                        await driver.sleep(2000)
+                        await driver.sleep(10000)
                         let contactInfoArr = [];
 
                         ////// //h3
@@ -870,7 +870,7 @@ export const linkedInSearch = async (req, res, next) => {
 
                     let tempEducationArr = []
                     await driver.get(`${currentUrl}/details/education/`);
-                    await driver.sleep(2000)
+                    await driver.sleep(10000)
 
 
                     try {
@@ -941,7 +941,7 @@ export const linkedInSearch = async (req, res, next) => {
                 }
                 console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
                 await driver.get(`${currentUrl}/details/experience/`);
-                await driver.sleep(2000)
+                await driver.sleep(10000)
                 try {
                     let experienceFound = await driver.wait(until.elementLocated(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`)), 5000)
 
@@ -1043,11 +1043,11 @@ export const linkedInSearch = async (req, res, next) => {
                 await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
                 if (campaignObj) {
                     // console.log(campaignObj, "el,campaignObj", clientsArr)
-                    let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id }).save()
+                    let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save()
                 }
 
 
-                await driver.sleep(1000)
+                await driver.sleep(10000)
             }
             catch (err) {
                 console.error(err);
@@ -1606,7 +1606,6 @@ export const getPastCampaign = async (req, res, next) => {
     try {
         let SearchResultArr = await Campaign.find().sort({ "createdAt": -1 }).exec()
 
-
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {
         console.error(error);
@@ -1634,12 +1633,6 @@ export const getPastCampaignById = async (req, res, next) => {
 
 export const addScheduledCampaign = async (req, res, next) => {
     try {
-        if (!req.body.linkedInAccountId) {
-            throw new Error("Please Add Linkedin Account Email")
-        }
-        if (!req.body.password) {
-            throw new Error("Please Add Linkedin Account Password")
-        }
         if (!req.body.searchQuery) {
             throw new Error("Please add Search Query")
         }
