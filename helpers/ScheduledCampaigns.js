@@ -33,25 +33,25 @@ export const getScheduledCampaignsForToday = async () => {
 
 
 
-
-        let driver = await maindriver
-        let page = await driver.get("https://www.linkedin.com");
-
-        driver.sleep(1000)
-        let isLogin = false
-        let url = await driver.getCurrentUrl()
-        console.log("url:",)
-
-        if (url.includes('feed')) {
-            isLogin = true
-        }
-        else {
-            sendMail("alwin54889@gmail.com")
-            return;
-        }
-
-
         if (campaignsArr && campaignsArr.length > 0) {
+
+            let driver = await maindriver
+            let page = await driver.get("https://www.linkedin.com");
+
+            driver.sleep(1000)
+            let isLogin = false
+            let url = await driver.getCurrentUrl()
+            console.log("url:",)
+
+            if (url.includes('feed')) {
+                isLogin = true
+            }
+            else {
+                sendMail("alwin54889@gmail.com")
+                return;
+            }
+
+
 
             for (let q = 0; q < campaignsArr.length; q++) {
 

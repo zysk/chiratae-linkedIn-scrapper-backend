@@ -53,9 +53,8 @@ app.use("/leadComments", leadCommentRouter);
 
 app.use(errorHandler);
 
-const job = schedule.scheduleJob('*/1 * * * *', function () {
+const job = schedule.scheduleJob('0 23 * * *', function () {
     // const job = schedule.scheduleJob('0 23 * * 1-7', function () {
-    console.log("cron running")
     getScheduledCampaignsForToday()
 
 
