@@ -20,6 +20,7 @@ import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdrive
 import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { getScheduledCampaignsForToday } from "./helpers/ScheduledCampaigns";
+import leadStatusRouter from "./routes/LeadStatus.routes";
 
 
 
@@ -45,6 +46,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/users", usersRouter);
 app.use("/campaign", campaignRouter);
 app.use("/lead", leadRouter);
+app.use("/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
 app.use("/leadlogs", leadlogsRouter);
