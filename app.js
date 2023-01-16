@@ -14,7 +14,6 @@ import proxiesRouter from "./routes/Proxies.routes";
 import leadRouter from "./routes/Lead.routes";
 import leadlogsRouter from "./routes/LeadLogs.routes";
 import leadCommentRouter from "./routes/LeadComment.routes";
-
 import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
