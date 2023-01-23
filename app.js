@@ -21,12 +21,10 @@ import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { getScheduledCampaignsForToday } from "./helpers/ScheduledCampaigns";
 import leadStatusRouter from "./routes/LeadStatus.routes";
-
-
-
-const schedule = require('node-schedule');
-
+import { generateRandomNumbers } from "./helpers/utils";
 const app = express();
+
+
 app.use(cors());
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) {
@@ -35,6 +33,21 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
         console.log("connected to db at " + CONFIG.MONGOURI);
     }
 });
+
+///////redis setup
+const redis = require('redis');
+
+export const redisClient = redis.createClient();
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+
+redisClient.connect();
+
+
+
+//////scheduler
+const schedule = require('node-schedule');
+
+
 // mongoose.set('debug', true)
 app.use(logger("dev"));
 
@@ -54,7 +67,7 @@ app.use("/leadComments", leadCommentRouter);
 
 app.use(errorHandler);
 
-const job = schedule.scheduleJob('0 23 * * *', function () {
+const job = schedule.scheduleJob('* * * * *', function () {
     // const job = schedule.scheduleJob('0 23 * * 1-7', function () {
     getScheduledCampaignsForToday()
 
@@ -66,10 +79,11 @@ const job = schedule.scheduleJob('0 23 * * *', function () {
  * Selenium Setup
  */
 let options = new chrome.Options();
-options.addArguments('--headless');
+// options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
+
 
 const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
 const serviceBuilder = new ServiceBuilder(chromeDriverPath);
@@ -82,6 +96,7 @@ export const driver = new Promise((resolve, reject) => {
 
 
 })
+
 
 
 export default app;

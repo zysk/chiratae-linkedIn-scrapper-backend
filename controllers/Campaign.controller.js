@@ -14,7 +14,7 @@ import ProxiesModel from '../models/Proxies.model';
 import SeleniumSessionModel from '../models/SeleniumSession.model';
 import { driver as maindriver } from '../app';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
-
+import UserLogs from '../models/userLogs.model';
 
 
 
@@ -1037,12 +1037,11 @@ export const linkedInSearch = async (req, res, next) => {
                     console.log("Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists")
                     clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT }, { new: true }).exec()
                 }
-
+                await new UserLogs({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save()
 
 
                 await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
                 if (campaignObj) {
-                    // console.log(campaignObj, "el,campaignObj", clientsArr)
                     let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save()
                 }
 
@@ -1551,6 +1550,7 @@ export const searchLinkedin = async (req, res, next) => {
                 else {
                     clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT }, { new: true }).exec()
                 }
+                await new UserLogs({ ...el, role: rolesObj?.CLIENT }).save()
                 console.log(clientObj)
                 clientsArr.push(clientObj)
             }

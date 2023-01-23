@@ -1,4 +1,4 @@
-import { driver as maindriver } from '../app';
+import { driver as maindriver, redisClient } from '../app';
 import Campaign from "../models/Campaign.model";
 import { generalModelStatuses } from "./Constants";
 import { sendMail } from "./nodeMailer";
@@ -10,12 +10,14 @@ import User from '../models/user.model';
 // const chrome = require('./chromedriver').path;
 import { rolesObj } from '../helpers/Constants';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
+import { generateRandomNumbers } from './utils';
 
 
 
 
 export const getScheduledCampaignsForToday = async () => {
     try {
+        redisClient.set("isBusy", "true")
         console.log("inside cron function")
         let todayStart = new Date()
 
@@ -38,7 +40,7 @@ export const getScheduledCampaignsForToday = async () => {
             let driver = await maindriver
             let page = await driver.get("https://www.linkedin.com");
 
-            driver.sleep(1000)
+            driver.sleep(generateRandomNumbers(4))
             let isLogin = false
             let url = await driver.getCurrentUrl()
             console.log("url:",)
@@ -100,7 +102,7 @@ export const getScheduledCampaignsForToday = async () => {
                                         let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
                                         if (companyButton) {
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////clicking on the company button to reveal text input
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
                                             ////////clicking on the text input to get it in focus
@@ -108,7 +110,7 @@ export const getScheduledCampaignsForToday = async () => {
                                             ////////Entering values in the text input
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(campaignsArr[q].company)
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////clicking on the text input to get it in focus
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                             ////////pressing down key to highlight the first result
@@ -120,7 +122,7 @@ export const getScheduledCampaignsForToday = async () => {
                                         let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
                                         if (SchoolButton) {
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////clicking on the school button to reveal text input
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
                                             ////////clicking on the text input to get it in focus
@@ -128,7 +130,7 @@ export const getScheduledCampaignsForToday = async () => {
                                             ////////Entering values in the text input
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(campaignsArr[q].school)
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////clicking on the text input to get it in focus
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                             ////////pressing down key to highlight the first result
@@ -137,7 +139,7 @@ export const getScheduledCampaignsForToday = async () => {
                                             await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
                                         }
                                         ////////waiting for the elements to load
-                                        await driver.sleep(1000)
+                                        await driver.sleep(generateRandomNumbers(4))
                                         ////////locating show results button
                                         let showResults = await driver.wait(until.elementLocated(By.xpath(`//button[@data-test-reusables-filters-modal-show-results-button="true" and @aria-label="Apply current filters to show results"]`)))
                                         if (showResults) {
@@ -152,7 +154,7 @@ export const getScheduledCampaignsForToday = async () => {
 
 
                                 ////////waiting for the elements to load
-                                await driver.sleep(1000)
+                                await driver.sleep(generateRandomNumbers(4))
                                 ////////locating total results div
 
                                 ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
@@ -200,7 +202,7 @@ export const getScheduledCampaignsForToday = async () => {
 
                                             console.log("SCROLL TO BOTTOM THE ALT")
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////locating results div
                                             try {
                                                 let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
@@ -234,7 +236,7 @@ export const getScheduledCampaignsForToday = async () => {
 
                                             console.log("SCROLL TO BOTTOM THE ALT3.1 ")
                                             ////////waiting for the elements to load
-                                            await driver.sleep(1000)
+                                            await driver.sleep(generateRandomNumbers(4))
                                             ////////finding if next button is visible or not
                                             try {
                                                 let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))), 1000)
@@ -272,7 +274,7 @@ export const getScheduledCampaignsForToday = async () => {
 
                                     console.log("SCROLL TO BOTTOM THE ALT3.2 ")
                                     ////////waiting for the elements to load
-                                    await driver.sleep(1000)
+                                    await driver.sleep(generateRandomNumbers(4))
 
                                     try {
 
@@ -694,6 +696,7 @@ export const getScheduledCampaignsForToday = async () => {
                 console.log("completed")
 
             }
+            redisClient.set("isBusy", "false");
         }
     }
 
