@@ -15,6 +15,7 @@ import SeleniumSessionModel from '../models/SeleniumSession.model';
 import { driver as maindriver } from '../app';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import UserLogs from '../models/userLogs.model';
+import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
 
 
 
@@ -116,17 +117,32 @@ export const handleLogoutAndLoginAnotherAccount = async (req, res, next) => {
     }
 }
 
+export const continueScheduled = async (req, res, next) => {
+    try {
+
+        getScheduledCampaignsForToday(req.query.endDate)
+
+        res.json({ message: "Schedule Continued" })
+
+    } catch (error) {
+        console.error(error)
+        next(error)
+    }
+}
+
 export const checkLinkedInLogin = async (req, res, next) => {
     try {
 
         let driver = await maindriver
         let page = await driver.get("https://www.linkedin.com");
 
-        driver.sleep(1000)
+        console.time("label1")
+        await driver.sleep(3000)
         let isLogin = false
         let url = await driver.getCurrentUrl()
-        console.log("url:",)
+        console.log("url:",url)
 
+        console.timeEnd("label1")
         if (url.includes('feed')) {
             isLogin = true
         }
@@ -247,12 +263,14 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
+                    console.log("logging IN")
 
 
 
 
                     console.log("url:", await driver.getCurrentUrl())
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)))
+                    console.log("SUBMIT BUTTION", submitbutton)
                     if (submitbutton) {
                         ///////////submiting the login page
                         await driver.findElement(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)).click()

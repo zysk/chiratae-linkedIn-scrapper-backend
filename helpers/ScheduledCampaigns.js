@@ -15,21 +15,20 @@ import { generateRandomNumbers } from './utils';
 
 
 
-export const getScheduledCampaignsForToday = async () => {
+export const getScheduledCampaignsForToday = async (beforeDate = null) => {
     try {
         redisClient.set("isBusy", "true")
         console.log("inside cron function")
-        let todayStart = new Date()
 
-        todayStart.setHours(0, 0, 0, 0)
+        let todayEnd = new Date(beforeDate) // null gives current date
+        if (!beforeDate) {
+            todayEnd.setHours(23, 59, 59, 59)
+        }
 
-        let todayEnd = new Date()
 
-        todayEnd.setHours(23, 59, 59, 59)
-
-        console.log(todayEnd.toDateString(), todayEnd.toTimeString(), todayStart.toDateString(), "todayEnd,todayStart")
+        console.log(todayEnd.toDateString(), todayEnd.toTimeString(), "todayEnd,todayStart")
         console.log(new Date("2023-01-12T18:30:00.000+00:00").toDateString(), new Date("2023-01-12T18:30:00.000+00:00").toTimeString())
-        let campaignsArr = await Campaign.find({ status: generalModelStatuses.CREATED, scheduled: true, $and: [{ scheduleDate: { $gte: todayStart } }, { scheduleDate: { $lte: todayEnd } }] }).exec()
+        let campaignsArr = await Campaign.find({ status: generalModelStatuses.CREATED, scheduled: true, scheduleDate: { $lte: todayEnd } }).exec()
         console.log(campaignsArr, "campaignsArr")
 
 
@@ -49,7 +48,8 @@ export const getScheduledCampaignsForToday = async () => {
                 isLogin = true
             }
             else {
-                sendMail("alwin54889@gmail.com")
+                sendMail("alwin54889@gmail.com",todayEnd.toISOString())
+                redisClient.set("isBusy", "false")
                 return;
             }
 
