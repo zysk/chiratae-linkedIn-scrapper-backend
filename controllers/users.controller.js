@@ -1,4 +1,4 @@
-import { UserList } from "../Builders/user.builder";
+import { UserList, UserListWithCampaigns } from "../Builders/user.builder";
 import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
 import { generateAccessJwt } from "../helpers/Jwt";
@@ -92,6 +92,7 @@ export const getUsers = async (req, res, next) => {
             query = { ...query, role: req.query.role }
         }
         let UsersArr = await Users.find(query).exec()
+        console.log(UsersArr, "UsersArr")
         res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
         console.error(error);
@@ -99,6 +100,19 @@ export const getUsers = async (req, res, next) => {
     }
 };
 
+
+
+
+export const getUserDetailsWithCampaignsData = async (req, res, next) => {
+    try {
+        let userObj = await Users.aggregate([UserListWithCampaigns(req.params.id)]).exec();
+        if (!userObj) throw { status: 400, message: "users not found or deleted already" };
+        res.status(200).json({ message: "user deleted successfully", data: userObj[0], success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
 export const deleteUser = async (req, res, next) => {
     try {
         let userObj = await Users.findByIdAndRemove(req.params.id).exec();

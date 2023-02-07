@@ -1,10 +1,11 @@
 import express from "express";
-import { deleteUser, getUsers, login, loginAdmin, registerAdmin, registerUser, updateUser } from "../controllers/users.controller";
+import { deleteUser, getTotalUser, getUserDetailsWithCampaignsData, getUsers, login, loginAdmin, registerAdmin, registerUser, updateUser } from "../controllers/users.controller";
 let router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", login);
 router.get("/getUsers", getUsers);
+router.get("/getUserDetailsWithCampaignsData/:id", getUserDetailsWithCampaignsData);
 router.patch("/updateById/:id", updateUser);
 
 

@@ -43,6 +43,96 @@ export const UserList = (payload) => {
 
     return pipeline;
 };
+export const UserListWithCampaigns = (payload) => {
+    console.log(payload);
+    let pipeline = []
+
+
+
+    pipeline.push(
+        {
+            '$match': {
+                'role': 'CLIENT',
+                "_id": mongoose.Types.ObjectId(payload),
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'leads',
+                'localField': '_id',
+                'foreignField': 'clientId',
+                'as': 'campaignsArr'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$campaignsArr',
+                'preserveNullAndEmptyArrays': true
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'campaigns',
+                'localField': 'campaignsArr.campaignId',
+                'foreignField': '_id',
+                'as': 'campaignObj'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$campaignObj',
+                'preserveNullAndEmptyArrays': true
+            }
+        },
+        {
+            '$group': {
+                '_id': '$_id',
+                'originalObject': {
+                    '$first': '$$ROOT'
+                },
+                'campaignsArr': {
+                    '$push': '$campaignObj'
+                }
+            }
+        },
+        {
+            '$addFields': {
+                'originalObject.campaignsArr': '$campaignsArr'
+            }
+        },
+        {
+            '$replaceRoot': {
+                'newRoot': '$originalObject'
+            }
+        },
+        {
+            '$project': {
+                '_id': 1,
+                'name': 1,
+                'searchCompleted': 1,
+                'link': 1,
+                'educationArr': 1,
+                'exprienceArr': 1,
+                'contactInfoArr': 1,
+                'location': 1,
+                'currentPosition': 1,
+                'campaignsArr': {
+                    'name': 1,
+                    'createdAt': 1,
+                    'updatedAt': 1,
+                    'school': 1,
+                    'company': 1,
+                    'searchQuery': 1,
+                    '_id': 1
+                },
+                'createdAt': 1,
+                'updatedAt': 1
+            }
+        },
+    );
+
+    return pipeline;
+};
 
 
 
@@ -68,7 +158,6 @@ export const leadsList = (payload) => {
         {
             '$unwind': {
                 'path': '$campaignObj',
-                'includeArrayIndex': 'string',
                 'preserveNullAndEmptyArrays': true
             }
         },
@@ -83,56 +172,13 @@ export const leadsList = (payload) => {
         {
             '$unwind': {
                 'path': '$clientObj',
-                'includeArrayIndex': 'string',
-                'preserveNullAndEmptyArrays': false
+                'preserveNullAndEmptyArrays': true
             }
         }
     ]
 
 
-    //     [
-
-    //     {
-    //         '$skip': payload.skip
-    //     }, {
-    //         '$limit': payload.limit
-    //     },
-    //     {
-    //         '$lookup': {
-    //             'from': 'campaigns',
-    //             'localField': 'campaignId',
-    //             'foreignField': '_id',
-    //             'as': 'campaignObj'
-    //         }
-    //     }, {
-    //         '$unwind': {
-    //             'path': '$campaignObj',
-    //             'includeArrayIndex': 'string',
-    //             'preserveNullAndEmptyArrays': true
-    //         }
-    //     }, {
-    //         '$lookup': {
-    //             'from': 'users',
-    //             'localField': 'clientId',
-    //             'foreignField': '_id',
-    //             'as': 'clientObj'
-    //         }
-    //     }, {
-    //         '$unwind': {
-    //             'path': '$clientObj',
-    //             'includeArrayIndex': 'string',
-    //             'preserveNullAndEmptyArrays': false
-    //         }
-    //     },
-    //     {
-    //         '$sort': {
-    //             createdAt: -1
-    //         }
-    //     },
-    // ]
-
     let sortCondition = {};
-
 
 
     if (payload.leadAssignedToId) {
@@ -204,6 +250,103 @@ export const leadsList = (payload) => {
         {
             '$limit': payload.limit
         },
+        // { $sort: sortCondition }
+    );
+
+    return pipeline;
+};
+
+
+
+
+
+export const leadsDetails = (payload) => {
+    console.log(payload);
+    let pipeline = [];
+    let matchCondition = [
+        {
+            $match: {
+                "_id": mongoose.Types.ObjectId(payload.id)
+            },
+        },
+        {
+            '$lookup': {
+                'from': 'campaigns',
+                'localField': 'campaignId',
+                'foreignField': '_id',
+                'as': 'campaignObj'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$campaignObj',
+                'preserveNullAndEmptyArrays': true
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'users',
+                'localField': 'clientId',
+                'foreignField': '_id',
+                'as': 'clientObj'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$clientObj',
+                'preserveNullAndEmptyArrays': true
+            }
+        },
+    ]
+
+
+    let sortCondition = {};
+
+
+    if (payload.leadAssignedToId) {
+        matchCondition.push({
+            '$match': {
+                'leadAssignedToId': mongoose.Types.ObjectId(payload.leadAssignedToId)
+            }
+        })
+        matchCondition.push({
+            '$lookup': {
+                'from': 'users',
+                'localField': 'leadAssignedToId',
+                'foreignField': '_id',
+                'as': 'leadAssignedToObj'
+            }
+        })
+        matchCondition.push({
+            '$unwind': {
+                'path': '$leadAssignedToObj',
+                'preserveNullAndEmptyArrays': false
+            }
+        })
+    }
+    else {
+        matchCondition.push({
+            '$lookup': {
+                'from': 'users',
+                'localField': 'leadAssignedToId',
+                'foreignField': '_id',
+                'as': 'leadAssignedToObj'
+            }
+        })
+        matchCondition.push({
+            '$unwind': {
+                'path': '$leadAssignedToObj',
+                'preserveNullAndEmptyArrays': true
+            }
+        })
+    }
+
+
+
+
+
+    pipeline.push(
+        ...matchCondition,
         // { $sort: sortCondition }
     );
 

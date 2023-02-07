@@ -1,8 +1,9 @@
 
-import { leadsList } from "../Builders/user.builder";
+import { leadsDetails, leadsList } from "../Builders/user.builder";
 import Lead from "../models/leads.model";
 import User from "../models/user.model";
 import LeadLogs from "../models/LeadLogs.model";
+
 export const createNewLead = async (req, res, next) => {
     try {
         let existsCheck = await Lead.findOne({ value: req.body.value }).exec()
@@ -37,6 +38,7 @@ export const getLeads = async (req, res, next) => {
             query = { ...query, filter: req.query.filter }
         }
         console.log(query, "query")
+        console.log(leadsList(query), "leadsList(query)")
         let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec()
         let totalLeads = 0
         if (req.query.userId) {
@@ -58,6 +60,25 @@ export const getLeads = async (req, res, next) => {
         console.log(totalLeads, "totalLeads")
         console.log(LeadStatusArr.length, "LeadStatusArr")
         res.status(200).json({ message: "Lead found", data: LeadStatusArr, totalLeads: totalLeads, success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const getLeadById = async (req, res, next) => {
+    try {
+        let query = {}
+        query = { ...query, id: req.params.id }
+        if (req.query.role == "USER") {
+            if (req.query.userId) {
+                query = { ...query, leadAssignedToId: `${req.query.userId}` }
+            }
+        }
+        console.log(query, "query")
+        console.log(leadsDetails(query), "leadsDetails(query)")
+        let LeadStatusArr = await Lead.aggregate([leadsDetails(query)]).exec()
+
+        res.status(200).json({ message: "Lead found", data: LeadStatusArr[0], success: true });
     } catch (error) {
         console.error(error);
         next(error);
@@ -88,6 +109,72 @@ export const assignLeadToUser = async (req, res, next) => {
 
 
         res.status(200).json({ message: "Lead Assigned", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+export const automaticallyAssignLeadsToUser = async (req, res, next) => {
+    try {
+
+
+        let totalUsersArr = await User.find({ isActive: true }).find();
+        // console.log(totalUsersArr, "totalUsersArr");
+
+
+
+
+        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } }).lean().exec();
+        let finalLeadsPool = toatalLeadsArr.map(el => el)
+        console.log("allotment")
+        console.time();
+        let i = 0
+        async function allotToUsers() {
+            for (const el of totalUsersArr) {
+                console.log(finalLeadsPool[0], "names", i, el)
+                // let obj = {
+                //     leadId: finalLeadsPool[0]?._id,
+                //     value: `${el?.name}`,
+                //     previousValue: `N.A.`,
+                //     message: `Laad assigned to ${el?.name}`
+                // }
+                // console.log(obj)
+
+                // await new LeadLogs({
+                //     leadId: finalLeadsPool[0]._id,
+                //     value: `${el?.name}`,
+                //     previousValue: `N.A.`,
+                //     message: `Laad assigned to ${el?.name}`
+                // }).save()
+                // let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: el._id }).exec()
+                finalLeadsPool = finalLeadsPool.filter((el, i) => i != 0);
+                if (finalLeadsPool.length > 0) {
+                    allotToUsers()
+                }
+                i += 1
+            }
+        }
+        console.timeEnd();
+        console.log("allotment")
+        console.log(finalLeadsPool.length)
+
+
+        ///////////////////
+        if (finalLeadsPool && finalLeadsPool.length > 0) {
+            allotToUsers()
+        }
+
+
+
+
+
+
+        // finalLeadsPool = finalLeadsPool.filter(el => !el)
+
+
+
+
+        res.status(200).json({ message: "Leads Assigned automatically to all active sub users", success: true });
     } catch (error) {
         console.error(error);
         next(error);
