@@ -1,11 +1,13 @@
 import express from "express";
-import { addScheduledCampaign, checkLinkedInLogin, checkRatingForClient, getPastCampaign, getPastCampaignById, handleLogoutAndLoginAnotherAccount, linkedInLogin, linkedInSearch, searchLinkedin, sendLinkedInCaptchaInput } from "../controllers/Campaign.controller";
+import { addScheduledCampaign, checkLinkedInLogin, continueScheduled, getPastCampaign, getPastCampaignById, handleLogoutAndLoginAnotherAccount, linkedInLogin, linkedInSearch, searchLinkedin, sendLinkedInCaptchaInput } from "../controllers/Campaign.controller";
 let router = express.Router();
 
 router.post("/campaignLinkedin", searchLinkedin);
 router.post("/campaignScheduleLinkedin", addScheduledCampaign);
 router.get("/getcampaigns", getPastCampaign);
 router.get("/getPastcampaignById/:id", getPastCampaignById);
+
+router.post("/continueSchedule", continueScheduled);
 
 router.post("/linkchecklogin", checkLinkedInLogin);
 router.post("/linklogin", linkedInLogin);
