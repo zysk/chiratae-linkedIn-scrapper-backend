@@ -15,6 +15,7 @@ import SeleniumSessionModel from '../models/SeleniumSession.model';
 import { driver as maindriver } from '../app';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import UserLogs from '../models/userLogs.model';
+import { CalculateRating } from '../helpers/CalculateRating';
 
 
 
@@ -1024,20 +1025,19 @@ export const linkedInSearch = async (req, res, next) => {
                     console.error(err)
                 }
 
-
-
+                let rating = "";
+                rating = CalculateRating(resultsArr[j])
 
                 ////////////adding client for campaigns
                 let clientObj
                 let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT }).exec()
                 if (!clientExistsCheck) {
-                    clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT }).save()
+                    clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }).save()
                 }
                 else {
-                    console.log("Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists")
-                    clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT }, { new: true }).exec()
+                    clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }, { new: true }).exec()
                 }
-                await new UserLogs({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save()
+                await new UserLogs({ ...resultsArr[j], rating: rating, role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save()
 
 
                 await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
@@ -1651,6 +1651,21 @@ export const addScheduledCampaign = async (req, res, next) => {
 
         await new CampaignModel(req.body).save()
         res.status(200).json({ message: "Campaign Scheduled", success: true });
+    } catch (error) {
+        console.error(error)
+        next(error)
+    }
+}
+
+
+
+export const checkRatingForClient = async (req, res, next) => {
+    try {
+        let clientObj = await User.findById(req.params.id).exec()
+
+        let rating = CalculateRating(clientObj)
+        console.log(rating)
+        res.status(200).json({ message: "rating", data: rating, success: true });
     } catch (error) {
         console.error(error)
         next(error)

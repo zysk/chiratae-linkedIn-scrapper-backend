@@ -37,7 +37,6 @@ export const getLeads = async (req, res, next) => {
         if (req.query.filter) {
             query = { ...query, filter: req.query.filter }
         }
-        console.log(query, "query")
         console.log(leadsList(query), "leadsList(query)")
         let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec()
         let totalLeads = 0
@@ -117,62 +116,39 @@ export const assignLeadToUser = async (req, res, next) => {
 export const automaticallyAssignLeadsToUser = async (req, res, next) => {
     try {
 
-
         let totalUsersArr = await User.find({ isActive: true }).find();
-        // console.log(totalUsersArr, "totalUsersArr");
 
-
-
+        if ((totalUsersArr && totalUsersArr.length == 0) || !totalUsersArr) {
+            throw new Error("No active sub users found to allot leads to .")
+        }
 
         let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } }).lean().exec();
-        let finalLeadsPool = toatalLeadsArr.map(el => el)
-        console.log("allotment")
-        console.time();
-        let i = 0
-        async function allotToUsers() {
-            for (const el of totalUsersArr) {
-                console.log(finalLeadsPool[0], "names", i, el)
-                // let obj = {
-                //     leadId: finalLeadsPool[0]?._id,
-                //     value: `${el?.name}`,
-                //     previousValue: `N.A.`,
-                //     message: `Laad assigned to ${el?.name}`
-                // }
-                // console.log(obj)
 
-                // await new LeadLogs({
-                //     leadId: finalLeadsPool[0]._id,
-                //     value: `${el?.name}`,
-                //     previousValue: `N.A.`,
-                //     message: `Laad assigned to ${el?.name}`
-                // }).save()
-                // let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: el._id }).exec()
-                finalLeadsPool = finalLeadsPool.filter((el, i) => i != 0);
-                if (finalLeadsPool.length > 0) {
-                    allotToUsers()
+        if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
+            throw new Error("No leads left to allot.")
+        }
+        let finalLeadsPool = toatalLeadsArr
+
+        console.time();
+
+        while (finalLeadsPool && finalLeadsPool.length > 0) {
+            for (let i = 0; i <= totalUsersArr.length - 1; i++) {
+                if (finalLeadsPool && finalLeadsPool.length == 0) {
+                    break
                 }
-                i += 1
+
+                await new LeadLogs({
+                    leadId: finalLeadsPool[0]._id,
+                    value: `${totalUsersArr[i]?._id}`,
+                    previousValue: `N.A.`,
+                    message: `Laad assigned to ${totalUsersArr[i]?.name}`
+                }).save()
+                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
+                finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
             }
         }
+
         console.timeEnd();
-        console.log("allotment")
-        console.log(finalLeadsPool.length)
-
-
-        ///////////////////
-        if (finalLeadsPool && finalLeadsPool.length > 0) {
-            allotToUsers()
-        }
-
-
-
-
-
-
-        // finalLeadsPool = finalLeadsPool.filter(el => !el)
-
-
-
 
         res.status(200).json({ message: "Leads Assigned automatically to all active sub users", success: true });
     } catch (error) {
@@ -180,6 +156,53 @@ export const automaticallyAssignLeadsToUser = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+export const automaticallyAssignLeadsToSelectedUsers = async (req, res, next) => {
+    try {
+
+        let totalUsersArr = req.body.usersArr;
+
+        if ((totalUsersArr && totalUsersArr.length == 0) || !totalUsersArr) {
+            throw new Error("No active sub users found to allot leads to .")
+        }
+
+        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } }).lean().exec();
+
+        if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
+            throw new Error("No leads left to allot.")
+        }
+        let finalLeadsPool = toatalLeadsArr
+
+        console.time();
+
+        while (finalLeadsPool && finalLeadsPool.length > 0) {
+            for (let i = 0; i <= totalUsersArr.length - 1; i++) {
+                if (finalLeadsPool && finalLeadsPool.length == 0) {
+                    break
+                }
+
+                await new LeadLogs({
+                    leadId: finalLeadsPool[0]._id,
+                    value: `${totalUsersArr[i]?._id}`,
+                    previousValue: `N.A.`,
+                    message: `Laad assigned to ${totalUsersArr[i]?.name}`
+                }).save()
+                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
+                finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
+            }
+        }
+
+        console.timeEnd();
+
+        res.status(200).json({ message: "Leads Assigned automatically to all active sub users", success: true });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
 
 export const changeLeadStatus = async (req, res, next) => {
     try {

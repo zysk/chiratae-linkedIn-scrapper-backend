@@ -1,5 +1,5 @@
 import express from "express";
-import { assignLeadToUser, automaticallyAssignLeadsToUser, changeLeadRating, changeLeadStatus, createNewLead, deleteLead, getLeadById, getLeads } from "../controllers/lead.controller";
+import { assignLeadToUser, automaticallyAssignLeadsToSelectedUsers, automaticallyAssignLeadsToUser, changeLeadRating, changeLeadStatus, createNewLead, deleteLead, getLeadById, getLeads } from "../controllers/lead.controller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 router.post("/", createNewLead);
@@ -7,6 +7,7 @@ router.get("/", getLeads);
 router.get("/getById/:id", getLeadById);
 router.patch("/assignLeadToUser/:id", authorizeJwt, assignLeadToUser);
 router.patch("/automaticallyAssignLeadsToUser", authorizeJwt, automaticallyAssignLeadsToUser);
+router.patch("/automaticallyAssignLeadsToSelectedUsers", authorizeJwt, automaticallyAssignLeadsToSelectedUsers);
 router.patch("/changeLeadRating/:id", authorizeJwt, changeLeadRating);
 router.patch("/changeLeadStatus/:id", authorizeJwt, changeLeadStatus);
 router.delete("/deleteById/:id", deleteLead);

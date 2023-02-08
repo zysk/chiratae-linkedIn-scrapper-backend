@@ -335,12 +335,18 @@ export const getScheduledCampaignsForToday = async () => {
                 let clientsArr = []
                 for (const el of resultsArr) {
                     let clientObj
+
+                    let rating = "";
+                    rating = CalculateRating(el)
+
+
+
                     let clientExistsCheck = await User.findOne({ name: el.name, url: el.url, role: rolesObj?.CLIENT }).exec()
                     if (!clientExistsCheck) {
-                        clientObj = await new User({ ...el, role: rolesObj?.CLIENT }).save()
+                        clientObj = await new User({ ...el, role: rolesObj?.CLIENT, rating: rating }).save()
                     }
                     else {
-                        clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT, searchCompleted: false }, { new: true }).exec()
+                        clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT, searchCompleted: false, rating: rating }, { new: true }).exec()
                     }
                     console.log(clientObj)
                     clientsArr.push(clientObj)
