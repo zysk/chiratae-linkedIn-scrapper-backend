@@ -21,7 +21,10 @@ import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { getScheduledCampaignsForToday } from "./helpers/ScheduledCampaigns";
 import leadStatusRouter from "./routes/LeadStatus.routes";
+import emailSettingsRouter from "./routes/EmailSettings.routes";
+import customemailRouter from "./routes/customemail.router";
 import { generateRandomNumbers } from "./helpers/utils";
+import { sendCustomMail } from "./helpers/nodeMailer";
 const app = express();
 
 
@@ -64,6 +67,8 @@ app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
 app.use("/leadlogs", leadlogsRouter);
 app.use("/leadComments", leadCommentRouter);
+app.use("/emailSettings", emailSettingsRouter);
+app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
 
@@ -75,6 +80,12 @@ const job = schedule.scheduleJob('0 0 * * *', function () {
     console.log("At 23:00 on every day-of-week from Monday through Sunday.")
 
 });
+
+// sendCustomMail()
+// app.use()
+
+
+
 /**
  * Selenium Setup
  */
