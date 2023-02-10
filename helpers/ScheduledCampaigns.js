@@ -20,9 +20,12 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
         redisClient.set("isBusy", "true")
         console.log("inside cron function")
 
-        let todayEnd = new Date(beforeDate) // null gives current date
+        let todayEnd = new Date() 
         if (!beforeDate) {
             todayEnd.setHours(23, 59, 59, 59)
+        }
+        else {
+            todayEnd = new Date(beforeDate)
         }
 
 
