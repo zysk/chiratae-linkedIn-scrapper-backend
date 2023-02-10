@@ -37,6 +37,8 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
     }
 });
 
+mongoose.set("debug", true)
+
 ///////redis setup
 const redis = require('redis');
 
@@ -74,7 +76,7 @@ app.use(errorHandler);
 
 // const job = schedule.scheduleJob('* * * * *', function () {
 // const job = schedule.scheduleJob('0 0 * * *', function () {
-const job = schedule.scheduleJob('39 11 * * *', function () {
+const job = schedule.scheduleJob('42 11 * * *', function () {
     getScheduledCampaignsForToday()
 
 
