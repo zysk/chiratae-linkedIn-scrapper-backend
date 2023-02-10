@@ -410,10 +410,15 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
 
 
         let url = await driver.getCurrentUrl()
+        let source = await driver.getPageSource()
         console.log(url, "CURRENT URL")
         driver.takeScreenshot().then(
             function (image, err) {
-                require('fs').writeFile(`./public/uploads/screenshot_${new Date().getTime()}___checkCaptcha___${encodeURIComponent(url)}___.png`, image, 'base64', function (err) {
+                let basicFilePath = `./public/uploads/checkCaptcha_${new Date().getTime()}___${encodeURIComponent(url)}___`
+                require('fs').writeFile(`${basicFilePath}.png`, image, 'base64', function (err) {
+                    console.log(err);
+                });
+                require('fs').writeFile(`${basicFilePath}.source.txt`, source, function (err) {
                     console.log(err);
                 });
             }
