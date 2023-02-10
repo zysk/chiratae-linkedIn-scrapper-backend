@@ -48,7 +48,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 isLogin = true
             }
             else {
-                sendMail("alwin54889@gmail.com",todayEnd.toISOString())
+                sendMail("mulahajedu@jollyfree.com",todayEnd.toISOString())
                 redisClient.set("isBusy", "false")
                 return;
             }

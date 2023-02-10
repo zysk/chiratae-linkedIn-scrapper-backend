@@ -73,7 +73,8 @@ app.use("/customemail", customemailRouter);
 app.use(errorHandler);
 
 // const job = schedule.scheduleJob('* * * * *', function () {
-const job = schedule.scheduleJob('0 0 * * *', function () {
+// const job = schedule.scheduleJob('0 0 * * *', function () {
+const job = schedule.scheduleJob('0 11 * * *', function () {
     getScheduledCampaignsForToday()
 
 
