@@ -410,6 +410,14 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
 
 
         let url = await driver.getCurrentUrl()
+        console.log(url, "CURRENT URL")
+        driver.takeScreenshot().then(
+            function (image, err) {
+                require('fs').writeFile(`./public/uploads/screenshot_${new Date().getTime()}___checkCaptcha___${encodeURIComponent(url)}___.png`, image, 'base64', function (err) {
+                    console.log(err);
+                });
+            }
+        );
 
         if (url.includes('checkpoint')) { //captcha
 
@@ -422,6 +430,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
             }
 
         }
+
         // let lastSelenium = await SeleniumSessionModel.findOne().sort({ createdAt: 'desc' }).lean.exec()
 
         // let debug = lastSelenium.capabilities.map_["goog:chromeOptions"].debuggerAddress
