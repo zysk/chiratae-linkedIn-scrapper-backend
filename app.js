@@ -76,7 +76,7 @@ app.use(errorHandler);
 
 // const job = schedule.scheduleJob('* * * * *', function () {
 // const job = schedule.scheduleJob('0 0 * * *', function () {
-const job = schedule.scheduleJob('45 11 * * *', function () {
+const job = schedule.scheduleJob('49 11 * * *', function () {
     getScheduledCampaignsForToday()
 
 
