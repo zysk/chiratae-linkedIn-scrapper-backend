@@ -11,8 +11,8 @@ let lead = mongoose.Schema(
             default: "CREATED"
         },
         rating: {
-            type: Number,
-            default: 0
+            type: String,
+            default: "Low"
         },
         isSearched: { type: Boolean, default: false },
     },
