@@ -37,6 +37,15 @@ export const getLeads = async (req, res, next) => {
         if (req.query.filter) {
             query = { ...query, filter: req.query.filter }
         }
+        if (req.query.searchQueryValue) {
+            query = { ...query, searchQueryValue: req.query.searchQueryValue }
+        }
+        if (req.query.school) {
+            query = { ...query, school: req.query.school }
+        }
+        if (req.query.company) {
+            query = { ...query, company: req.query.company }
+        }
         console.log(leadsList(query), "leadsList(query)")
         let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec()
         let totalLeads = 0
@@ -50,6 +59,12 @@ export const getLeads = async (req, res, next) => {
             else if (req.query.filter == "un-assigned") {
                 console.log("un-assigned")
                 totalLeads = await Lead.find({ leadAssignedToId: { $exists: false } }).count()
+            }
+            else if (req.query.searchQueryValue && req.query.searchQueryValue != "") {
+                console.log("req.query.searchQueryValue")
+                totalLeads = LeadStatusArr.length
+
+                console.log(totalLeads, "!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@######################EE$$$$$$$$$$$")
             }
             else {
                 console.log("else")

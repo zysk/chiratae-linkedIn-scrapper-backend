@@ -238,6 +238,100 @@ export const leadsList = (payload) => {
         })
     }
 
+    if (payload.school && payload.school != "") {
+        let schoolArr = payload.school.split(",");
+        console.log(schoolArr, "schoolArr")
+        matchCondition.push({
+            '$match': {
+                '$or': [{
+                    'clientObj.educationArr.schoolName': {
+                        '$regex': `${schoolArr[0].trim()}`,
+                        '$options': 'i'
+                    }
+                },
+                {
+                    'clientObj.educationArr.schoolDetail': {
+                        '$regex': `${schoolArr[0].trim()}`,
+                        '$options': 'i'
+                    }
+                },
+                {
+                    'clientObj.educationArr.schoolName': {
+                        '$regex': `${schoolArr && schoolArr.length > 0 ? schoolArr[1].trim() : ""}`,
+                        '$options': 'i'
+                    }
+                },
+                {
+                    'clientObj.educationArr.schoolDetail': {
+                        '$regex': `${schoolArr && schoolArr.length > 0 ? schoolArr[1].trim() : ""}`,
+                        '$options': 'i'
+                    }
+                },
+                ]
+            }
+        })
+    }
+    if (payload.company && payload.company != "") {
+        matchCondition.push({
+            '$match': {
+                '$or': [{
+                    'clientObj.experienceArr.company': {
+                        '$regex': `${payload.company}`,
+                        '$options': 'i'
+                    }
+                },
+                {
+                    'clientObj.experienceArr.companyDetail': {
+                        '$regex': `${payload.company}`,
+                        '$options': 'i'
+                    }
+                },
+                ]
+            }
+        })
+    }
+
+
+    if (payload.searchQueryValue && payload.searchQueryValue != "") {
+        matchCondition.push({
+            '$match': {
+                '$or': [
+                    {
+                        'clientObj.name': {
+                            '$regex': `${payload.searchQueryValue}`,
+                            '$options': 'i'
+                        }
+                    },
+                    {
+                        'clientObj.educationArr.schoolName': {
+                            '$regex': `${payload.searchQueryValue}`,
+                            '$options': 'i'
+                        }
+                    },
+                    {
+                        'clientObj.educationArr.schoolDetail': {
+                            '$regex': `${payload.searchQueryValue}`,
+                            '$options': 'i'
+                        }
+                    },
+                    {
+                        'clientObj.experienceArr.company': {
+                            '$regex': `${payload.searchQueryValue}`,
+                            '$options': 'i'
+                        }
+                    },
+                    {
+                        'clientObj.experienceArr.companyDetail': {
+                            '$regex': `${payload.searchQueryValue}`,
+                            '$options': 'i'
+                        }
+                    }
+                ]
+            }
+        })
+    }
+
+
 
 
 
