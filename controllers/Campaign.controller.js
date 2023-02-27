@@ -17,6 +17,7 @@ import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import UserLogs from '../models/userLogs.model';
 import { CalculateRating } from '../helpers/CalculateRating';
 import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
+import PreviousLeads from '../models/previousLeads.model';
 
 
 
@@ -1062,22 +1063,43 @@ export const linkedInSearch = async (req, res, next) => {
                 // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
                 ////////////adding client for campaigns
                 let clientObj
-                let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT }).exec()
+                let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT }).lean().exec()
+                console.log(clientExistsCheck, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", !clientExistsCheck)
                 if (!clientExistsCheck) {
                     clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }).save()
+                    if (campaignObj) {
+                        let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save()
+                    }
                 }
                 else {
+                    console.log("here")
+                    let obj = {
+                        ...clientExistsCheck,
+                        campaignName: campaignObj?.name,
+                        rating: rating,
+                        campanignId: campaignObj?._id,
+                        searchQuery: campaignObj?.searchQuery,
+                        accountName: campaignObj?.accountName,
+                        searchedSchool: campaignObj?.school,
+                        searchedCompany: campaignObj?.company,
+                        totalResults: campaignObj?.totalResults,
+                    }
+                    delete obj._id
+                    console.log(obj)
+                    let temp = await new PreviousLeads(obj).save()
+                    console.log(temp, "temp")
+                    // clientExistsCheck
                     clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }, { new: true }).exec()
                 }
+                if (campaignObj) {
+                    let leadsArr = await Lead.findOneAndUpdate({ clientId: clientExistsCheck?._id }, { clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).exec()
+                }
+
+
                 await new UserLogs({ ...resultsArr[j], rating: rating, role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save()
 
 
                 await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
-                if (campaignObj) {
-                    let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save()
-                }
-
-
                 await driver.sleep(10000)
             }
             catch (err) {

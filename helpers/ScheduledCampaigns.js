@@ -20,7 +20,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
         redisClient.set("isBusy", "true")
         console.log("inside cron function")
 
-        let todayEnd = new Date() 
+        let todayEnd = new Date()
         if (!beforeDate) {
             todayEnd.setHours(23, 59, 59, 59)
         }
@@ -51,7 +51,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 isLogin = true
             }
             else {
-                sendMail("mulahajedu@jollyfree.com",todayEnd.toISOString())
+                sendMail("mulahajedu@jollyfree.com", todayEnd.toISOString())
                 redisClient.set("isBusy", "false")
                 return;
             }

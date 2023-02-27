@@ -391,6 +391,48 @@ export const leadsDetails = (payload) => {
                 'preserveNullAndEmptyArrays': true
             }
         },
+        {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: "previousleads",
+                let: {
+                    name: "$clientObj.name",
+                    searchQuery: "$campaignObj.searchQuery",
+                    url: "$clientObj.url",
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ["$name", "$$name"]
+                                    },
+                                    {
+                                        $eq: ["$url", "$$url"]
+                                    },
+                                    {
+                                        $eq: [
+                                            "$searchQuery",
+                                            "$$searchQuery",
+                                        ],
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ],
+                as: "previousLeadsArr",
+            },
+        },
     ]
 
 

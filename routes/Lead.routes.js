@@ -5,7 +5,7 @@ let router = express.Router();
 router.post("/", createNewLead);
 router.get("/", getLeads);
 router.get("/getById/:id", getLeadById);
-router.patch("/assignLeadToUser/:id", authorizeJwt, assignLeadToUser);
+router.patch("/assignLeadToUser/:id", assignLeadToUser);
 router.patch("/automaticallyAssignLeadsToUser", authorizeJwt, automaticallyAssignLeadsToUser);
 router.patch("/automaticallyAssignLeadsToSelectedUsers", authorizeJwt, automaticallyAssignLeadsToSelectedUsers);
 router.patch("/changeLeadRating/:id", authorizeJwt, changeLeadRating);
