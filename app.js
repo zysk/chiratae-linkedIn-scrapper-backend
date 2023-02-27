@@ -93,7 +93,7 @@ const job = schedule.scheduleJob('49 11 * * *', function () {
  * Selenium Setup
  */
 let options = new chrome.Options();
-// options.addArguments('--headless');
+options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
