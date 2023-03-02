@@ -271,11 +271,11 @@ export const linkedInLogin = async (req, res, next) => {
 
 
                     console.log("url:", await driver.getCurrentUrl())
-                    let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)))
+                    let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)))
                     console.log("SUBMIT BUTTION", submitbutton)
                     if (submitbutton) {
                         ///////////submiting the login page
-                        await driver.findElement(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)).click()
+                        await driver.findElement(By.xpath(`//button[@type="submit"]`)).click()
                     }
 
                     // login code end
@@ -1298,10 +1298,10 @@ export const searchLinkedin = async (req, res, next) => {
 
 
                     console.log("url:", await driver.getCurrentUrl())
-                    let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)))
+                    let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit""]`)))
                     if (submitbutton) {
                         ///////////submiting the login page
-                        await driver.findElement(By.xpath(`//button[@type="submit" and @class="sign-in-form__submit-button"]`)).click()
+                        await driver.findElement(By.xpath(`//button[@type="submit"]`)).click()
                     }
 
                     // login code end
