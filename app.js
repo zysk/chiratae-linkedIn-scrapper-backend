@@ -93,7 +93,7 @@ const job = schedule.scheduleJob('49 11 * * *', function () {
  * Selenium Setup
  */
 let options = new chrome.Options();
-chrome_options.add_argument("no-sandbox")
+options.add_argument("no-sandbox")
 options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
