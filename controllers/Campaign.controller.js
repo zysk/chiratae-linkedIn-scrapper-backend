@@ -526,45 +526,82 @@ export const linkedInSearch = async (req, res, next) => {
                             if (allFiltersClick) {
                                 ////////clicking on all filters button
                                 await driver.findElement(By.xpath(`// div[@class="relative mr2"]//button[text() = "All filters"]`,)).click()
-                                ////////locating company filter
-                                let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
-                                if (companyButton) {
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////clicking on the company button to reveal text input
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
-                                    ////////clicking on the text input to get it in focus
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                    ////////Entering values in the text input
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(req.body.company)
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////clicking on the text input to get it in focus
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                    ////////pressing down key to highlight the first result
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
-                                    ////////pressing down enter to select the first result
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
+
+                                if (req.body.company && req.body.company != "") {
+                                    let filtersArr = req.body.company.split(",")
+                                    for (const rl of filtersArr) {
+                                        ////////locating company filter
+                                        let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
+                                        if (companyButton) {
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the company button to reveal text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////Entering values in the text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////pressing down key to highlight the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
+                                            ////////pressing down enter to select the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
+                                        }
+                                    }
+                                }
+
+                                if (req.body.pastCompany && req.body.pastCompany != "") {
+                                    let filtersArr = req.body.pastCompany.split(",")
+                                    for (const rl of filtersArr) {
+                                        ///////////////////locating past company filter
+                                        let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)))
+                                        if (companyButton) {
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the company button to reveal text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)).click()
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////Entering values in the text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////pressing down key to highlight the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
+                                            ////////pressing down enter to select the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
+                                        }
+                                    }
                                 }
                                 ////////locating school filter
-                                let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
-                                if (SchoolButton) {
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////clicking on the school button to reveal text input
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
-                                    ////////clicking on the text input to get it in focus
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                    ////////Entering values in the text input
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(req.body.school)
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////clicking on the text input to get it in focus
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                    ////////pressing down key to highlight the first result
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
-                                    ////////pressing down enter to select the first result
-                                    await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
+                                if (req.body.school && req.body.school != "") {
+                                    let filtersArr = req.body.school.split(",")
+                                    for (const rl of filtersArr) {
+                                        let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
+                                        if (SchoolButton) {
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the school button to reveal text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////Entering values in the text input
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
+                                            ////////waiting for the elements to load
+                                            await driver.sleep(1000)
+                                            ////////clicking on the text input to get it in focus
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
+                                            ////////pressing down key to highlight the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
+                                            ////////pressing down enter to select the first result
+                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
+                                        }
+                                    }
                                 }
                                 ////////waiting for the elements to load
                                 await driver.sleep(1000)
@@ -579,6 +616,30 @@ export const linkedInSearch = async (req, res, next) => {
                         catch (err) {
                             seleniumErrorHandler()
                         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                         ////////waiting for the elements to load
@@ -757,7 +818,7 @@ export const linkedInSearch = async (req, res, next) => {
             }
         }
 
-
+        console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
         let lengthOfArray = resultsArr.filter(el => el.link && el.link != "").length
 
         /////not for now 
