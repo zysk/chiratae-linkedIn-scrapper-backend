@@ -11,14 +11,13 @@ let User = mongoose.Schema(
             default: rolesObj.USER,
         },
 
-
         searchCompleted: { type: Boolean, default: false },
         /////user fields
+        campaignId: { type: mongoose.Types.ObjectId, ref: "campaignId" },
         email: { type: String },
         phone: { type: Number },
         employeeId: String,
         password: String,
-
         ////////client fields
         link: String,
         educationArr: Array,

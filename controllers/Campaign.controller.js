@@ -18,6 +18,8 @@ import UserLogs from '../models/userLogs.model';
 import { CalculateRating } from '../helpers/CalculateRating';
 import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
 import PreviousLeads from '../models/previousLeads.model';
+import { searchLinkedInFn } from '../helpers/SearchLinkedInFn';
+import { randomBoolean, randomIntFromInterval } from '../helpers/utils';
 
 
 
@@ -492,709 +494,8 @@ export const linkedInSearch = async (req, res, next) => {
         res.status(200).json({ message: 'Processing you can close this window' });
 
 
-        let campaignObj = await new Campaign({
-            ...req.body,
-            processing: true,
-            status: "PROCESSING"
-            // totalResults: totalResults, resultsArr: clientsArr, isSearched: true 
-        }).save()
+        await searchLinkedInFn(driver, req, res, next, searchInput, page)
 
-        console.log("url:", await driver.getCurrentUrl())
-        if (searchInput) {
-            /////////searching for search input on linkedin and entering the query sent by user and submiting the input
-
-            await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input"]`)).sendKeys(`${req.body.searchQuery}`, Key.ENTER)
-            ///////////search input filled , now looking for people filter on linkedin
-            let filterClick = await driver.wait(until.elementLocated(By.xpath("//button[text()='People']")))
-            if (filterClick) {
-
-                console.log("FILTER CLICKED FOUND")
-                //////clicking on people filter 
-                await driver.findElement(By.xpath("//button[text()='People']")).click()
-                /////checking if the page is completely loaded or not 
-                console.log("FILTER 1")
-                try {
-
-                    let filterResultsVisibleClick = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
-                    if (filterResultsVisibleClick) {
-                        ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
-                        await driver.executeScript(`window.scrollTo(0, 4500)`)
-                        ////////locating all filters button 
-                        try {
-
-                            let allFiltersClick = await driver.wait(until.elementLocated(By.xpath(`// div[@class="relative mr2"]//button[text() = "All filters"]`,)))
-                            if (allFiltersClick) {
-                                ////////clicking on all filters button
-                                await driver.findElement(By.xpath(`// div[@class="relative mr2"]//button[text() = "All filters"]`,)).click()
-
-                                if (req.body.company && req.body.company != "") {
-                                    let filtersArr = req.body.company.split(",")
-                                    for (const rl of filtersArr) {
-                                        ////////locating company filter
-                                        let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
-                                        if (companyButton) {
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the company button to reveal text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////Entering values in the text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////pressing down key to highlight the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
-                                            ////////pressing down enter to select the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
-                                        }
-                                    }
-                                }
-
-                                if (req.body.pastCompany && req.body.pastCompany != "") {
-                                    let filtersArr = req.body.pastCompany.split(",")
-                                    for (const rl of filtersArr) {
-                                        ///////////////////locating past company filter
-                                        let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)))
-                                        if (companyButton) {
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the company button to reveal text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)).click()
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////Entering values in the text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////pressing down key to highlight the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
-                                            ////////pressing down enter to select the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
-                                        }
-                                    }
-                                }
-                                ////////locating school filter
-                                if (req.body.school && req.body.school != "") {
-                                    let filtersArr = req.body.school.split(",")
-                                    for (const rl of filtersArr) {
-                                        let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
-                                        if (SchoolButton) {
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the school button to reveal text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////Entering values in the text input
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
-                                            ////////waiting for the elements to load
-                                            await driver.sleep(1000)
-                                            ////////clicking on the text input to get it in focus
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
-                                            ////////pressing down key to highlight the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
-                                            ////////pressing down enter to select the first result
-                                            await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
-                                        }
-                                    }
-                                }
-                                ////////waiting for the elements to load
-                                await driver.sleep(1000)
-                                ////////locating show results button
-                                let showResults = await driver.wait(until.elementLocated(By.xpath(`//button[@data-test-reusables-filters-modal-show-results-button="true" and @aria-label="Apply current filters to show results"]`)))
-                                if (showResults) {
-                                    ////////clicking on show results button
-                                    await driver.findElement(By.xpath(`//button[@data-test-reusables-filters-modal-show-results-button="true" and @aria-label="Apply current filters to show results"]`)).click()
-                                }
-                            }
-                        }
-                        catch (err) {
-                            seleniumErrorHandler()
-                        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        ////////waiting for the elements to load
-                        await driver.sleep(1000)
-                        ////////locating total results div
-
-                        ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
-                        await driver.executeScript(`window.scrollTo(0, 4500)`)
-
-                        // getting total results
-                        try {
-                            console.log("FILTER 2")
-                            totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                            console.log("TOTAL RESULTS", totalResults)
-
-                            await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, })
-                        } catch (error) {
-                            console.error(error)
-                            seleniumErrorHandler()
-                        }
-
-
-
-
-
-                        console.log("SCROLL TO BOTTOM THE FFIRST")
-                        ////////locating next button
-                        try {
-                            let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000)
-                            console.log(nextbutton, "nextbutton")
-                            if (nextbutton) {
-                                ////////finding if next button is enabled or not
-                                let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled()
-                                while (nextbuttonText) {
-
-                                    try {
-
-                                        console.log("FILTER 3")
-                                        let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
-                                        if (resultText) {
-                                            ////////getting value of total results
-                                        }
-                                    } catch (error) {
-                                        console.error(error)
-                                    }
-
-                                    ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
-                                    await driver.executeScript(`window.scrollTo(0, 4500)`)
-
-                                    console.log("SCROLL TO BOTTOM THE ALT")
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////locating results div
-                                    try {
-                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
-                                        if (resultElement) {
-
-                                            console.log(resultElement.length, "resultElement.length")
-                                            ///////looping through the results
-                                            for (let i = 0; i < resultElement.length; i++) {
-                                                let obj = {}
-                                                ///////locating name of the users
-                                                let name = await driver.findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)).getText()
-                                                if (name) {
-                                                    obj.name = name?.split("\n")[0]
-                                                }
-                                                ///////locating profile link of the users
-                                                let linkValue = await driver.findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)).getAttribute("href")
-                                                if (linkValue) {
-                                                    obj.link = linkValue
-                                                }
-                                                console.log(obj, i, "obj")
-                                                resultsArr.push(obj)
-                                            }
-                                        }
-                                    }
-                                    catch (err) {
-                                        seleniumErrorHandler()
-                                    }
-                                    ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
-                                    await driver.executeScript(`window.scrollTo(0, 4500)`)
-
-
-                                    console.log("SCROLL TO BOTTOM THE ALT3.1 ")
-                                    ////////waiting for the elements to load
-                                    await driver.sleep(1000)
-                                    ////////finding if next button is visible or not
-                                    try {
-                                        let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))), 1000)
-                                        if (nextbuttonIsValid) {
-                                            ////////finding if next button is enabled or not
-                                            nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]`)).isEnabled()
-                                            if (nextbuttonText) {
-                                                ////////locating next button
-                                                let nextButtonValue1 = await driver.wait(until.elementLocated(By.xpath(`//button[@aria-label="Next"]`)))
-                                                // console.log("nextButtonValue1", nextButtonValue1)
-                                                if (nextButtonValue1) {
-                                                    ////////clicking on next button
-                                                    await driver.findElement(By.xpath(`//button[@aria-label="Next"]`))?.click()
-                                                }
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    catch (err) {
-                                        seleniumErrorHandler()
-                                    }
-                                }
-                            }
-                        }
-                        catch (err) {
-
-                            console.log("else case")
-                            ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
-                            await driver.executeScript(`window.scrollTo(0, 4500)`)
-
-                            console.log("SCROLL TO BOTTOM THE ALT3.2 ")
-                            ////////waiting for the elements to load
-                            await driver.sleep(1000)
-
-                            try {
-
-                                console.log("FILTER 4")
-                                let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
-                                if (resultText) {
-                                    ////////getting value of total results
-
-                                    console.log("FILTER 5")
-                                    totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                    console.log("TOTAL RESULTS", totalResults)
-                                }
-                            } catch (error) {
-                                console.error(error)
-                                seleniumErrorHandler()
-                            }
-
-
-
-                            ////////locating results div
-                            try {
-                                let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
-                                if (resultElement) {
-                                    ///////looping through the results
-                                    for (let i = 0; i < resultElement.length; i++) {
-                                        let obj = {}
-                                        ///////locating name of the users
-                                        let name = await driver.findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)).getText()
-                                        if (name) {
-                                            obj.name = name?.split("\n")[0]
-                                        }
-                                        ///////locating profile link of the users
-                                        let linkValue = await driver.findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)).getAttribute("href")
-                                        if (linkValue) {
-                                            obj.link = linkValue
-                                        }
-                                        console.log(obj, i, "obj")
-                                        resultsArr.push(obj)
-                                    }
-                                }
-                            }
-                            catch (err) {
-                                seleniumErrorHandler()
-                            }
-                        }
-
-                    }
-                }
-                catch (err) {
-                    seleniumErrorHandler()
-                }
-            }
-        }
-
-        console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
-        let lengthOfArray = resultsArr.filter(el => el.link && el.link != "").length
-
-        /////not for now 
-        for (let j = 0; j < lengthOfArray; j++) {
-            try {
-                console.log("LinkedIn", j + 1, lengthOfArray)
-                await driver.get(`${resultsArr[j].link}`);
-                await driver.sleep(2000)
-
-
-                let currentUrl = await driver.getCurrentUrl()
-                try {
-
-                    let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000)
-                    if (currentPosition) {
-                        let currentPositionValue = await driver.findElement(By.xpath(`//div[@class="text-body-medium break-words"]`)).getText()
-                        resultsArr[j].currentPosition = currentPositionValue
-                    }
-                }
-                catch (err) {
-                    seleniumErrorHandler()
-                }
-
-                try {
-                    let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 5000)
-                    if (location) {
-                        let locationValue = await driver.findElement(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)).getText()
-                        resultsArr[j].location = locationValue
-                    }
-                }
-                catch (err) {
-                    seleniumErrorHandler()
-                }
-
-                try {
-                    let contactInfoLinkExists = await driver.wait(until.elementLocated(By.xpath(`//a[text()="Contact info"]`)), 5000)
-                    if (contactInfoLinkExists) {
-                        await driver.get(`${currentUrl}/overlay/contact-info/`);
-                        await driver.sleep(10000)
-                        let contactInfoArr = [];
-
-                        ////// //h3
-                        try {
-                            let contactInfoElementsExists = await driver.wait(until.elementLocated(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`)), 5000)
-                            if (contactInfoElementsExists) {
-                                let contactInfoElements = await driver.findElements(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`))
-                                await driver.sleep(2000)
-
-                                console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
-                                let obj = {}
-                                for (let q = 0; q < contactInfoElements.length; q++) {
-
-                                    obj = {
-                                        heading: "",
-                                        dataArr: []
-                                    }
-
-                                    console.log(q, "k")
-                                    try {
-                                        let contactInfoHeading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`), 5000)
-                                        if (contactInfoHeading) {
-                                            obj.heading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`)).getText()
-                                            console.log(obj.heading, "heading")
-                                        }
-                                    }
-                                    catch (err) {
-                                        console.error(err, "could not find contact info h3")
-                                        seleniumErrorHandler()
-                                    }
-
-                                    try {
-                                        let contactInfoElementsExists = await driver.wait(until.elementsLocated(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`)), 5000)
-                                        if (contactInfoElementsExists) {
-                                            let contactInfourlList = await driver.findElements(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`))
-                                            if (contactInfourlList && contactInfourlList.length > 0) {
-                                                for (let p = 0; p < contactInfourlList.length; p++) {
-                                                    let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a)[${p + 1}]`)).getText()
-
-                                                    console.log(contactLinkElement, "contactLinkElement")
-
-                                                    obj.dataArr.push(contactLinkElement);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (err) {
-                                        console.log("inside, catch", err)
-                                        try {
-                                            let contactInfoListExists = await driver.wait(until.elementsLocated(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)), 5000)
-                                            if (contactInfoListExists) {
-
-                                                let contactInfoList = await driver.findElements(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`))
-                                                if (contactInfoList) {
-                                                    for (let p = 0; p < contactInfoList.length; p++) {
-                                                        let contactInfoListValue = await driver.findElement(By.xpath(`(((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)[${p + 1}]/span)[1]`)).getText()
-                                                        console.log(contactInfoListValue, "contactInfoListValue")
-
-                                                        obj.dataArr.push(contactInfoListValue);
-                                                    }
-                                                }
-                                                else {
-                                                    console.error("Not found link")
-                                                }
-                                            }
-                                        }
-                                        catch (err) {
-                                            let contactInfoList = await driver.findElements(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`))
-                                            if (contactInfoList) {
-                                                let contactInfoListValue = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`)).getText()
-
-                                                obj.dataArr.push(contactInfoListValue);
-                                            }
-                                            console.log(err)
-                                        }
-
-                                        console.error(err, "could not find contact info h3")
-                                    }
-                                    console.log(obj, "obj")
-                                    contactInfoArr.push(obj)
-                                }
-
-                            }
-                            else {
-                                console.log("not found")
-                            }
-
-                        }
-                        catch (err) {
-                            console.error(err, "could not find contact info section tags")
-                            seleniumErrorHandler()
-                        }
-                        console.log(contactInfoArr, "contactInfoArr")
-                        resultsArr[j].contactInfoArr = contactInfoArr
-                    }
-
-                }
-                catch (err) {
-                    console.error(err)
-                    seleniumErrorHandler()
-                }
-
-
-                try {
-
-                    let tempEducationArr = []
-                    await driver.get(`${currentUrl}/details/education/`);
-                    await driver.sleep(10000)
-
-
-                    try {
-                        let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`)), 5000)
-                        if (tempEducationArrExists) {
-                            let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`))
-
-                            console.log(internalEducationarr, "internnaleducation arr")
-                            for (let l = 0; l < internalEducationarr.length; l++) {
-
-                                let schoolName = ""
-                                let schoolDetail = ""
-                                let year = ""
-                                try {
-                                    schoolName = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText()
-                                }
-                                catch (err) {
-                                    console.error(err)
-                                }
-                                try {
-                                    schoolDetail = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal"]//span[@aria-hidden="true"]`)).getText()
-                                }
-                                catch (err) {
-                                    console.error(err)
-                                }
-                                try {
-                                    year = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal t-black--light"]//span[@aria-hidden="true"]`)).getText()
-                                }
-                                catch (err) {
-                                    console.error(err)
-                                }
-
-                                let obj = {
-                                    schoolName,
-                                    schoolDetail,
-                                    year,
-                                }
-                                console.log(obj, "education Obj")
-                                tempEducationArr.push(obj)
-                            }
-
-                        }
-
-
-
-
-
-
-
-                    }
-                    catch (err) {
-                        console.error(err)
-                        seleniumErrorHandler()
-                    }
-
-                    resultsArr[j].educationArr = tempEducationArr
-                    console.log(tempEducationArr, "tempEducationArr")
-
-
-
-
-
-
-                }
-                catch (err) {
-                    console.error(err)
-                    seleniumErrorHandler()
-                }
-                console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
-                await driver.get(`${currentUrl}/details/experience/`);
-                await driver.sleep(10000)
-                try {
-                    let experienceFound = await driver.wait(until.elementLocated(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`)), 5000)
-
-                    if (experienceFound) {
-                        let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`))
-                        console.log(experienceArr, "experienceArr", experienceArr.length)
-                        let experienceValueArr = []
-
-                        if (experienceArr && experienceArr.length > 0) {
-                            for (let k = 0; k < experienceArr.length; k++) {
-                                let companyvalue = ""
-                                let value = ""
-                                let year = ""
-                                try {
-                                    let checkElementHasAnchorTag = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li//div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a`), 5000);
-                                    if (checkElementHasAnchorTag) {
-                                        console.log("inside if")
-                                        try {
-                                            companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText();
-                                        }
-                                        catch (error) {
-                                            try {
-                                                companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div/span/span[@aria-hidden="true"]`)).getText();
-                                            }
-                                            catch (error) {
-                                                console.error(error)
-                                            }
-                                            console.error(error)
-                                        }
-                                        try {
-                                            value = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`)).getText();
-                                        }
-                                        catch (error) {
-                                            value = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@aria-hidden="true"])[1]`)).getText();
-                                            console.error(error)
-                                        }
-                                        try {
-                                            year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`)).getText();
-                                        } catch (error) {
-                                            try {
-                                                year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]//a/span[@class="t-14 t-normal"])[1]`)).getText();
-                                            } catch (error) {
-                                                console.error(error)
-                                            }
-
-                                            console.error(error)
-                                        }
-                                    }
-                                }
-                                catch (err) {
-                                    console.log("inside else", err);
-                                    try {
-                                        companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div//span[@aria-hidden="true"]`)).getText();
-                                    }
-                                    catch (error) {
-                                        console.error(error)
-                                    }
-                                    try {
-                                        value = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`)).getText();
-                                    }
-                                    catch (error) {
-                                        console.error(error)
-                                    }
-                                    try {
-                                        year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`)).getText();
-                                    } catch (error) {
-
-                                        console.error(error)
-                                    }
-                                }
-                                experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
-                                console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
-                            }
-                        }
-                        resultsArr[j].experienceArr = experienceValueArr
-                        console.log(experienceValueArr, "experienceValueArr")
-                    }
-                }
-                catch (err) {
-                    console.error(err)
-                }
-
-                let rating = "";
-                rating = CalculateRating(resultsArr[j])
-                // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
-                ////////////adding client for campaigns
-                let clientObj
-                let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT }).lean().exec()
-                console.log(clientExistsCheck, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", !clientExistsCheck)
-                if (!clientExistsCheck) {
-                    clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }).save()
-                    if (campaignObj) {
-                        let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save()
-                    }
-                }
-                else {
-                    console.log("here")
-                    let obj = {
-                        ...clientExistsCheck,
-                        campaignName: campaignObj?.name,
-                        rating: rating,
-                        campanignId: campaignObj?._id,
-                        searchQuery: campaignObj?.searchQuery,
-                        accountName: campaignObj?.accountName,
-                        searchedSchool: campaignObj?.school,
-                        searchedCompany: campaignObj?.company,
-                        totalResults: campaignObj?.totalResults,
-                    }
-                    delete obj._id
-                    console.log(obj)
-                    let temp = await new PreviousLeads(obj).save()
-                    console.log(temp, "temp")
-                    // clientExistsCheck
-                    clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, rating: rating }, { new: true }).exec()
-                }
-                if (campaignObj) {
-                    let leadsArr = await Lead.findOneAndUpdate({ clientId: clientExistsCheck?._id }, { clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).exec()
-                }
-
-
-                await new UserLogs({ ...resultsArr[j], rating: rating, role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save()
-
-
-                await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
-                await driver.sleep(10000)
-            }
-            catch (err) {
-                console.error(err);
-            }
-        }
-        // await driver.quit();
-
-
-        // let clientsArr = []
-        // for (const el of resultsArr) {
-        //     let clientObj
-        //     let clientExistsCheck = await User.findOne({ name: el.name, url: el.url, role: rolesObj?.CLIENT }).exec()
-        //     if (!clientExistsCheck) {
-        //         clientObj = await new User({ ...el, role: rolesObj?.CLIENT }).save()
-        //     }
-        //     else {
-        //         clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT }, { new: true }).exec()
-        //     }
-        //     console.log(clientObj)
-        //     clientsArr.push(clientObj)
-        // }
-
-
-
-        // if (clientsArr) {
-        if (campaignObj) {
-            //         console.log(campaignObj, "el,campaignObj", clientsArr)
-            //         let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
-            //         console.log(leadsArr, "leadsArr")
-            //     }
-            let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { ...req.body, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" }).exec()
-        }
-        console.log("completed")
         // res.status(200).json({ message: 'Results found', success: true });
 
     } catch (error) {
@@ -1206,6 +507,359 @@ export const linkedInSearch = async (req, res, next) => {
 
 
 export const linkedInProfileScrapping = async (req, res, next) => {
+
+
+
+    let userArr = await User.find({ searchCompleted: false }).limit(50).lean().exec()
+
+    let driver = await maindriver
+
+
+    for (let j = 0; j < userArr.length; j++) {
+        try {
+            let campaignObj = await Campaign.findById(userArr[j].campaignId).exec()
+
+            console.log("LinkedIn", j + 1, userArr.length)
+            await driver.get(`${userArr[j].link}`);
+            await driver.sleep(randomIntFromInterval(1000, 15000))
+
+
+            if (randomBoolean()) {
+                await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`)
+            }
+
+
+            let currentUrl = await driver.getCurrentUrl()
+            try {
+
+                let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000)
+                if (currentPosition) {
+                    let currentPositionValue = await driver.findElement(By.xpath(`//div[@class="text-body-medium break-words"]`)).getText()
+                    userArr[j].currentPosition = currentPositionValue
+                }
+            }
+            catch (err) {
+                seleniumErrorHandler()
+            }
+
+            try {
+                let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 5000)
+                if (location) {
+                    let locationValue = await driver.findElement(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)).getText()
+                    userArr[j].location = locationValue
+                }
+            }
+            catch (err) {
+                seleniumErrorHandler()
+            }
+
+            try {
+                let contactInfoLinkExists = await driver.wait(until.elementLocated(By.xpath(`//a[text()="Contact info"]`)), 5000)
+                if (contactInfoLinkExists) {
+                    await driver.get(`${currentUrl}/overlay/contact-info/`);
+                    await driver.sleep(randomIntFromInterval(1000, 15000))
+                    let contactInfoArr = [];
+
+                    ////// //h3
+                    try {
+                        let contactInfoElementsExists = await driver.wait(until.elementLocated(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`)), 5000)
+                        if (contactInfoElementsExists) {
+                            let contactInfoElements = await driver.findElements(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`))
+                            await driver.sleep(randomIntFromInterval(1000, 15000))
+
+                            console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
+                            let obj = {}
+                            for (let q = 0; q < contactInfoElements.length; q++) {
+
+                                obj = {
+                                    heading: "",
+                                    dataArr: []
+                                }
+
+                                console.log(q, "k")
+                                try {
+                                    let contactInfoHeading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`), 5000)
+                                    if (contactInfoHeading) {
+                                        obj.heading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`)).getText()
+                                        console.log(obj.heading, "heading")
+                                    }
+                                }
+                                catch (err) {
+                                    console.error(err, "could not find contact info h3")
+                                    seleniumErrorHandler()
+                                }
+
+                                try {
+                                    let contactInfoElementsExists = await driver.wait(until.elementsLocated(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`)), 5000)
+                                    if (contactInfoElementsExists) {
+                                        let contactInfourlList = await driver.findElements(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`))
+                                        if (contactInfourlList && contactInfourlList.length > 0) {
+                                            for (let p = 0; p < contactInfourlList.length; p++) {
+                                                let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a)[${p + 1}]`)).getText()
+
+                                                console.log(contactLinkElement, "contactLinkElement")
+
+                                                obj.dataArr.push(contactLinkElement);
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (err) {
+                                    console.log("inside, catch", err)
+                                    try {
+                                        let contactInfoListExists = await driver.wait(until.elementsLocated(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)), 5000)
+                                        if (contactInfoListExists) {
+
+                                            let contactInfoList = await driver.findElements(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`))
+                                            if (contactInfoList) {
+                                                for (let p = 0; p < contactInfoList.length; p++) {
+                                                    let contactInfoListValue = await driver.findElement(By.xpath(`(((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)[${p + 1}]/span)[1]`)).getText()
+                                                    console.log(contactInfoListValue, "contactInfoListValue")
+
+                                                    obj.dataArr.push(contactInfoListValue);
+                                                }
+                                            }
+                                            else {
+                                                console.error("Not found link")
+                                            }
+                                        }
+                                    }
+                                    catch (err) {
+                                        let contactInfoList = await driver.findElements(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`))
+                                        if (contactInfoList) {
+                                            let contactInfoListValue = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`)).getText()
+
+                                            obj.dataArr.push(contactInfoListValue);
+                                        }
+                                        console.log(err)
+                                    }
+
+                                    console.error(err, "could not find contact info h3")
+                                }
+                                console.log(obj, "obj")
+                                contactInfoArr.push(obj)
+                            }
+
+                        }
+                        else {
+                            console.log("not found")
+                        }
+
+                    }
+                    catch (err) {
+                        console.error(err, "could not find contact info section tags")
+                        seleniumErrorHandler()
+                    }
+                    console.log(contactInfoArr, "contactInfoArr")
+                    userArr[j].contactInfoArr = contactInfoArr
+                }
+
+            }
+            catch (err) {
+                console.error(err)
+                seleniumErrorHandler()
+            }
+
+
+            try {
+
+                let tempEducationArr = []
+                await driver.get(`${currentUrl}/details/education/`);
+                await driver.sleep(randomIntFromInterval(1000, 15000))
+
+
+                try {
+                    if (randomBoolean()) {
+                        await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`)
+                    }
+                    let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`)), 5000)
+                    if (tempEducationArrExists) {
+                        let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`))
+
+                        console.log(internalEducationarr, "internnaleducation arr")
+                        for (let l = 0; l < internalEducationarr.length; l++) {
+
+                            let schoolName = ""
+                            let schoolDetail = ""
+                            let year = ""
+                            try {
+                                schoolName = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText()
+                            }
+                            catch (err) {
+                                console.error(err)
+                            }
+                            try {
+                                schoolDetail = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal"]//span[@aria-hidden="true"]`)).getText()
+                            }
+                            catch (err) {
+                                console.error(err)
+                            }
+                            try {
+                                year = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal t-black--light"]//span[@aria-hidden="true"]`)).getText()
+                            }
+                            catch (err) {
+                                console.error(err)
+                            }
+
+                            let obj = {
+                                schoolName,
+                                schoolDetail,
+                                year,
+                            }
+                            console.log(obj, "education Obj")
+                            tempEducationArr.push(obj)
+                        }
+
+                    }
+
+                }
+                catch (err) {
+                    console.error(err)
+                    seleniumErrorHandler()
+                }
+
+                userArr[j].educationArr = tempEducationArr
+                console.log(tempEducationArr, "tempEducationArr")
+
+
+
+
+
+
+            }
+            catch (err) {
+                console.error(err)
+                seleniumErrorHandler()
+            }
+            console.log("getExperience", `${userArr[j].link}/details/experience/`)
+            await driver.get(`${currentUrl}/details/experience/`);
+            await driver.sleep(randomIntFromInterval(1000, 15000))
+            try {
+                let experienceFound = await driver.wait(until.elementLocated(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`)), 5000)
+
+                if (experienceFound) {
+                    // console.log(randomBoolean(), randomIntFromInterval(100, 5000), "randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()")
+                    if (randomBoolean()) {
+                        await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`)
+                    }
+                    let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`))
+                    console.log(experienceArr, "experienceArr", experienceArr.length)
+                    let experienceValueArr = []
+
+                    if (experienceArr && experienceArr.length > 0) {
+                        for (let k = 0; k < experienceArr.length; k++) {
+                            let companyvalue = ""
+                            let value = ""
+                            let year = ""
+                            try {
+                                let checkElementHasAnchorTag = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li//div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a`), 5000);
+                                if (checkElementHasAnchorTag) {
+                                    console.log("inside if")
+                                    try {
+                                        companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText();
+                                    }
+                                    catch (error) {
+                                        try {
+                                            companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div/span/span[@aria-hidden="true"]`)).getText();
+                                        }
+                                        catch (error) {
+                                            console.error(error)
+                                        }
+                                        console.error(error)
+                                    }
+                                    try {
+                                        value = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`)).getText();
+                                    }
+                                    catch (error) {
+                                        value = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@aria-hidden="true"])[1]`)).getText();
+                                        console.error(error)
+                                    }
+                                    try {
+                                        year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`)).getText();
+                                    } catch (error) {
+                                        try {
+                                            year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]//a/span[@class="t-14 t-normal"])[1]`)).getText();
+                                        } catch (error) {
+                                            console.error(error)
+                                        }
+
+                                        console.error(error)
+                                    }
+                                }
+                            }
+                            catch (err) {
+                                console.log("inside else", err);
+                                try {
+                                    companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div//span[@aria-hidden="true"]`)).getText();
+                                }
+                                catch (error) {
+                                    console.error(error)
+                                }
+                                try {
+                                    value = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`)).getText();
+                                }
+                                catch (error) {
+                                    console.error(error)
+                                }
+                                try {
+                                    year = await driver.findElement(By.xpath(`((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`)).getText();
+                                } catch (error) {
+
+                                    console.error(error)
+                                }
+                            }
+                            experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
+                            console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
+                        }
+                    }
+                    userArr[j].experienceArr = experienceValueArr
+                    console.log(experienceValueArr, "experienceValueArr")
+
+
+                    // let obj = {
+                    //     ...clientExistsCheck,
+                    //     campaignName: campaignObj?.name,
+                    //     rating: rating,
+                    //     campanignId: campaignObj?._id,
+                    //     searchQuery: campaignObj?.searchQuery,
+                    //     accountName: campaignObj?.accountName,
+                    //     searchedSchool: campaignObj?.school,
+                    //     searchedCompany: campaignObj?.company,
+                    //     totalResults: campaignObj?.totalResults,
+                    // }
+                    // delete obj._id
+                    // console.log(obj)
+                    // let temp = await new PreviousLeads(obj).save()
+                    // clientExistsCheck
+                }
+                console.log(JSON.stringify(userArr[j], null, 2), "temp")
+            }
+            catch (err) {
+                console.error(err)
+            }
+            let rating = "";
+            rating = CalculateRating(userArr[j])
+            await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec()
+            //         let rating = "";
+            //         rating = CalculateRating(resultsArr[j])
+            //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
+            //         ////////////adding client for campaigns
+            console.log(userArr, "userArr", JSON.stringify(userArr, null, 2))
+        }
+
+
+        catch (error) {
+            console.error(error)
+            next(error)
+        }
+    }
+
+
+
+
+    res.status(200).json({ message: 'Profile data scrapped', success: true });
+
+
 
 }
 
@@ -1320,7 +974,7 @@ export const searchLinkedin = async (req, res, next) => {
             await driver.get('http://httpbin.org/ip')
 
 
-            await driver.sleep(3000)
+            await driver.sleep(randomIntFromInterval(1000, 15000))
 
             let data = await driver.getPageSource()
             console.log(data)
@@ -1373,7 +1027,7 @@ export const searchLinkedin = async (req, res, next) => {
                 }
 
                 ////////waiting for the elements to load
-                await driver.sleep(3000)
+                await driver.sleep(randomIntFromInterval(1000, 15000))
                 console.log("url:", await driver.getCurrentUrl())
 
 
@@ -1416,7 +1070,7 @@ export const searchLinkedin = async (req, res, next) => {
                                 let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
                                 if (companyButton) {
                                     ////////waiting for the elements to load
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     ////////clicking on the company button to reveal text input
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
                                     ////////clicking on the text input to get it in focus
@@ -1424,7 +1078,7 @@ export const searchLinkedin = async (req, res, next) => {
                                     ////////Entering values in the text input
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(req.body.company)
                                     ////////waiting for the elements to load
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     ////////clicking on the text input to get it in focus
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                     ////////pressing down key to highlight the first result
@@ -1436,28 +1090,28 @@ export const searchLinkedin = async (req, res, next) => {
                                 let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
                                 if (SchoolButton) {
                                     ////////waiting for the elements to load
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     ////////clicking on the school button to reveal text input
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
                                     ////////clicking on the text input to get it in focus
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                     ////////Entering values in the text input
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(req.body.school)
                                     ////////waiting for the elements to load
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     ////////clicking on the text input to get it in focus
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                     ////////pressing down key to highlight the first result
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ARROW_DOWN)
                                     ////////pressing down enter to select the first result
-                                    await driver.sleep(1000)
+                                    await driver.sleep(randomIntFromInterval(1000, 15000))
                                     await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(Key.ENTER)
                                 }
                                 ////////waiting for the elements to load
-                                await driver.sleep(1000)
+                                await driver.sleep(randomIntFromInterval(1000, 15000))
                                 ////////locating show results button
                                 let showResults = await driver.wait(until.elementLocated(By.xpath(`//button[@data-test-reusables-filters-modal-show-results-button="true" and @aria-label="Apply current filters to show results"]`)))
                                 if (showResults) {
@@ -1468,7 +1122,7 @@ export const searchLinkedin = async (req, res, next) => {
 
 
                             ////////waiting for the elements to load
-                            await driver.sleep(1000)
+                            await driver.sleep(randomIntFromInterval(1000, 15000))
                             ////////locating total results div
 
                             ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
@@ -1566,7 +1220,7 @@ export const searchLinkedin = async (req, res, next) => {
 
                                 console.log("SCROLL TO BOTTOM THE ALT3.3 ")
                                 ////////waiting for the elements to load
-                                await driver.sleep(1000)
+                                await driver.sleep(randomIntFromInterval(1000, 15000))
 
                                 try {
 
@@ -1624,7 +1278,7 @@ export const searchLinkedin = async (req, res, next) => {
                 try {
                     console.log(lengthOfArray[j].link, "lengthOfArray[j].link")
                     await driver.get(`${lengthOfArray[j].link}`);
-                    await driver.sleep(2000)
+                    await driver.sleep(randomIntFromInterval(1000, 15000))
 
                     let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000)
                     if (currentPosition) {
@@ -1647,7 +1301,7 @@ export const searchLinkedin = async (req, res, next) => {
                         }
                         resultsArr[j].educationArr = tempEducationArr
                     }
-                    await driver.sleep(1000)
+                    await driver.sleep(randomIntFromInterval(1000, 15000))
                 }
                 catch (err) {
                     console.error(err);
