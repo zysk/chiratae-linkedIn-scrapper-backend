@@ -25,6 +25,7 @@ import emailSettingsRouter from "./routes/EmailSettings.routes";
 import customemailRouter from "./routes/customemail.router";
 import { generateRandomNumbers } from "./helpers/utils";
 import { sendCustomMail } from "./helpers/nodeMailer";
+import { linkedInProfileScrapping } from "./controllers/Campaign.controller";
 const app = express();
 
 
@@ -76,9 +77,13 @@ app.use(errorHandler);
 
 // const job = schedule.scheduleJob('* * * * *', function () {
 // const job = schedule.scheduleJob('0 0 * * *', function () {
-const job = schedule.scheduleJob('49 11 * * *', function () {
-    getScheduledCampaignsForToday()
-
+const job = schedule.scheduleJob('0 10 * * *', async function () {
+    // getScheduledCampaignsForToday()
+    try {
+        await linkedInProfileScrapping()
+    } catch (error) {
+        console.error("linkedInProfileScrapping error =>>", error)
+    }
 
     console.log("At 23:00 on every day-of-week from Monday through Sunday.")
 
@@ -92,23 +97,23 @@ const job = schedule.scheduleJob('49 11 * * *', function () {
 /**
  * Selenium Setup
  */
-// let options = new chrome.Options();
-// options.addArguments("no-sandbox")
-// // options.addArguments('--headless');
-// options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-// options.addArguments('--disable-gpu');
-// options.addArguments('--window-size=1920,1080');
+let options = new chrome.Options();
+options.addArguments("no-sandbox")
+options.addArguments('--headless');
+options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+options.addArguments('--disable-gpu');
+options.addArguments('--window-size=1920,1080');
 
 
-// const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-// const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
-// export const driver = new Promise((resolve, reject) => {
-//     resolve(new Builder()
-//         .forBrowser("chrome")
-//         .setChromeService(serviceBuilder)
-//         .setChromeOptions(options).build())
-// })
+export const driver = new Promise((resolve, reject) => {
+    resolve(new Builder()
+        .forBrowser("chrome")
+        .setChromeService(serviceBuilder)
+        .setChromeOptions(options).build())
+})
 
 
 
