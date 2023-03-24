@@ -20,6 +20,7 @@ import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
 import PreviousLeads from '../models/previousLeads.model';
 import { searchLinkedInFn } from '../helpers/SearchLinkedInFn';
 import { randomBoolean, randomIntFromInterval } from '../helpers/utils';
+import { sendMail } from '../helpers/nodeMailer';
 
 
 
@@ -134,22 +135,25 @@ export const continueScheduled = async (req, res, next) => {
     }
 }
 
+export const checkLinkedInLoginFunc = async () => {
+    let driver = await maindriver
+    let page = await driver.get("https://www.linkedin.com");
+    console.time("label1")
+    await driver.sleep(3000)
+    let isLogin = false
+    let url = await driver.getCurrentUrl()
+    console.log("url:", url)
+    console.timeEnd("label1")
+    if (url.includes('feed')) {
+        isLogin = true
+    }
+    return isLogin
+}
+
 export const checkLinkedInLogin = async (req, res, next) => {
     try {
 
-        let driver = await maindriver
-        let page = await driver.get("https://www.linkedin.com");
-
-        console.time("label1")
-        await driver.sleep(3000)
-        let isLogin = false
-        let url = await driver.getCurrentUrl()
-        console.log("url:", url)
-
-        console.timeEnd("label1")
-        if (url.includes('feed')) {
-            isLogin = true
-        }
+        let isLogin = await checkLinkedInLoginFunc()
 
         res.json({
             isLogin, message: isLogin ? "Already logged in proceeding to search" : "Login Required"
@@ -506,7 +510,23 @@ export const linkedInSearch = async (req, res, next) => {
 }
 
 
-export const linkedInProfileScrapping = async (req, res, next) => {
+export const linkedInProfileScrapping = async () => {
+
+    let loggedIn = await checkLinkedInLoginFunc()
+    if (!loggedIn) {
+        await sendMail(
+            // [
+                "mulahajedu@jollyfree.com",
+                // "joel.green@ebslon.com",
+                // "joelgreen737@gmail.com",
+                // "jnjasgreem@gmail.com",
+            // ]
+            )
+            throw new Error('not logged in')
+    }
+
+
+
 
 
 
@@ -849,19 +869,22 @@ export const linkedInProfileScrapping = async (req, res, next) => {
 
 
         catch (error) {
-            console.error(error)
-            next(error)
+            throw error
+            // console.error(error)
+            // next(error)
         }
     }
-
-
-
-
-    res.status(200).json({ message: 'Profile data scrapped', success: true });
-
-
-
 }
+
+export const linkedInProfileScrappingReq = async (req, res, next) => {
+    try {
+        res.status(200).json({ message: 'Data scrapping has begun', success: true });
+        await linkedInProfileScrapping()
+    } catch (error) {
+        next(error)
+    }
+}
+
 
 
 export const forceCloseDriver = async (req, res, next) => {
