@@ -3,5 +3,5 @@ import { AddLeadComments, getLeadComments } from "../controllers/leadComment.con
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 router.post("/", authorizeJwt, AddLeadComments);
-router.get("/getByLeadId/:id", authorizeJwt, getLeadComments);
+router.get("/getByLeadId/:id", getLeadComments);
 export default router;
