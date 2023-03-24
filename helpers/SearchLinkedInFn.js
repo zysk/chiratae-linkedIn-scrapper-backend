@@ -11,7 +11,7 @@ import UserLogs from '../models/userLogs.model';
 import { randomIntFromInterval } from './utils';
 
 
-export const searchLinkedInFn = async (driver, req, res, next, searchInput, page) => {
+export const searchLinkedInFn = async (driver, req, res, next, searchInput, page, totalResults) => {
 
     let resultsArr = []
 
@@ -57,7 +57,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                     let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)))
                                     if (companyButton) {
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the company button to reveal text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//button`)).click()
                                         ////////clicking on the text input to get it in focus
@@ -65,7 +66,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                         ////////Entering values in the text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the text input to get it in focus
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Current company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                         ////////pressing down key to highlight the first result
@@ -83,7 +85,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                     let companyButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)))
                                     if (companyButton) {
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the company button to reveal text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//button`)).click()
                                         ////////clicking on the text input to get it in focus
@@ -91,7 +94,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                         ////////Entering values in the text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the text input to get it in focus
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="Past company"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                         ////////pressing down key to highlight the first result
@@ -108,7 +112,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                     let SchoolButton = await driver.wait(until.elementLocated(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)))
                                     if (SchoolButton) {
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the school button to reveal text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//button`)).click()
                                         ////////clicking on the text input to get it in focus
@@ -116,7 +121,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                         ////////Entering values in the text input
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).sendKeys(rl)
                                         ////////waiting for the elements to load
-                                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                        await driver.sleep(randomIntFromInterval(1000, 2000))
                                         ////////clicking on the text input to get it in focus
                                         await driver.findElement(By.xpath(`//ul//li//fieldset//h3[text()="School"]/following-sibling::div//ul//li[last()]//div[@class="search-reusables__filter-new-value-typeahead"]//div//input`)).click()
                                         ////////pressing down key to highlight the first result
@@ -127,7 +133,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
                                 }
                             }
                             ////////waiting for the elements to load
-                            await driver.sleep(randomIntFromInterval(1000, 15000))
+                            // await driver.sleep(randomIntFromInterval(1000, 15000))
+                            await driver.sleep(randomIntFromInterval(1000, 2000))
                             ////////locating show results button
                             let showResults = await driver.wait(until.elementLocated(By.xpath(`//button[@data-test-reusables-filters-modal-show-results-button="true" and @aria-label="Apply current filters to show results"]`)))
                             if (showResults) {
@@ -166,7 +173,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
 
 
                     ////////waiting for the elements to load
-                    await driver.sleep(randomIntFromInterval(1000, 15000))
+                    // await driver.sleep(randomIntFromInterval(1000, 15000))
+                    await driver.sleep(randomIntFromInterval(1000, 2000))
                     ////////locating total results div
 
                     ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
@@ -214,7 +222,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
 
                                 console.log("SCROLL TO BOTTOM THE ALT")
                                 ////////waiting for the elements to load
-                                await driver.sleep(randomIntFromInterval(1000, 15000))
+                                // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                await driver.sleep(randomIntFromInterval(1000, 2000))
                                 ////////locating results div
                                 try {
                                     let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
@@ -248,7 +257,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
 
                                 console.log("SCROLL TO BOTTOM THE ALT3.1 ")
                                 ////////waiting for the elements to load
-                                await driver.sleep(randomIntFromInterval(1000, 15000))
+                                // await driver.sleep(randomIntFromInterval(1000, 15000))
+                                await driver.sleep(randomIntFromInterval(1000, 2000))
                                 ////////finding if next button is visible or not
                                 try {
                                     let nextbuttonIsValid = await driver.wait(until.elementIsVisible(driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`))), 1000)
@@ -286,7 +296,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
 
                         console.log("SCROLL TO BOTTOM THE ALT3.2 ")
                         ////////waiting for the elements to load
-                        await driver.sleep(randomIntFromInterval(1000, 15000))
+                        // await driver.sleep(randomIntFromInterval(1000, 15000))
+                        await driver.sleep(randomIntFromInterval(1000, 2000))
 
                         try {
 

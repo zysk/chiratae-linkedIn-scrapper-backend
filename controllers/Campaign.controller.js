@@ -494,7 +494,7 @@ export const linkedInSearch = async (req, res, next) => {
         res.status(200).json({ message: 'Processing you can close this window' });
 
 
-        await searchLinkedInFn(driver, req, res, next, searchInput, page)
+        await searchLinkedInFn(driver, req, res, next, searchInput, page, totalResults)
 
         // res.status(200).json({ message: 'Results found', success: true });
 
