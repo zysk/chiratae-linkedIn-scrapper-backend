@@ -12,6 +12,8 @@ import { randomIntFromInterval } from './utils';
 
 
 export const searchLinkedInFn = async (driver, req, res, next, searchInput, page, totalResults) => {
+    try {
+        
 
     let resultsArr = []
 
@@ -729,4 +731,8 @@ export const searchLinkedInFn = async (driver, req, res, next, searchInput, page
         let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { ...req.body, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" }).exec()
     }
     console.log("completed")
+
+    } catch (error) {
+        console.error("ERROR", error)
+    }
 }
