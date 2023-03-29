@@ -18,7 +18,7 @@ export const sendMail = async (email) => {
             host: emailSettingsObj.mailHost,
             port: parseInt(emailSettingsObj.mailPort),
             secure: true, // true for 465, false for other ports
-            service:emailSettingsObj.mailService,
+            service: emailSettingsObj.mailService,
             auth: {
                 user: emailSettingsObj.mailUserName, // generated ethereal user
                 pass: emailSettingsObj.mailUserPassword, // generated ethereal password
@@ -114,6 +114,81 @@ export const sendCustomMail = async (email, subject, content) => {
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
             from: emailSettingsObj?.mailFromAddress ? emailSettingsObj?.mailFromAddress : "contactus@deliveryladka.com", // sender address
+            to: email, // list of receivers
+            subject: subject, // Subject line
+            text: content, // plain text body
+            // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
+        });
+        console.log(temp)
+
+
+
+
+        return true
+
+    } catch (error) {
+        throw new Error(error);
+    }
+}
+
+
+
+
+
+export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, content) => {
+    try {
+
+        // email = "alwin54889@gmail.com, jnjasgreen@gmail.com, alwin.ponnan@favcy.in"
+        // subject = "test"
+        // content = "ttesyt"
+
+
+        let transporterObject = {
+            // host: mailSettingsObj.mailHost ? mailSettingsObj.mailHost : "smtp.yandex.com",
+            // port: mailSettingsObj.mailPort ? mailSettingsObj.mailPort : 465,
+            // // secure: false, // true for 465, false for other ports
+            // service: !mailSettingsObj.mailHost && 'Yandex',
+            auth: {
+                //     user: mailSettingsObj.mailHost ? mailSettingsObj.mailHost : 'contactus@deliveryladka.com', // generated ethereal user
+                //     pass: 'fzxnmovdsjasvgmd', // generated ethereal password
+            },
+        }
+
+        if (mailSettingsObj.mailHost && mailSettingsObj.mailHost != "") {
+            transporterObject.host = mailSettingsObj.mailHost
+        }
+
+        if (mailSettingsObj.mailService) {
+            transporterObject.service = mailSettingsObj.mailService
+        }
+        else {
+            transporterObject.service = "Yandex"
+        }
+
+        if (mailSettingsObj.mailPort && mailSettingsObj.mailPort != "") {
+            transporterObject.port = mailSettingsObj.mailPort
+            if (mailSettingsObj.mailPort && mailSettingsObj.mailPort != "" && mailSettingsObj.mailPort == 465) {
+                transporterObject.secure = false
+            }
+        }
+        if (mailSettingsObj.mailUserName && mailSettingsObj.mailUserName != "") {
+            transporterObject.auth.user = mailSettingsObj.mailUserName
+        }
+        if (mailSettingsObj.mailUserName && mailSettingsObj.mailUserName != "") {
+            transporterObject.auth.pass = mailSettingsObj.mailUserPassword
+        }
+
+
+
+        console.log(transporterObject)
+        let customTransporter = nodemailer.createTransport(transporterObject);
+
+        console.log(mailSettingsObj, "mailSettingsObj")
+
+
+        // send mail with defined transport object
+        let temp = await customTransporter.sendMail({
+            from: mailSettingsObj?.mailUserName, // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: content, // plain text body

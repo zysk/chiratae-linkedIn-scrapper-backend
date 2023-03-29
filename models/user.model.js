@@ -25,6 +25,14 @@ let User = mongoose.Schema(
         contactInfoArr: Array,
         location: String,
         currentPosition: String,
+        mailSettingsObj: {
+            mailHost: String,
+            mailPort: String,
+            mailUserName: String,
+            mailUserPassword: String,
+            mailEncryption: String,
+            mailService: String,
+        },
 
     },
     { timestamps: true }

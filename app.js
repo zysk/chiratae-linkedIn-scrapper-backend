@@ -97,23 +97,23 @@ const job = schedule.scheduleJob('0 10 * * *', async function () {
 /**
  * Selenium Setup
  */
-let options = new chrome.Options();
-options.addArguments("no-sandbox")
-// options.addArguments('--headless');
-options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-options.addArguments('--disable-gpu');
-options.addArguments('--window-size=1920,1080');
+// let options = new chrome.Options();
+// options.addArguments("no-sandbox")
+// // options.addArguments('--headless');
+// options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+// options.addArguments('--disable-gpu');
+// options.addArguments('--window-size=1920,1080');
 
 
-const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+// const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+// const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
-export const driver = new Promise((resolve, reject) => {
-    resolve(new Builder()
-        .forBrowser("chrome")
-        .setChromeService(serviceBuilder)
-        .setChromeOptions(options).build())
-})
+// export const driver = new Promise((resolve, reject) => {
+//     resolve(new Builder()
+//         .forBrowser("chrome")
+//         .setChromeService(serviceBuilder)
+//         .setChromeOptions(options).build())
+// })
 
 
 

@@ -20,7 +20,7 @@ import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
 import PreviousLeads from '../models/previousLeads.model';
 import { searchLinkedInFn } from '../helpers/SearchLinkedInFn';
 import { randomBoolean, randomIntFromInterval } from '../helpers/utils';
-import { sendMail } from '../helpers/nodeMailer';
+import { sendCustomMailToSavanta, sendMail } from '../helpers/nodeMailer';
 
 
 
@@ -516,13 +516,13 @@ export const linkedInProfileScrapping = async () => {
     if (!loggedIn) {
         await sendMail(
             // [
-                "mulahajedu@jollyfree.com",
-                // "joel.green@ebslon.com",
-                // "joelgreen737@gmail.com",
-                // "jnjasgreem@gmail.com",
+            "mulahajedu@jollyfree.com",
+            // "joel.green@ebslon.com",
+            // "joelgreen737@gmail.com",
+            // "jnjasgreem@gmail.com",
             // ]
-            )
-            throw new Error('not logged in')
+        )
+        throw new Error('not logged in')
     }
 
 
@@ -1412,7 +1412,8 @@ export const getPastCampaignById = async (req, res, next) => {
     try {
         let SearchResultObj = await Campaign.findById(req.params.id).lean().exec()
         if (SearchResultObj) {
-            let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map(el => el.clientId)] } }).exec()
+            let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map(el => el.clientId)] } }).lean().exec()
+
             SearchResultObj.resultsArr = clientArr
         }
         res.status(200).json({ message: "Search Result object", data: SearchResultObj, success: true });
@@ -1457,6 +1458,67 @@ export const checkRatingForClient = async (req, res, next) => {
 
         let rating = CalculateRating(clientObj)
         console.log(rating)
+        res.status(200).json({ message: "rating", data: rating, success: true });
+    } catch (error) {
+        console.error(error)
+        next(error)
+    }
+}
+
+
+
+
+export const sendCampaignToSevanta = async (req, res, next) => {
+    try {
+
+        let leadObj = await Lead.findById(req.params.id).exec()
+
+        let userObj = await User.findById(leadObj.clientId).exec()
+
+        let websiteTxt = ""
+
+        if (userObj?.contactInfoArr && userObj?.contactInfoArr.length > 0 && userObj?.contactInfoArr?.some(el => `${el.heading}`.toLowerCase().includes("website"))) {
+            let temp = contactInfoArr?.find(el => `${el.heading}`.toLowerCase().includes("website"))
+            websiteTxt = temp.dataArr.reduce((acc, el) => acc + el, "");
+        }
+        let comments = userObj?.contactInfoArr && userObj?.contactInfoArr.length > 0 && userObj?.contactInfoArr.reduce((acc, el, index) => acc + `${el?.heading}: ${el.dataArr.reduce((acc2, ele) => acc2 + ele, "")}`, "")
+
+
+        let obj = `
+            Description:  Current Position - ${userObj?.currentPosition}\n 
+            Education - ${userObj?.educationArr && userObj?.educationArr.length > 0 && userObj?.educationArr.reduce((acc, el, index) => acc + `${el?.schoolName},${el?.year} ${(index == (userObj?.educationArr?.length - 1)) ? "" : ","}`, "")} \n
+            Experience - ${userObj?.experienceArr && userObj?.experienceArr.length > 0 && userObj?.experienceArr.reduce((acc, el, index) => acc + `${el?.company},${el?.year} ${(index == (userObj?.educationArr?.length - 1)) ? "" : ","}`, "")}\n
+            Priority: ${leadObj?.rating}\n
+            Comments: Details - ${comments}\n
+            SourceNotes: Created from linkedin, profile link is ${userObj?.link}\n
+            Website: ${websiteTxt}`
+
+        let email = `chiratae+${userObj?.name ? userObj?.name : ""}@mydeal8ow.com`
+
+        console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
+
+
+        if (
+            !userObj.mailSettingsObj?.mailHost ||
+            userObj.mailSettingsObj?.mailHost == "" ||
+            userObj.mailSettingsObj?.mailPort == "" ||
+            userObj.mailSettingsObj?.mailUserName == "" ||
+            userObj.mailSettingsObj?.mailUserPassword == "" ||
+            userObj.mailSettingsObj?.mailEncryption == "" ||
+            userObj.mailSettingsObj?.mailService == ""
+        ) {
+            throw new Error("Please enter your email setting form in your profile section")
+        }
+
+
+
+
+        await sendCustomMailToSavanta(email, userObj?.mailSettingsObj, `Deal Creation for savanta ${userObj?.name}`, obj)
+
+
+
+
+
         res.status(200).json({ message: "rating", data: rating, success: true });
     } catch (error) {
         console.error(error)

@@ -88,8 +88,7 @@ export const getLeadById = async (req, res, next) => {
                 query = { ...query, leadAssignedToId: `${req.query.userId}` }
             }
         }
-        console.log(query, "query")
-        console.log(leadsDetails(query), "leadsDetails(query)")
+
         let LeadStatusArr = await Lead.aggregate([leadsDetails(query)]).exec()
 
         res.status(200).json({ message: "Lead found", data: LeadStatusArr[0], success: true });

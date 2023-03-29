@@ -63,6 +63,21 @@ export const login = async (req, res, next) => {
 
 
 
+export const getUserById = async (req, res, next) => {
+    try {
+        let userObj = await Users.findById(req.params.id).exec();
+        if (!userObj) {
+            throw new Error("User Not found");
+        }
+
+
+
+        res.status(201).json({ message: "found User", data: userObj, success: true });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const updateUser = async (req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
@@ -77,6 +92,7 @@ export const updateUser = async (req, res, next) => {
         }
 
 
+        console.log(req.body, "192.168.0.23:3000/", "req.params.id", req.params.id)
         await Users.findByIdAndUpdate(req.params.id, req.body).exec();
 
         res.status(201).json({ message: "Updated Successfully", success: true });
@@ -160,7 +176,7 @@ export const loginAdmin = async (req, res, next) => {
                 throw { status: 401, message: "Invalid Password" };
             }
         } else {
-            throw { status: 401, message: "Admin Not Found" };
+            throw { status: 401, message: "User Not Found" };
         }
     } catch (err) {
         console.log(err);

@@ -360,7 +360,8 @@ export const leadsDetails = (payload) => {
     let matchCondition = [
         {
             $match: {
-                "_id": mongoose.Types.ObjectId(payload.id)
+
+                $or: [{ "_id": mongoose.Types.ObjectId(payload.id), }, { "clientId": mongoose.Types.ObjectId(payload.id) }]
             },
         },
         {
