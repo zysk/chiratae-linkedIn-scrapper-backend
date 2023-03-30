@@ -12,15 +12,7 @@ let Campaign = mongoose.Schema(
         totalResults: String,
         school: String,
         company: String,
-        scheduled: {
-            type: Boolean,
-            default: false,
-        },
-        scheduleDate: {
-            type: Date,
-        },
         processing: {
-
             type: Boolean,
             default: false,
         },
@@ -28,6 +20,7 @@ let Campaign = mongoose.Schema(
             type: String,
             default: generalModelStatuses.CREATED
         },
+
         isSearched: {
             type: Boolean,
             default: false

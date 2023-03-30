@@ -12,7 +12,7 @@ import CampaignModel from '../models/Campaign.model';
 import path from 'path';
 import ProxiesModel from '../models/Proxies.model';
 import SeleniumSessionModel from '../models/SeleniumSession.model';
-import { driver as maindriver } from '../app';
+import { driver as maindriver, isFree } from '../app';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import UserLogs from '../models/userLogs.model';
 import { CalculateRating } from '../helpers/CalculateRating';
@@ -137,14 +137,11 @@ export const continueScheduled = async (req, res, next) => {
 
 export const checkLinkedInLoginFunc = async () => {
     let driver = await maindriver
-    let page = await driver.get("https://www.linkedin.com");
-    console.time("label1")
-    await driver.sleep(3000)
     let isLogin = false
     let url = await driver.getCurrentUrl()
     console.log("url:", url)
-    console.timeEnd("label1")
-    if (url.includes('feed')) {
+    // console.timeEnd("label1")
+    if (url.includes('feed') || url.includes('/in/') || url.includes('/search/') || url.includes('/results/')) {
         isLogin = true
     }
     return isLogin
@@ -156,7 +153,7 @@ export const checkLinkedInLogin = async (req, res, next) => {
         let isLogin = await checkLinkedInLoginFunc()
 
         res.json({
-            isLogin, message: isLogin ? "Already logged in proceeding to search" : "Login Required"
+            isLogin, message: isLogin ? "Already logged in proceeding to search Note : Another search might be going on , your search will be taken after all the pending searches are done" : "Login Required"
         })
 
     } catch (error) {
@@ -375,6 +372,28 @@ export const linkedInLogin = async (req, res, next) => {
 }
 
 
+export const addCampaignToQueue = async (req, res, next) => {
+    try {
+
+
+        let campaignObj = await new Campaign({
+            ...req.body,
+            processing: false,
+            // status: "PROCESSING"
+            // totalResults: totalResults, resultsArr: clientsArr, isSearched: true 
+        }).save()
+
+
+
+        res.json({ message: "Your campaign is created and placed at the end of the queue" })
+
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+
+
 
 export const getLinkedInCaptcha = async (req, res, next) => {
     try {
@@ -511,7 +530,7 @@ export const linkedInSearch = async (req, res, next) => {
 
 
 export const linkedInProfileScrapping = async () => {
-
+    isFree = false
     let loggedIn = await checkLinkedInLoginFunc()
     if (!loggedIn) {
         await sendMail(
@@ -869,11 +888,13 @@ export const linkedInProfileScrapping = async () => {
 
 
         catch (error) {
+            isFree = true
             throw error
             // console.error(error)
             // next(error)
         }
     }
+    isFree = true
 }
 
 export const linkedInProfileScrappingReq = async (req, res, next) => {
