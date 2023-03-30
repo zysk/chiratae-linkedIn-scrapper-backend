@@ -12,7 +12,7 @@ import CampaignModel from '../models/Campaign.model';
 import path from 'path';
 import ProxiesModel from '../models/Proxies.model';
 import SeleniumSessionModel from '../models/SeleniumSession.model';
-import { driver as maindriver, isFree } from '../app';
+import { driver as maindriver, isFree, cronFunc } from '../app';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import UserLogs from '../models/userLogs.model';
 import { CalculateRating } from '../helpers/CalculateRating';
@@ -551,6 +551,12 @@ export const linkedInProfileScrapping = async () => {
 
     let userArr = await User.find({ searchCompleted: false }).limit(50).lean().exec()
 
+    if (!userArr.length) {
+        return true
+    }
+
+
+
     let driver = await maindriver
 
 
@@ -900,7 +906,7 @@ export const linkedInProfileScrapping = async () => {
 export const linkedInProfileScrappingReq = async (req, res, next) => {
     try {
         res.status(200).json({ message: 'Data scrapping has begun', success: true });
-        await linkedInProfileScrapping()
+        cronFunc()
     } catch (error) {
         next(error)
     }

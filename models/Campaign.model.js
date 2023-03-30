@@ -12,6 +12,7 @@ let Campaign = mongoose.Schema(
         totalResults: String,
         school: String,
         company: String,
+        pastCompany: String,
         processing: {
             type: Boolean,
             default: false,
@@ -30,6 +31,7 @@ let Campaign = mongoose.Schema(
                 clientId: String,
             },
         ],
+        timesRun: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

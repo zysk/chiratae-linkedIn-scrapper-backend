@@ -26,6 +26,8 @@ import customemailRouter from "./routes/customemail.router";
 import { generateRandomNumbers } from "./helpers/utils";
 import { sendCustomMail } from "./helpers/nodeMailer";
 import { linkedInProfileScrapping } from "./controllers/Campaign.controller";
+import { searchLinkedInFn } from "./helpers/SearchLinkedInFn";
+import CampaignModel from "./models/Campaign.model";
 const app = express();
 
 
@@ -77,21 +79,52 @@ app.use(errorHandler);
 export let isFree = true
 // const job = schedule.scheduleJob('* * * * *', function () {
 // const job = schedule.scheduleJob('0 0 * * *', function () {
-const job = schedule.scheduleJob('0 10 * * *', async function () {
+const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
-    if (isFree) {
-
-        try {
-            await linkedInProfileScrapping()
-        } catch (error) {
-            console.error("linkedInProfileScrapping error =>>", error)
-        }
-
-    }
-    console.log("At 23:00 on every day-of-week from Monday through Sunday.")
+    cronFunc()
+    console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
 
 });
 
+export const cronFunc = async () => {
+    try {
+        if (isFree) {
+            let noUsersLeft = false;
+            let noCampaignsLeft = false;
+
+            try {
+                noUsersLeft = await linkedInProfileScrapping()
+            } catch (error) {
+                console.error("linkedInProfileScrapping error =>>", error)
+            }
+
+            if (noUsersLeft) {
+                try {
+                    noCampaignsLeft = await searchLinkedInFn()
+                } catch (error) {
+                    console.error("searchLinkedInFn error =>>", error)
+                }
+            }
+
+            if (noCampaignsLeft) { // reset users and campaign 
+                try {
+                    await CampaignModel.updateMany({}, {
+                        status: generalModelStatuses.CREATED,
+                        isSearched: false,
+                        processing: false,
+                        // $inc: { timesRun: 1 }
+                    })
+                } catch (error) {
+
+                    console.error("campaign update many error =>>", error)
+                }
+            }
+
+        }
+    } catch (error) {
+        console.error("ERROR IN CRON FUNC", error)
+    }
+}
 // sendCustomMail()
 // app.use()
 
@@ -102,7 +135,7 @@ const job = schedule.scheduleJob('0 10 * * *', async function () {
  */
 let options = new chrome.Options();
 options.addArguments("no-sandbox")
-// options.addArguments('--headless');
+options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
