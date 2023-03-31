@@ -114,7 +114,7 @@ export const assignLeadToUser = async (req, res, next) => {
             leadId: LeadObj._id,
             value: `${userObj?.name}`,
             previousValue: `N.A.`,
-            message: `Laad assigned to ${userObj?.name}`
+            message: `Lead assigned to ${userObj?.name}`
         }).save()
 
 
@@ -155,7 +155,7 @@ export const automaticallyAssignLeadsToUser = async (req, res, next) => {
                     leadId: finalLeadsPool[0]._id,
                     value: `${totalUsersArr[i]?._id}`,
                     previousValue: `N.A.`,
-                    message: `Laad assigned to ${totalUsersArr[i]?.name}`
+                    message: `Lead assigned to ${totalUsersArr[i]?.name}`
                 }).save()
                 let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
                 finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
@@ -201,7 +201,7 @@ export const automaticallyAssignLeadsToSelectedUsers = async (req, res, next) =>
                     leadId: finalLeadsPool[0]._id,
                     value: `${totalUsersArr[i]?._id}`,
                     previousValue: `N.A.`,
-                    message: `Laad assigned to ${totalUsersArr[i]?.name}`
+                    message: `Lead assigned to ${totalUsersArr[i]?.name}`
                 }).save()
                 let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
                 finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
@@ -229,7 +229,7 @@ export const changeLeadStatus = async (req, res, next) => {
             leadId: LeadObj._id,
             value: `${req.body.status}`,
             previousValue: `${LeadObj?.status}`,
-            message: `Laad status changed to ${req.body.status} from ${LeadObj?.status} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
+            message: `Lead status changed to ${req.body.status} from ${LeadObj?.status} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
         }).save()
 
 
@@ -255,7 +255,7 @@ export const changeLeadRating = async (req, res, next) => {
             leadId: LeadObj._id,
             value: `${req.body.rating}`,
             previousValue: `${LeadObj?.rating}`,
-            message: `Laad rating changed to ${req.body.rating} from ${LeadObj?.rating} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
+            message: `Lead rating changed to ${req.body.rating} from ${LeadObj?.rating} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
         }).save()
 
         let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { rating: req.body.rating }).exec()
