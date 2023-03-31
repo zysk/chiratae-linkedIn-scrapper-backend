@@ -47,6 +47,7 @@ const redis = require('redis');
 
 export const redisClient = redis.createClient();
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
+redisClient.on('connect', () => { redisClient.set("isFree", "true"); console.log("redis connected") });
 
 redisClient.connect();
 
@@ -76,8 +77,7 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-export let isFree = true
-// const job = schedule.scheduleJob('* * * * *', function () {
+// const job = schedule.scheduleJob('*/10 * * * *', function () {
 // const job = schedule.scheduleJob('0 0 * * *', function () {
 const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
@@ -88,6 +88,9 @@ const job = schedule.scheduleJob('0 6,18 * * *', function () {
 
 export const cronFunc = async () => {
     try {
+        let isFree = await redisClient.get("isFree")
+        isFree = isFree == "true" ? true : false
+        console.log(isFree, "isFree")
         if (isFree) {
             let noUsersLeft = false;
             let noCampaignsLeft = false;
@@ -135,7 +138,7 @@ export const cronFunc = async () => {
  */
 let options = new chrome.Options();
 options.addArguments("no-sandbox")
-options.addArguments('--headless');
+// options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');

@@ -4,19 +4,18 @@ import Lead from '../models/leads.model';
 import User from '../models/user.model';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
+import { driver as maindriver, redisClient } from '../app';
 import { generalModelStatuses, rolesObj } from '../helpers/Constants';
 import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import PreviousLeads from '../models/previousLeads.model';
 import UserLogs from '../models/userLogs.model';
 import { randomIntFromInterval } from './utils';
-import { driver as maindriver, isFree } from '../app';
 
 
 export const searchLinkedInFn = async () => {
     try {
+        await redisClient.set("isFree", "false")
 
-
-        isFree = false
         const driver = await maindriver
 
         let loggedIn = await checkLinkedInLoginFunc()
@@ -29,6 +28,7 @@ export const searchLinkedInFn = async () => {
                 // "jnjasgreem@gmail.com",
                 // ]
             )
+            await redisClient.set("isFree", "true")
             throw new Error('not logged in')
         }
 
@@ -788,8 +788,8 @@ export const searchLinkedInFn = async () => {
 
     } catch (error) {
         console.error("ERROR", error)
-        isFree = true
+        await redisClient.set("isFree", "true")
         throw error
     }
-    isFree = true
+    await redisClient.set("isFree", "true")
 }

@@ -1,26 +1,23 @@
-import fs from 'fs';
+import { Builder, By, Key, until } from 'selenium-webdriver';
 import Campaign from '../models/Campaign.model';
 import Lead from '../models/leads.model';
 import User from '../models/user.model';
-import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
+import path from 'path';
 import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
-import { rolesObj } from '../helpers/Constants';
-import CampaignModel from '../models/Campaign.model';
-import path from 'path';
-import ProxiesModel from '../models/Proxies.model';
-import SeleniumSessionModel from '../models/SeleniumSession.model';
-import { driver as maindriver, isFree, cronFunc } from '../app';
-import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
-import UserLogs from '../models/userLogs.model';
+import { cronFunc, driver as maindriver, redisClient } from '../app';
 import { CalculateRating } from '../helpers/CalculateRating';
-import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
-import PreviousLeads from '../models/previousLeads.model';
-import { searchLinkedInFn } from '../helpers/SearchLinkedInFn';
-import { randomBoolean, randomIntFromInterval } from '../helpers/utils';
+import { rolesObj } from '../helpers/Constants';
 import { sendCustomMailToSavanta, sendMail } from '../helpers/nodeMailer';
+import { getScheduledCampaignsForToday } from '../helpers/ScheduledCampaigns';
+import { searchLinkedInFn } from '../helpers/SearchLinkedInFn';
+import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
+import { randomBoolean, randomIntFromInterval } from '../helpers/utils';
+import CampaignModel from '../models/Campaign.model';
+import ProxiesModel from '../models/Proxies.model';
+import UserLogs from '../models/userLogs.model';
 
 
 
@@ -530,7 +527,7 @@ export const linkedInSearch = async (req, res, next) => {
 
 
 export const linkedInProfileScrapping = async () => {
-    isFree = false
+    await redisClient.set("isFree", "false")
     let loggedIn = await checkLinkedInLoginFunc()
     if (!loggedIn) {
         await sendMail(
@@ -541,6 +538,7 @@ export const linkedInProfileScrapping = async () => {
             // "jnjasgreem@gmail.com",
             // ]
         )
+        await redisClient.set("isFree", "true")
         throw new Error('not logged in')
     }
 
@@ -894,13 +892,14 @@ export const linkedInProfileScrapping = async () => {
 
 
         catch (error) {
-            isFree = true
+            await redisClient.set("isFree", "true")
+
             throw error
             // console.error(error)
             // next(error)
         }
     }
-    isFree = true
+    await redisClient.set("isFree", "true")
 }
 
 export const linkedInProfileScrappingReq = async (req, res, next) => {
