@@ -7,27 +7,24 @@ import path from "path";
 import { CONFIG } from "./helpers/Config";
 import { errorHandler } from "./helpers/ErrorHandler";
 //routes
+import { Builder } from 'selenium-webdriver';
 import campaignRouter from "./routes/Campaign.routes";
-import usersRouter from "./routes/users.routes";
+import leadRouter from "./routes/Lead.routes";
+import leadCommentRouter from "./routes/LeadComment.routes";
+import leadlogsRouter from "./routes/LeadLogs.routes";
 import linkedInAccountRouter from "./routes/LinkedInAccounts.routes";
 import proxiesRouter from "./routes/Proxies.routes";
-import leadRouter from "./routes/Lead.routes";
-import leadlogsRouter from "./routes/LeadLogs.routes";
-import leadCommentRouter from "./routes/LeadComment.routes";
-import { Builder, By, Key, until, getAttribute, Window } from 'selenium-webdriver';
+import usersRouter from "./routes/users.routes";
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
 import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
-import { getScheduledCampaignsForToday } from "./helpers/ScheduledCampaigns";
-import leadStatusRouter from "./routes/LeadStatus.routes";
-import emailSettingsRouter from "./routes/EmailSettings.routes";
-import customemailRouter from "./routes/customemail.router";
-import { generateRandomNumbers } from "./helpers/utils";
-import { sendCustomMail } from "./helpers/nodeMailer";
 import { linkedInProfileScrapping } from "./controllers/Campaign.controller";
 import { searchLinkedInFn } from "./helpers/SearchLinkedInFn";
 import CampaignModel from "./models/Campaign.model";
+import customemailRouter from "./routes/customemail.router";
+import emailSettingsRouter from "./routes/EmailSettings.routes";
+import leadStatusRouter from "./routes/LeadStatus.routes";
 const app = express();
 
 
