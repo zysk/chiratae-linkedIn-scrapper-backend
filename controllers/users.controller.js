@@ -38,7 +38,7 @@ export const login = async (req, res, next) => {
             .lean()
             .exec();
         if (userObj) {
-            if (userObj?.isActive) {
+            if (!userObj?.isActive) {
                 throw new Error("You are marked as inactive, please contact admin for further details!");
             }
 
