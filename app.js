@@ -136,7 +136,7 @@ export const cronFunc = async () => {
  */
 let options = new chrome.Options();
 options.addArguments("no-sandbox")
-// options.addArguments('--headless');
+options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
