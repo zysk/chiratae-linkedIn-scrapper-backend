@@ -10,6 +10,7 @@ import { seleniumErrorHandler } from '../helpers/seleniumErrorHandler';
 import PreviousLeads from '../models/previousLeads.model';
 import UserLogs from '../models/userLogs.model';
 import { randomIntFromInterval } from './utils';
+import { checkLinkedInLoginFunc } from '../controllers/Campaign.controller';
 
 
 export const searchLinkedInFn = async () => {
@@ -767,7 +768,14 @@ export const searchLinkedInFn = async () => {
                     // let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
                     // console.log(leadsArr, "leadsArr")
                     //     }
-                    let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } }).exec()
+
+                    let campaignId = campaignObj?._id;
+
+
+                    delete campaignObj?._id
+                    delete campaignObj?.timesRun
+
+                    let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignId, { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } }).exec()
                 }
 
 
@@ -781,7 +789,7 @@ export const searchLinkedInFn = async () => {
 
 
             } catch (error) {
-                console.error("ERROR IN CAMPAIGN LOOP")
+                console.error("ERROR IN CAMPAIGN LOOP", error)
             }
         }
 

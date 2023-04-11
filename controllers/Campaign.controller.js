@@ -542,12 +542,7 @@ export const linkedInProfileScrapping = async () => {
         throw new Error('not logged in')
     }
 
-
-
-
-
-
-    let userArr = await User.find({ searchCompleted: false }).limit(50).lean().exec()
+    let userArr = await User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean().exec()
 
     if (!userArr.length) {
         return true
@@ -881,7 +876,7 @@ export const linkedInProfileScrapping = async () => {
                 console.error(err)
             }
             let rating = "";
-            rating = CalculateRating(userArr[j])
+            rating = CalculateRating(userArr[j]);
             await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec()
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
