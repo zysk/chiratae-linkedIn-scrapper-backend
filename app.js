@@ -37,7 +37,7 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
     }
 });
 
-mongoose.set("debug", true)
+// mongoose.set("debug", true)
 
 ///////redis setup
 const redis = require('redis');
@@ -54,8 +54,8 @@ redisClient.connect();
 const schedule = require('node-schedule');
 
 
-// mongoose.set('debug', true)
-app.use(logger("dev"));
+mongoose.set('debug', true)
+// app.use(logger("dev"));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
 app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 }));
