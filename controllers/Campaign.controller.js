@@ -706,13 +706,14 @@ export const linkedInProfileScrapping = async () => {
                 await driver.sleep(randomIntFromInterval(1000, 15000))
 
 
+                //ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"]
                 try {
                     if (randomBoolean()) {
                         await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`)
                     }
-                    let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`)), 5000)
+                    let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])`)), 5000)
                     if (tempEducationArrExists) {
-                        let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`))
+                        let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])`))
 
                         console.log(internalEducationarr, "internnaleducation arr")
                         for (let l = 0; l < internalEducationarr.length; l++) {
@@ -721,19 +722,19 @@ export const linkedInProfileScrapping = async () => {
                             let schoolDetail = ""
                             let year = ""
                             try {
-                                schoolName = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText()
+                                schoolName = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText()
                             }
                             catch (err) {
                                 console.error(err)
                             }
                             try {
-                                schoolDetail = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal"]//span[@aria-hidden="true"]`)).getText()
+                                schoolDetail = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal"]//span[@aria-hidden="true"]`)).getText()
                             }
                             catch (err) {
                                 console.error(err)
                             }
                             try {
-                                year = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal t-black--light"]//span[@aria-hidden="true"]`)).getText()
+                                year = await driver.findElement(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${l + 1}]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal t-black--light"]//span[@aria-hidden="true"]`)).getText()
                             }
                             catch (err) {
                                 console.error(err)

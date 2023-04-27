@@ -1,5 +1,6 @@
 import { UserList, UserListWithCampaigns } from "../Builders/user.builder";
 import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
+import { CalculateRating } from "../helpers/CalculateRating";
 import { ErrorMessages, rolesObj } from "../helpers/Constants";
 import { generateAccessJwt } from "../helpers/Jwt";
 
@@ -187,4 +188,30 @@ export const loginAdmin = async (req, res, next) => {
         next(err);
     }
 };
+
+
+export const setUserRating = async (req, res, next) => {
+    try {
+        const usersArr = await Users.find({ role: "CLIENT" }).exec();
+        console.log(usersArr.length)
+        for (let j = 0; j <= usersArr.length - 1; j++) {
+            let rating = CalculateRating(usersArr[j]);
+            // if (`${rating}`.toLowerCase() == "high")
+            if (usersArr[j].educationArr.length > 0 || usersArr[j].experienceArr.length > 0) {
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+                console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                // await User.findByIdAndUpdate(userArr[j]._id, { rating }).exec()
+            }
+
+        }
+        res.status(200).json({ message: 'as', success: true });
+
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
+};
+
 

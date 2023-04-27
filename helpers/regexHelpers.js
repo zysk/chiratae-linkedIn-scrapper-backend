@@ -6,3 +6,11 @@ export const escapeRegExp = (text) => { // https://stackoverflow.com/questions/3
         return text
     }
 }
+
+
+
+
+export const matchWithSpecialCharacters = (text) => {
+    return text.split(' ').join(`[\ -[\\]{}()*+?.,\\/^$|#\,\-_\'\"]*`)
+}
+
