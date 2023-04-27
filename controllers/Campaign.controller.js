@@ -879,6 +879,7 @@ export const linkedInProfileScrapping = async () => {
             let rating = "";
             rating = CalculateRating(userArr[j]);
             await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec()
+            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
             //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")

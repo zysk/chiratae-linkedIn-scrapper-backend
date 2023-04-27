@@ -54,7 +54,7 @@ redisClient.connect();
 const schedule = require('node-schedule');
 
 
-mongoose.set('debug', true)
+// mongoose.set('debug', true)
 // app.use(logger("dev"));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests

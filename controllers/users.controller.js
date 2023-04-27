@@ -200,12 +200,12 @@ export const setUserRating = async (req, res, next) => {
             // console.log("j", j, usersArr[j])
             let rating = await CalculateRating(usersArr[j]);
             await Users.findByIdAndUpdate(usersArr[j]._id, { rating }).exec();
-            await Lead.updateMany({ userId: `${usersArr[j]._id}` }, { rating }).exec()
-            // if (rating == "LOW") {
+            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
+            // if (rating != "LOW") {
             //     console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             //     count += 1
-            //     console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
-            //     console.log(count, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            //     //     console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
+            //     console.log(count, rating, usersArr[j]._id, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
             // }
         }
