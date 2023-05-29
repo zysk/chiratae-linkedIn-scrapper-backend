@@ -20,11 +20,11 @@ export const sendMail = async (email) => {
             secure: true, // true for 465, false for other ports
             service: emailSettingsObj.mailService,
             auth: {
-                user: emailSettingsObj.mailUserName, // generated ethereal user
+                user: emailSettingsObj.mailFromAddress, // generated ethereal user
                 pass: emailSettingsObj.mailUserPassword, // generated ethereal password
             },
         }
-        console.log(transporterObj)
+        console.log(transporterObj, "transporterObj")
         const transporter = nodemailer.createTransport(transporterObj);
         let obj = {
             from: emailSettingsObj.mailFromAddress, // sender address
@@ -105,7 +105,7 @@ export const sendCustomMail = async (email, subject, content) => {
 
 
 
-        console.log(transporterObject)
+        console.log(transporterObject, "transporterObject")
         let customTransporter = nodemailer.createTransport(transporterObject);
 
         console.log(emailSettingsObj, "emailSettingsObj")
@@ -113,13 +113,13 @@ export const sendCustomMail = async (email, subject, content) => {
 
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
-            from: emailSettingsObj?.mailFromAddress ? emailSettingsObj?.mailFromAddress : "contactus@deliveryladka.com", // sender address
+            from: emailSettingsObj?.mailUserName ? emailSettingsObj?.mailUserName : "contactus@deliveryladka.com", // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: content, // plain text body
             // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         });
-        console.log(temp)
+        console.log(temp, "temp")
 
 
 
