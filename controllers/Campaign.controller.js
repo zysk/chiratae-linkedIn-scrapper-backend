@@ -227,8 +227,8 @@ export const linkedInLogin = async (req, res, next) => {
             driver.sleep(1000)
             console.log("url:", await driver.getCurrentUrl())
 
-
-
+            driver.navigate().refresh();
+            // driver.reload
             // check login
 
 
