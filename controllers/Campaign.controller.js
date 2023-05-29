@@ -37,9 +37,6 @@ import UserLogs from '../models/userLogs.model';
 
 
 
-//account name devesh sir 
-///email: devesh.batra@ebslon.com
-///password: Haier2018@
 
 
 export const handleLogoutAndLoginAnotherAccount = async (req, res, next) => {
@@ -557,7 +554,7 @@ export const linkedInProfileScrapping = async () => {
         try {
             let campaignObj = await Campaign.findById(userArr[j].campaignId).exec()
 
-            console.log("LinkedIn", j + 1, userArr.length)
+            console.log("LinkedIn", j + 1, userArr.length, JSON.stringify(userArr, null, 2))
             await driver.get(`${userArr[j].link}`);
             await driver.sleep(randomIntFromInterval(1000, 15000))
 
@@ -879,7 +876,7 @@ export const linkedInProfileScrapping = async () => {
             let rating = "";
             rating = CalculateRating(userArr[j]);
             await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec()
-            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
+            await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec()
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
             //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
@@ -1419,7 +1416,80 @@ const handleCheckPageLoaded = async (driver) => {
 
 export const getPastCampaign = async (req, res, next) => {
     try {
-        let SearchResultArr = await Campaign.find().sort({ "createdAt": -1 }).exec()
+        let pipeline = [
+            {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': '_id',
+                    'foreignField': 'campaignId',
+                    'as': 'usersArr'
+                }
+            }, {
+                '$addFields': {
+                    'completedLeads': {
+                        '$size': {
+                            '$filter': {
+                                'input': '$usersArr',
+                                'as': 'el',
+                                'cond': {
+                                    '$eq': [
+                                        '$$el.searchCompleted', true
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    'totalLeads': {
+                        '$size': {
+                            '$filter': {
+                                'input': '$usersArr',
+                                'as': 'el',
+                                'cond': {
+                                    '$or': [
+                                        {
+                                            '$eq': [
+                                                '$$el.searchCompleted', false
+                                            ]
+                                        }, {
+                                            '$eq': [
+                                                '$$el.searchCompleted', true
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }, {
+                '$addFields': {
+                    'percent': {
+                        '$cond': [
+                            {
+                                '$gt': [
+                                    '$totalLeads', 0
+                                ]
+                            }, {
+                                '$multiply': [
+                                    {
+                                        '$divide': [
+                                            '$completedLeads', '$totalLeads'
+                                        ]
+                                    }, 100
+                                ]
+                            }, 0
+                        ]
+                    }
+                }
+            }, {
+                '$sort': {
+                    'createdAt': -1
+                }
+            }
+        ]
+
+
+        let SearchResultArr = await Campaign.aggregate(pipeline)
 
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {
@@ -1427,7 +1497,6 @@ export const getPastCampaign = async (req, res, next) => {
         next(error);
     }
 };
-
 
 
 

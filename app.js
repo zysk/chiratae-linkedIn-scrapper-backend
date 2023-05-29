@@ -74,10 +74,10 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-// const job = schedule.scheduleJob('32 11 * * *', function () {
-// const job = schedule.scheduleJob('*/10 * * * *', function () {
-// const job = schedule.scheduleJob('0 0 * * *', function () {
-const job = schedule.scheduleJob('0 6,18 * * *', function () {
+const job = schedule.scheduleJob('28 * * * *', function () {
+    // const job = schedule.scheduleJob('*/10 * * * *', function () {
+    // const job = schedule.scheduleJob('0 0 * * *', function () {
+    // const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
     cronFunc()
     console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
@@ -136,7 +136,7 @@ export const cronFunc = async () => {
  */
 let options = new chrome.Options();
 options.addArguments("no-sandbox")
-options.addArguments('--headless');
+// options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
