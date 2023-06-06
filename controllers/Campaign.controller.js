@@ -1590,14 +1590,18 @@ export const sendCampaignToSevanta = async (req, res, next) => {
         console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
 
 
+        let agentObj = await User.findById(req.user.userId).exec()
+
+
+
         if (
-            !userObj.mailSettingsObj?.mailHost ||
-            userObj.mailSettingsObj?.mailHost == "" ||
-            userObj.mailSettingsObj?.mailPort == "" ||
-            userObj.mailSettingsObj?.mailUserName == "" ||
-            userObj.mailSettingsObj?.mailUserPassword == "" ||
-            userObj.mailSettingsObj?.mailEncryption == "" ||
-            userObj.mailSettingsObj?.mailService == ""
+            !agentObj.mailSettingsObj?.mailHost ||
+            agentObj.mailSettingsObj?.mailHost == "" ||
+            agentObj.mailSettingsObj?.mailPort == "" ||
+            agentObj.mailSettingsObj?.mailUserName == "" ||
+            agentObj.mailSettingsObj?.mailUserPassword == "" ||
+            agentObj.mailSettingsObj?.mailEncryption == "" ||
+            agentObj.mailSettingsObj?.mailService == ""
         ) {
             throw new Error("Please enter your email setting form in your profile section")
         }
@@ -1605,13 +1609,13 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
 
 
-        await sendCustomMailToSavanta(email, userObj?.mailSettingsObj, `Deal Creation for savanta ${userObj?.name}`, obj)
+        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `Deal Creation for savanta ${userObj?.name}`, obj)
 
 
 
 
 
-        res.status(200).json({ message: "rating", data: rating, success: true });
+        res.status(200).json({ message: "Sent to sevanta", success: true });
     } catch (error) {
         console.error(error)
         next(error)

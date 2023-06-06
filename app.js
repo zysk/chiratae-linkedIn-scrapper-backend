@@ -141,7 +141,6 @@ options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
 
-
 const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
 const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
@@ -151,7 +150,5 @@ export const driver = new Promise((resolve, reject) => {
         .setChromeService(serviceBuilder)
         .setChromeOptions(options).build())
 })
-
-
 
 export default app;
