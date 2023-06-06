@@ -1585,7 +1585,7 @@ export const sendCampaignToSevanta = async (req, res, next) => {
             SourceNotes: Created from linkedin, profile link is ${userObj?.link}\n
             Website: ${websiteTxt}`
 
-        let email = `chiratae+${userObj?.name ? userObj?.name : ""}@mydeal8ow.com`
+        let email = `chiratae++${userObj?.name ? userObj?.name : ""}@mydealflow.com`
 
         console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
 
@@ -1609,7 +1609,7 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
 
 
-        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `Deal Creation for savanta ${userObj?.name}`, obj)
+        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `+Deal Creation for savanta ${userObj?.name}`, obj)
 
 
 
@@ -1617,7 +1617,7 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
         res.status(200).json({ message: "Sent to sevanta", success: true });
     } catch (error) {
-        console.error(error)
+        console.error(error, "ERRO")
         next(error)
     }
 }
