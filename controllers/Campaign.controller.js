@@ -1582,10 +1582,10 @@ export const sendCampaignToSevanta = async (req, res, next) => {
             Experience - ${userObj?.experienceArr && userObj?.experienceArr.length > 0 && userObj?.experienceArr.reduce((acc, el, index) => acc + `${el?.company},${el?.year} ${(index == (userObj?.educationArr?.length - 1)) ? "" : ","}`, "")}\n
             Priority: ${leadObj?.rating}\n
             Comments: Details - ${comments}\n
-            SourceNotes: Created from linkedin, profile link is ${userObj?.link}\n
+            Source Notes: Created from linkedin, profile link is ${userObj?.link}\n
             Website: ${websiteTxt}`
 
-        let email = `chiratae++${userObj?.name ? userObj?.name : ""}@mydealflow.com`
+        let email = `chiratae@mydealflow.com`
 
         console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
 
@@ -1609,7 +1609,7 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
 
 
-        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `+Deal Creation for savanta ${userObj?.name}`, obj)
+        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `+${userObj?.name}`, obj)
 
 
 
