@@ -40,13 +40,25 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 // mongoose.set("debug", true)
 
 ///////redis setup
-const redis = require('redis');
+// const redis = require('redis');
 
-export const redisClient = redis.createClient();
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.on('connect', () => { redisClient.set("isFree", "true"); console.log("redis connected") });
+// const redisClient = redis.createClient();
 
-redisClient.connect();
+// redisClient.on('connect', () => {
+//     console.log('Redis connected');
+//     redisClient.set('isFree', 'true', (err) => {
+//         if (err) {
+//             console.error('Error setting key in Redis:', err);
+//         } else {
+//             console.log('Key set successfully in Redis');
+//         }
+//     });
+// });
+
+// redisClient.on('error', (err) => {
+//     console.error('Redis connection error:', err);
+// });
+
 
 
 
@@ -134,21 +146,21 @@ export const cronFunc = async () => {
 /**
  * Selenium Setup
  */
-let options = new chrome.Options();
-options.addArguments("no-sandbox")
-options.addArguments('--headless');
-options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-options.addArguments('--disable-gpu');
-options.addArguments('--window-size=1920,1080');
+// let options = new chrome.Options();
+// options.addArguments("no-sandbox")
+// options.addArguments('--headless');
+// options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+// options.addArguments('--disable-gpu');
+// options.addArguments('--window-size=1920,1080');
 
-const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+// const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+// const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
-export const driver = new Promise((resolve, reject) => {
-    resolve(new Builder()
-        .forBrowser("chrome")
-        .setChromeService(serviceBuilder)
-        .setChromeOptions(options).build())
-})
+// export const driver = new Promise((resolve, reject) => {
+//     resolve(new Builder()
+//         .forBrowser("chrome")
+//         .setChromeService(serviceBuilder)
+//         .setChromeOptions(options).build())
+// })
 
 export default app;
