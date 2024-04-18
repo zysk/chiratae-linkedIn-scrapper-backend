@@ -74,10 +74,11 @@ app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/users", usersRouter);
+app.use("/api", usersRouter);
+app.use("/api/users", usersRouter);
 app.use("/campaign", campaignRouter);
-app.use("/lead", leadRouter);
-app.use("/leadStatus", leadStatusRouter);
+app.use("/api/lead", leadRouter);
+app.use("/api/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
 app.use("/leadlogs", leadlogsRouter);
