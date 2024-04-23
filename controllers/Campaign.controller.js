@@ -37,6 +37,9 @@ import UserLogs from '../models/userLogs.model';
 
 
 
+//account name devesh sir 
+///email: devesh.batra@ebslon.com
+///password: Haier2018@
 
 
 export const handleLogoutAndLoginAnotherAccount = async (req, res, next) => {
@@ -227,8 +230,8 @@ export const linkedInLogin = async (req, res, next) => {
             driver.sleep(1000)
             console.log("url:", await driver.getCurrentUrl())
 
-            driver.navigate().refresh();
-            // driver.reload
+
+
             // check login
 
 
@@ -554,7 +557,7 @@ export const linkedInProfileScrapping = async () => {
         try {
             let campaignObj = await Campaign.findById(userArr[j].campaignId).exec()
 
-            console.log("LinkedIn", j + 1, userArr.length, JSON.stringify(userArr, null, 2))
+            console.log("LinkedIn", j + 1, userArr.length)
             await driver.get(`${userArr[j].link}`);
             await driver.sleep(randomIntFromInterval(1000, 15000))
 
@@ -876,7 +879,7 @@ export const linkedInProfileScrapping = async () => {
             let rating = "";
             rating = CalculateRating(userArr[j]);
             await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec()
-            await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec()
+            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
             //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
@@ -1416,80 +1419,7 @@ const handleCheckPageLoaded = async (driver) => {
 
 export const getPastCampaign = async (req, res, next) => {
     try {
-        let pipeline = [
-            {
-                '$lookup': {
-                    'from': 'users',
-                    'localField': '_id',
-                    'foreignField': 'campaignId',
-                    'as': 'usersArr'
-                }
-            }, {
-                '$addFields': {
-                    'completedLeads': {
-                        '$size': {
-                            '$filter': {
-                                'input': '$usersArr',
-                                'as': 'el',
-                                'cond': {
-                                    '$eq': [
-                                        '$$el.searchCompleted', true
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    'totalLeads': {
-                        '$size': {
-                            '$filter': {
-                                'input': '$usersArr',
-                                'as': 'el',
-                                'cond': {
-                                    '$or': [
-                                        {
-                                            '$eq': [
-                                                '$$el.searchCompleted', false
-                                            ]
-                                        }, {
-                                            '$eq': [
-                                                '$$el.searchCompleted', true
-                                            ]
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }, {
-                '$addFields': {
-                    'percent': {
-                        '$cond': [
-                            {
-                                '$gt': [
-                                    '$totalLeads', 0
-                                ]
-                            }, {
-                                '$multiply': [
-                                    {
-                                        '$divide': [
-                                            '$completedLeads', '$totalLeads'
-                                        ]
-                                    }, 100
-                                ]
-                            }, 0
-                        ]
-                    }
-                }
-            }, {
-                '$sort': {
-                    'createdAt': -1
-                }
-            }
-        ]
-
-
-        let SearchResultArr = await Campaign.aggregate(pipeline)
+        let SearchResultArr = await Campaign.find().sort({ "createdAt": -1 }).exec()
 
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {
@@ -1497,6 +1427,7 @@ export const getPastCampaign = async (req, res, next) => {
         next(error);
     }
 };
+
 
 
 
@@ -1582,26 +1513,22 @@ export const sendCampaignToSevanta = async (req, res, next) => {
             Experience - ${userObj?.experienceArr && userObj?.experienceArr.length > 0 && userObj?.experienceArr.reduce((acc, el, index) => acc + `${el?.company},${el?.year} ${(index == (userObj?.educationArr?.length - 1)) ? "" : ","}`, "")}\n
             Priority: ${leadObj?.rating}\n
             Comments: Details - ${comments}\n
-            Source Notes: Created from linkedin, profile link is ${userObj?.link}\n
+            SourceNotes: Created from linkedin, profile link is ${userObj?.link}\n
             Website: ${websiteTxt}`
 
-        let email = `chiratae@mydealflow.com`
+        let email = `chiratae+${userObj?.name ? userObj?.name : ""}@mydeal8ow.com`
 
         console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
 
 
-        let agentObj = await User.findById(req.user.userId).exec()
-
-
-
         if (
-            !agentObj.mailSettingsObj?.mailHost ||
-            agentObj.mailSettingsObj?.mailHost == "" ||
-            agentObj.mailSettingsObj?.mailPort == "" ||
-            agentObj.mailSettingsObj?.mailUserName == "" ||
-            agentObj.mailSettingsObj?.mailUserPassword == "" ||
-            agentObj.mailSettingsObj?.mailEncryption == "" ||
-            agentObj.mailSettingsObj?.mailService == ""
+            !userObj.mailSettingsObj?.mailHost ||
+            userObj.mailSettingsObj?.mailHost == "" ||
+            userObj.mailSettingsObj?.mailPort == "" ||
+            userObj.mailSettingsObj?.mailUserName == "" ||
+            userObj.mailSettingsObj?.mailUserPassword == "" ||
+            userObj.mailSettingsObj?.mailEncryption == "" ||
+            userObj.mailSettingsObj?.mailService == ""
         ) {
             throw new Error("Please enter your email setting form in your profile section")
         }
@@ -1609,15 +1536,15 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
 
 
-        await sendCustomMailToSavanta(email, agentObj?.mailSettingsObj, `+${userObj?.name}`, obj)
+        await sendCustomMailToSavanta(email, userObj?.mailSettingsObj, `Deal Creation for savanta ${userObj?.name}`, obj)
 
 
 
 
 
-        res.status(200).json({ message: "Sent to sevanta", success: true });
+        res.status(200).json({ message: "rating", data: rating, success: true });
     } catch (error) {
-        console.error(error, "ERRO")
+        console.error(error)
         next(error)
     }
 }

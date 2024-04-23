@@ -40,25 +40,13 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 // mongoose.set("debug", true)
 
 ///////redis setup
-// const redis = require('redis');
+const redis = require('redis');
 
-// const redisClient = redis.createClient();
+export const redisClient = redis.createClient();
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+redisClient.on('connect', () => { redisClient.set("isFree", "true"); console.log("redis connected") });
 
-// redisClient.on('connect', () => {
-//     console.log('Redis connected');
-//     redisClient.set('isFree', 'true', (err) => {
-//         if (err) {
-//             console.error('Error setting key in Redis:', err);
-//         } else {
-//             console.log('Key set successfully in Redis');
-//         }
-//     });
-// });
-
-// redisClient.on('error', (err) => {
-//     console.error('Redis connection error:', err);
-// });
-
+redisClient.connect();
 
 
 
@@ -74,11 +62,10 @@ app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/api", usersRouter);
-app.use("/api/users", usersRouter);
+app.use("/users", usersRouter);
 app.use("/campaign", campaignRouter);
-app.use("/api/lead", leadRouter);
-app.use("/api/leadStatus", leadStatusRouter);
+app.use("/lead", leadRouter);
+app.use("/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
 app.use("/leadlogs", leadlogsRouter);
@@ -87,10 +74,10 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-const job = schedule.scheduleJob('28 * * * *', function () {
-    // const job = schedule.scheduleJob('*/10 * * * *', function () {
-    // const job = schedule.scheduleJob('0 0 * * *', function () {
-    // const job = schedule.scheduleJob('0 6,18 * * *', function () {
+// const job = schedule.scheduleJob('32 11 * * *', function () {
+// const job = schedule.scheduleJob('*/10 * * * *', function () {
+// const job = schedule.scheduleJob('0 0 * * *', function () {
+const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
     cronFunc()
     console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
@@ -147,21 +134,24 @@ export const cronFunc = async () => {
 /**
  * Selenium Setup
  */
-// let options = new chrome.Options();
-// options.addArguments("no-sandbox")
+let options = new chrome.Options();
+options.addArguments("no-sandbox")
 // options.addArguments('--headless');
-// options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-// options.addArguments('--disable-gpu');
-// options.addArguments('--window-size=1920,1080');
+options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+options.addArguments('--disable-gpu');
+options.addArguments('--window-size=1920,1080');
 
-// const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-// const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
-// export const driver = new Promise((resolve, reject) => {
-//     resolve(new Builder()
-//         .forBrowser("chrome")
-//         .setChromeService(serviceBuilder)
-//         .setChromeOptions(options).build())
-// })
+const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+
+export const driver = new Promise((resolve, reject) => {
+    resolve(new Builder()
+        .forBrowser("chrome")
+        .setChromeService(serviceBuilder)
+        .setChromeOptions(options).build())
+})
+
+
 
 export default app;

@@ -20,11 +20,11 @@ export const sendMail = async (email) => {
             secure: true, // true for 465, false for other ports
             service: emailSettingsObj.mailService,
             auth: {
-                user: emailSettingsObj.mailFromAddress, // generated ethereal user
+                user: emailSettingsObj.mailUserName, // generated ethereal user
                 pass: emailSettingsObj.mailUserPassword, // generated ethereal password
             },
         }
-        console.log(transporterObj, "transporterObj")
+        console.log(transporterObj)
         const transporter = nodemailer.createTransport(transporterObj);
         let obj = {
             from: emailSettingsObj.mailFromAddress, // sender address
@@ -105,7 +105,7 @@ export const sendCustomMail = async (email, subject, content) => {
 
 
 
-        console.log(transporterObject, "transporterObject")
+        console.log(transporterObject)
         let customTransporter = nodemailer.createTransport(transporterObject);
 
         console.log(emailSettingsObj, "emailSettingsObj")
@@ -113,13 +113,13 @@ export const sendCustomMail = async (email, subject, content) => {
 
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
-            from: emailSettingsObj?.mailUserName ? emailSettingsObj?.mailUserName : "contactus@deliveryladka.com", // sender address
+            from: emailSettingsObj?.mailFromAddress ? emailSettingsObj?.mailFromAddress : "contactus@deliveryladka.com", // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: content, // plain text body
             // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         });
-        console.log(temp, "temp")
+        console.log(temp)
 
 
 
@@ -186,7 +186,6 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
         console.log(mailSettingsObj, "mailSettingsObj")
 
 
-        console.log(temp, "temp")
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
             from: mailSettingsObj?.mailUserName, // sender address
@@ -195,7 +194,7 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
             text: content, // plain text body
             // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         });
-        console.log("SADASDASD", temp, "temp")
+        console.log(temp)
 
 
 
@@ -203,7 +202,6 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
         return true
 
     } catch (error) {
-        console.log("eRRORASDASD", error, "ERROR")
         throw new Error(error);
     }
 }
