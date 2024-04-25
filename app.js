@@ -40,24 +40,24 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 // mongoose.set("debug", true)
 
 ///////redis setup
-// const redis = require('redis');
+const redis = require('redis');
 
-// const redisClient = redis.createClient();
+const redisClient = redis.createClient();
 
-// redisClient.on('connect', () => {
-//     console.log('Redis connected');
-//     redisClient.set('isFree', 'true', (err) => {
-//         if (err) {
-//             console.error('Error setting key in Redis:', err);
-//         } else {
-//             console.log('Key set successfully in Redis');
-//         }
-//     });
-// });
+redisClient.on('connect', () => {
+    console.log('Redis connected');
+    redisClient.set('isFree', 'true', (err) => {
+        if (err) {
+            console.error('Error setting key in Redis:', err);
+        } else {
+            console.log('Key set successfully in Redis');
+        }
+    });
+});
 
-// redisClient.on('error', (err) => {
-//     console.error('Redis connection error:', err);
-// });
+redisClient.on('error', (err) => {
+    console.error('Redis connection error:', err);
+});
 
 
 
@@ -74,11 +74,10 @@ app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/api", usersRouter);
-app.use("/api/users", usersRouter);
+app.use("/users", usersRouter);
 app.use("/campaign", campaignRouter);
-app.use("/api/lead", leadRouter);
-app.use("/api/leadStatus", leadStatusRouter);
+app.use("/lead", leadRouter);
+app.use("/leadStatus", leadStatusRouter);
 app.use("/linkedInAccount", linkedInAccountRouter);
 app.use("/proxies", proxiesRouter);
 app.use("/leadlogs", leadlogsRouter);
@@ -120,7 +119,7 @@ export const cronFunc = async () => {
                 }
             }
 
-            if (noCampaignsLeft) { // reset users and campaign 
+            if (noCampaignsLeft) { // reset users and campaign
                 try {
                     await CampaignModel.updateMany({}, {
                         status: generalModelStatuses.CREATED,
@@ -147,21 +146,21 @@ export const cronFunc = async () => {
 /**
  * Selenium Setup
  */
-// let options = new chrome.Options();
-// options.addArguments("no-sandbox")
-// options.addArguments('--headless');
-// options.setPageLoadStrategy(PageLoadStrategy.EAGER)
-// options.addArguments('--disable-gpu');
-// options.addArguments('--window-size=1920,1080');
+let options = new chrome.Options();
+options.addArguments("no-sandbox")
+options.addArguments('--headless');
+options.setPageLoadStrategy(PageLoadStrategy.EAGER)
+options.addArguments('--disable-gpu');
+options.addArguments('--window-size=1920,1080');
 
-// const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-// const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
-// export const driver = new Promise((resolve, reject) => {
-//     resolve(new Builder()
-//         .forBrowser("chrome")
-//         .setChromeService(serviceBuilder)
-//         .setChromeOptions(options).build())
-// })
+export const driver = new Promise((resolve, reject) => {
+    resolve(new Builder()
+        .forBrowser("chrome")
+        .setChromeService(serviceBuilder)
+        .setChromeOptions(options).build())
+})
 
 export default app;
