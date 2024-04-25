@@ -84,9 +84,9 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                     if (filterClick) {
 
                         console.log("FILTER CLICKED FOUND")
-                        //////clicking on people filter 
+                        //////clicking on people filter
                         await driver.findElement(By.xpath("//button[text()='People']")).click()
-                        /////checking if the page is completely loaded or not 
+                        /////checking if the page is completely loaded or not
                         console.log("FILTER 1")
                         try {
 
@@ -94,7 +94,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                             if (filterResultsVisibleClick) {
                                 ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
-                                ////////locating all filters button 
+                                ////////locating all filters button
                                 try {
 
                                     let allFiltersClick = await driver.wait(until.elementLocated(By.xpath(`// div[@class="relative mr2"]//button[text() = "All filters"]`,)))

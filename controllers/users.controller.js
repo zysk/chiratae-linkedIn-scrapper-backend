@@ -217,5 +217,3 @@ export const setUserRating = async (req, res, next) => {
         next(err);
     }
 };
-
-

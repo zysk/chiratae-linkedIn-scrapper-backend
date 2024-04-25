@@ -489,15 +489,3 @@ export const leadsDetails = (payload) => {
 
     return pipeline;
 };
-
-
-
-
-
-
-
-
-
-
-
-

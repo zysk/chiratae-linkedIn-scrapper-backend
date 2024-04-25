@@ -58,7 +58,7 @@ redisClient.on('connect', () => {
 redisClient.on('error', (err) => {
     console.error('Redis connection error:', err);
 });
-
+redisClient.connect();
 
 
 
@@ -86,14 +86,14 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-const job = schedule.scheduleJob('28 * * * *', function () {
+const job = schedule.scheduleJob("*/2 * * * *", function () {
+    console.log(`Cron ran at: ${Date.now()}`);
     // const job = schedule.scheduleJob('*/10 * * * *', function () {
     // const job = schedule.scheduleJob('0 0 * * *', function () {
     // const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
-    cronFunc()
+    cronFunc();
     console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
-
 });
 
 export const cronFunc = async () => {
@@ -106,7 +106,7 @@ export const cronFunc = async () => {
             let noCampaignsLeft = false;
 
             try {
-                noUsersLeft = await linkedInProfileScrapping()
+                noUsersLeft = await linkedInProfileScrapping(redisClient);
             } catch (error) {
                 console.error("linkedInProfileScrapping error =>>", error)
             }

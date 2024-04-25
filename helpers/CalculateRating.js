@@ -113,7 +113,7 @@ export const CalculateRating = (obj) => {
                 // console.log((yearArr[1].includes("mo")), "boolean")
 
 
-                // check if the year values has 4 elements after spliting it with . and space 
+                // check if the year values has 4 elements after spliting it with . and space
                 if (yearArr.length > 0 && yearArr.length == 4) {
                     if (((new RegExp(matchWithSpecialCharacters('founder'), 'i').test(obj.experienceArr[0].company) || new RegExp(matchWithSpecialCharacters('founder'), 'i').test(obj.experienceArr[0].companyDetail)) && ((yearArr.some(elx => new RegExp(matchWithSpecialCharacters('mo'), 'i').test(elx))) || ((yearArr.some(elx => new RegExp(matchWithSpecialCharacters('yr'), 'i').test(elx))) && yearArr && parseInt(yearArr[0]) <= 1 && parseInt(yearArr[2]) <= 6)))) {
                         return "MEDIUM"

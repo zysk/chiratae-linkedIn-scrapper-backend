@@ -207,10 +207,3 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
         throw new Error(error);
     }
 }
-
-
-
-
-
-
-
