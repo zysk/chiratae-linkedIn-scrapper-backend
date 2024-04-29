@@ -1,5 +1,5 @@
 import express from "express";
-import { addScheduledCampaign, checkLinkedInLogin, continueScheduled, getPastCampaign, getPastCampaignById, handleLogoutAndLoginAnotherAccount, linkedInLogin, linkedInProfileScrappingReq, linkedInSearch, searchLinkedin, sendLinkedInCaptchaInput, sendCampaignToSevanta, addCampaignToQueue } from "../controllers/Campaign.controller";
+import { addScheduledCampaign, checkLinkedInLogin, continueScheduled, getPastCampaign, getPastCampaignById, handleLogoutAndLoginAnotherAccount, linkedInLogin, linkedInProfileScrappingReq, linkedInSearch, searchLinkedin, sendLinkedInCaptchaInput, sendCampaignToSevanta, addCampaignToQueue, cron } from "../controllers/Campaign.controller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
 
@@ -18,6 +18,7 @@ router.post("/logoutAndLogoutAnotherAccount", handleLogoutAndLoginAnotherAccount
 router.post("/linkCaptcha", sendLinkedInCaptchaInput);
 router.post("/linkSearch", linkedInSearch);
 router.post("/addDealToSavanta/:id", authorizeJwt, sendCampaignToSevanta);
+router.get("/cron", cron)
 // router.get("/checkRatingForClient/:id", checkRatingForClient);
 
 export default router;

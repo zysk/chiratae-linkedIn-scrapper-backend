@@ -44,7 +44,7 @@ const redisClient = redis.createClient();
 
 redisClient.on('connect', () => {
 	console.log("Redis connected");
-	redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) : console.log("Key set successfully in Redis")));
+	redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) :  console.log("Key set successfully in Redis")));
 });
 
 redisClient.on('error', (err) => console.error('Redis connection error:', err));
@@ -68,26 +68,24 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-
-let cronRan = true;
-const job = schedule.scheduleJob("*/1 * * * *", function () {
+const job = schedule.scheduleJob("*/10 * * * *", function () {
     // console.log(`Cron ran at: ${Date.now()}`);
     // const job = schedule.scheduleJob('*/10 * * * *', function () {
     // const job = schedule.scheduleJob('0 0 * * *', function () {
     // const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
-    if (cronRan) {
-        cronRan = false;
-        cronFunc();
-    }
-    // console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
+    // if (cronRan) {
+    //     cronRan = false;
+    //     cronFunc();
+    // }
+    // // console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
 });
 
 export const cronFunc = async () => {
     try {
         let isFree = await redisClient.get("isFree")
         isFree = isFree == "true";
-        // console.log(isFree, "isFree")
+        // // console.log(isFree, "isFree")
         if (isFree) {
             let noUsersLeft = false;
             let noCampaignsLeft = false;

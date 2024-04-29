@@ -7,7 +7,7 @@ const url = process.env.FRONTEND_BASE_URL
 // const fs = require('fs')
 export const sendMail = async (email) => {
     try {
-        // console.log(email)
+        // // console.log(email)
         // create reusable transporter object using the default SMTP transport
         let emailSettingsObj = await EmailSettings.findOne().exec()
         let linkedLoginUrl = url + `/scheduleCampaignLogin`
@@ -24,7 +24,7 @@ export const sendMail = async (email) => {
                 pass: emailSettingsObj.mailUserPassword, // generated ethereal password
             },
         }
-        // console.log(transporterObj, "transporterObj")
+        // // console.log(transporterObj, "transporterObj")
         const transporter = nodemailer.createTransport(transporterObj);
         let obj = {
             from: emailSettingsObj.mailFromAddress, // sender address
@@ -33,9 +33,9 @@ export const sendMail = async (email) => {
             text: `LinkedIn account is not logged in please login now ${linkedLoginUrl}`, // plain text body
             html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         }
-        // console.log("ASDF", obj)
+        // // console.log("ASDF", obj)
         let temp = await transporter.sendMail(obj);
-        // console.log(temp)
+        // // console.log(temp)
 
 
 
@@ -61,7 +61,7 @@ export const sendCustomMail = async (email, subject, content) => {
         // subject = "test"
         // content = "ttesyt"
 
-        // console.log(email)
+        // // console.log(email)
         // create reusable transporter object using the default SMTP transport
         let emailSettingsObj = await EmailSettings.findOne().exec()
         if (!emailSettingsObj) {
@@ -105,10 +105,10 @@ export const sendCustomMail = async (email, subject, content) => {
 
 
 
-        // console.log(transporterObject, "transporterObject")
+        // // console.log(transporterObject, "transporterObject")
         let customTransporter = nodemailer.createTransport(transporterObject);
 
-        // console.log(emailSettingsObj, "emailSettingsObj")
+        // // console.log(emailSettingsObj, "emailSettingsObj")
 
 
         // send mail with defined transport object
@@ -119,7 +119,7 @@ export const sendCustomMail = async (email, subject, content) => {
             text: content, // plain text body
             // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         });
-        // console.log(temp, "temp")
+        // // console.log(temp, "temp")
 
 
 
@@ -180,13 +180,13 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
 
 
 
-        // console.log(transporterObject)
+        // // console.log(transporterObject)
         let customTransporter = nodemailer.createTransport(transporterObject);
 
-        // console.log(mailSettingsObj, "mailSettingsObj")
+        // // console.log(mailSettingsObj, "mailSettingsObj")
 
 
-        // console.log(temp, "temp")
+        // // console.log(temp, "temp")
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
             from: mailSettingsObj?.mailUserName, // sender address
@@ -195,7 +195,7 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
             text: content, // plain text body
             // html: `LinkedIn account is not logged in please login now <a href="${linkedLoginUrl}">${linkedLoginUrl}</a>`, // plain text body
         });
-        // console.log("SADASDASD", temp, "temp")
+        // // console.log("SADASDASD", temp, "temp")
 
 
 
@@ -203,7 +203,7 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
         return true
 
     } catch (error) {
-        // console.log("eRRORASDASD", error, "ERROR")
+        // // console.log("eRRORASDASD", error, "ERROR")
         throw new Error(error);
     }
 }

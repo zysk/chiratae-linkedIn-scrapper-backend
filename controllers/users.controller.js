@@ -35,7 +35,7 @@ export const registerUser = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        // console.log(req.body);
+        // // console.log(req.body);
         const userObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) })
             .lean()
             .exec();
@@ -61,7 +61,7 @@ export const login = async (req, res, next) => {
             throw { status: 401, message: "user Not Found" };
         }
     } catch (err) {
-        // console.log(err);
+        // // console.log(err);
         next(err);
     }
 };
@@ -98,7 +98,7 @@ export const updateUser = async (req, res, next) => {
         }
 
 
-        // console.log(req.body, "192.168.0.23:3000/", "req.params.id", req.params.id)
+        // // console.log(req.body, "192.168.0.23:3000/", "req.params.id", req.params.id)
         await Users.findByIdAndUpdate(req.params.id, req.body).exec();
 
         res.status(201).json({ message: "Updated Successfully", success: true });
@@ -114,7 +114,7 @@ export const getUsers = async (req, res, next) => {
             query = { ...query, role: req.query.role }
         }
         let UsersArr = await Users.find(query).exec()
-        // console.log(UsersArr, "UsersArr")
+        // // console.log(UsersArr, "UsersArr")
         res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
         console.error(error);
@@ -153,7 +153,7 @@ export const registerAdmin = async (req, res, next) => {
         // let adminExistCheck = await Users.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }, req?.body?.phone && { phone: req.body.phone }] })
         //     .lean()
         //     .exec();
-        // // console.log(adminExistCheck)
+        // // // console.log(adminExistCheck)
         // if (adminExistCheck) throw new Error(`${ErrorMessages.EMAIL_EXISTS}`);
         if (!ValidateEmail(req.body.email)) {
             throw new Error(ErrorMessages.INVALID_EMAIL);
@@ -170,10 +170,10 @@ export const registerAdmin = async (req, res, next) => {
 };
 export const loginAdmin = async (req, res, next) => {
     try {
-        // console.log(req.body, "Asd");
+        // // console.log(req.body, "Asd");
         const adminObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) }).exec();
         if (adminObj) {
-            // console.log(adminObj, "adminObj")
+            // // console.log(adminObj, "adminObj")
             const passwordCheck = await comparePassword(adminObj.password, req.body.password);
             if (passwordCheck) {
                 let accessToken = await generateAccessJwt({ userId: adminObj._id, role: adminObj.role, user: { name: adminObj.name, email: adminObj.email, phone: adminObj.phone, _id: adminObj._id } });
@@ -185,7 +185,7 @@ export const loginAdmin = async (req, res, next) => {
             throw { status: 401, message: "User Not Found" };
         }
     } catch (err) {
-        // console.log(err);
+        // // console.log(err);
         next(err);
     }
 };
@@ -194,18 +194,18 @@ export const loginAdmin = async (req, res, next) => {
 export const setUserRating = async (req, res, next) => {
     try {
         const usersArr = await Users.find({ role: "CLIENT" }).exec();
-        // console.log(usersArr.length)
+        // // console.log(usersArr.length)
         let count = 0
         for (let j = 0; j <= usersArr.length - 1; j++) {
-            // // console.log("j", j, usersArr[j])
+            // // // console.log("j", j, usersArr[j])
             let rating = await CalculateRating(usersArr[j]);
             await Users.findByIdAndUpdate(usersArr[j]._id, { rating }).exec();
             await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
             // if (rating != "LOW") {
-            //     // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            //     // // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             //     count += 1
-            //     //     // console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
-            //     // console.log(count, rating, usersArr[j]._id, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            //     //     // // console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
+            //     // // console.log(count, rating, usersArr[j]._id, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
             // }
         }
@@ -213,7 +213,7 @@ export const setUserRating = async (req, res, next) => {
         res.status(200).json({ message: 'as', success: true });
 
     } catch (err) {
-        // console.log(err);
+        // // console.log(err);
         next(err);
     }
 };

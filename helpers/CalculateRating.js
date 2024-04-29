@@ -5,14 +5,14 @@ export const CalculateRating = (obj) => {
     try {
 
         // if (obj.name == "Aman Raj") {
-        //     // console.log("##############################################################################################################################################################")
+        //     // // console.log("##############################################################################################################################################################")
         //     obj.educationArr.forEach(el => {
         //         let regexp = new RegExp(matchWithSpecialCharacters('indian institute of technology'), 'i')
-        //         // console.log(el.schoolName, regexp, regexp.test(el.schoolName))
+        //         // // console.log(el.schoolName, regexp, regexp.test(el.schoolName))
 
         //     })
-        //     // console.log(obj.name, "name")
-        //     // console.log("##############################################################################################################################################################")
+        //     // // console.log(obj.name, "name")
+        //     // // console.log("##############################################################################################################################################################")
         // }
         if (
             (
@@ -106,11 +106,11 @@ export const CalculateRating = (obj) => {
                 )
             )
         ) {
-            // // console.log("asddddddddddddddddddddddddddddd")
+            // // // console.log("asddddddddddddddddddddddddddddd")
             if (obj?.experienceArr && obj?.experienceArr.length > 0 && obj?.experienceArr[0]?.year) {
                 let yearArr = `${obj?.experienceArr[0]?.year}`.split("·")[1].trim().split(" ")
-                // // console.log(yearArr, "yearArr")
-                // // console.log((yearArr[1].includes("mo")), "boolean")
+                // // // console.log(yearArr, "yearArr")
+                // // // console.log((yearArr[1].includes("mo")), "boolean")
 
 
                 // check if the year values has 4 elements after spliting it with . and space
@@ -141,7 +141,7 @@ export const CalculateRating = (obj) => {
         }
     }
     catch (err) {
-        // console.log(err)
+        // // console.log(err)
         // errorHandler(err)
     }
 }
