@@ -18,7 +18,7 @@ import { generateRandomNumbers } from './utils';
 export const getScheduledCampaignsForToday = async (beforeDate = null) => {
     try {
         redisClient.set("isBusy", "true")
-        console.log("inside cron function")
+        // console.log("inside cron function")
 
         let todayEnd = new Date()
         if (!beforeDate) {
@@ -29,10 +29,10 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
         }
 
 
-        console.log(todayEnd.toDateString(), todayEnd.toTimeString(), "todayEnd,todayStart")
-        console.log(new Date("2023-01-12T18:30:00.000+00:00").toDateString(), new Date("2023-01-12T18:30:00.000+00:00").toTimeString())
+        // console.log(todayEnd.toDateString(), todayEnd.toTimeString(), "todayEnd,todayStart")
+        // console.log(new Date("2023-01-12T18:30:00.000+00:00").toDateString(), new Date("2023-01-12T18:30:00.000+00:00").toTimeString())
         let campaignsArr = await Campaign.find({ status: generalModelStatuses.CREATED, scheduled: true, scheduleDate: { $lte: todayEnd } }).exec()
-        console.log(campaignsArr, "campaignsArr")
+        // console.log(campaignsArr, "campaignsArr")
 
 
 
@@ -45,7 +45,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
             driver.sleep(generateRandomNumbers(4))
             let isLogin = false
             let url = await driver.getCurrentUrl()
-            console.log("url:",)
+            // console.log("url:",)
 
             if (url.includes('feed')) {
                 isLogin = true
@@ -68,13 +68,13 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
 
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
-                console.log("SEARCH INPUT FOUND")
+                // console.log("SEARCH INPUT FOUND")
 
 
 
                 let campaignObj = campaignsArr[q]
-                console.log(campaignObj, "campaignObj")
-                console.log("url:", await driver.getCurrentUrl())
+                // console.log(campaignObj, "campaignObj")
+                // console.log("url:", await driver.getCurrentUrl())
                 if (searchInput) {
                     /////////searching for search input on linkedin and entering the query sent by user and submiting the input
 
@@ -83,11 +83,11 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                     let filterClick = await driver.wait(until.elementLocated(By.xpath("//button[text()='People']")))
                     if (filterClick) {
 
-                        console.log("FILTER CLICKED FOUND")
+                        // console.log("FILTER CLICKED FOUND")
                         //////clicking on people filter
                         await driver.findElement(By.xpath("//button[text()='People']")).click()
                         /////checking if the page is completely loaded or not
-                        console.log("FILTER 1")
+                        // console.log("FILTER 1")
                         try {
 
                             let filterResultsVisibleClick = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
@@ -165,9 +165,9 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
                                 // getting total results
                                 try {
-                                    console.log("FILTER 2")
+                                    // console.log("FILTER 2")
                                     totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                    console.log("TOTAL RESULTS", totalResults)
+                                    // console.log("TOTAL RESULTS", totalResults)
 
                                     await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, }).exec()
                                 } catch (error) {
@@ -179,11 +179,11 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
 
 
-                                console.log("SCROLL TO BOTTOM THE FFIRST")
+                                // console.log("SCROLL TO BOTTOM THE FFIRST")
                                 ////////locating next button
                                 try {
                                     let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000)
-                                    console.log(nextbutton, "nextbutton")
+                                    // console.log(nextbutton, "nextbutton")
                                     if (nextbutton) {
                                         ////////finding if next button is enabled or not
                                         let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled()
@@ -191,7 +191,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
                                             try {
 
-                                                console.log("FILTER 3")
+                                                // console.log("FILTER 3")
                                                 let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                                                 if (resultText) {
                                                     ////////getting value of total results
@@ -203,7 +203,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                             ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                            console.log("SCROLL TO BOTTOM THE ALT")
+                                            // console.log("SCROLL TO BOTTOM THE ALT")
                                             ////////waiting for the elements to load
                                             await driver.sleep(generateRandomNumbers(4))
                                             ////////locating results div
@@ -211,7 +211,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                                 let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
                                                 if (resultElement) {
 
-                                                    console.log(resultElement.length, "resultElement.length")
+                                                    // console.log(resultElement.length, "resultElement.length")
                                                     ///////looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
                                                         let obj = {}
@@ -225,7 +225,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                                         if (linkValue) {
                                                             obj.link = linkValue
                                                         }
-                                                        console.log(obj, i, "obj")
+                                                        // console.log(obj, i, "obj")
                                                         resultsArr.push(obj)
                                                     }
                                                 }
@@ -237,7 +237,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
 
-                                            console.log("SCROLL TO BOTTOM THE ALT3.1 ")
+                                            // console.log("SCROLL TO BOTTOM THE ALT3.1 ")
                                             ////////waiting for the elements to load
                                             await driver.sleep(generateRandomNumbers(4))
                                             ////////finding if next button is visible or not
@@ -249,7 +249,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                                     if (nextbuttonText) {
                                                         ////////locating next button
                                                         let nextButtonValue1 = await driver.wait(until.elementLocated(By.xpath(`//button[@aria-label="Next"]`)))
-                                                        // console.log("nextButtonValue1", nextButtonValue1)
+                                                        // // console.log("nextButtonValue1", nextButtonValue1)
                                                         if (nextButtonValue1) {
                                                             ////////clicking on next button
                                                             await driver.findElement(By.xpath(`//button[@aria-label="Next"]`))?.click()
@@ -271,24 +271,24 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                 }
                                 catch (err) {
 
-                                    console.log("else case")
+                                    // console.log("else case")
                                     ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                     await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                    console.log("SCROLL TO BOTTOM THE ALT3.2 ")
+                                    // console.log("SCROLL TO BOTTOM THE ALT3.2 ")
                                     ////////waiting for the elements to load
                                     await driver.sleep(generateRandomNumbers(4))
 
                                     try {
 
-                                        console.log("FILTER 4")
+                                        // console.log("FILTER 4")
                                         let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                                         if (resultText) {
                                             ////////getting value of total results
 
-                                            console.log("FILTER 5")
+                                            // console.log("FILTER 5")
                                             totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                            console.log("TOTAL RESULTS", totalResults)
+                                            // console.log("TOTAL RESULTS", totalResults)
                                         }
                                     } catch (error) {
                                         console.error(error)
@@ -314,7 +314,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                                                 if (linkValue) {
                                                     obj.link = linkValue
                                                 }
-                                                console.log(obj, i, "obj")
+                                                // console.log(obj, i, "obj")
                                                 resultsArr.push(obj)
                                             }
                                         }
@@ -351,7 +351,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                     else {
                         clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT, searchCompleted: false, rating: rating }, { new: true }).exec()
                     }
-                    console.log(clientObj)
+                    // console.log(clientObj)
                     clientsArr.push(clientObj)
                 }
 
@@ -360,9 +360,9 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                     clientsArr = clientsArr.map(el => ({ clientId: el._id }))
                     let campaignObj1 = await Campaign.findByIdAndUpdate(campaignsArr[q]._id, { ...campaignsArr[q], totalResults: totalResults, resultsArr: clientsArr, isSearched: true }, { new: true }).exec()
                     if (campaignObj1) {
-                        console.log(campaignObj1, "el,campaignObj", clientsArr)
+                        // console.log(campaignObj1, "el,campaignObj", clientsArr)
                         let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj1._id }))])
-                        console.log(leadsArr, "leadsArr")
+                        // console.log(leadsArr, "leadsArr")
                     }
                     let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignsArr[q]._id, { resultsArr: clientsArr }, { new: true }).exec()
                 }
@@ -372,7 +372,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 /////user profile data scraping
                 // for (let j = 0; j < lengthOfArray; j++) {
                 //     try {
-                //         console.log("LinkedIn", j + 1, lengthOfArray)
+                //         // console.log("LinkedIn", j + 1, lengthOfArray)
                 //         await driver.get(`${resultsArr[j].link}`);
                 //         await driver.sleep(2000)
 
@@ -415,7 +415,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                         let contactInfoElements = await driver.findElements(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`))
                 //                         await driver.sleep(2000)
 
-                //                         console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
+                //                         // console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
                 //                         let obj = {}
                 //                         for (let q = 0; q < contactInfoElements.length; q++) {
 
@@ -424,12 +424,12 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                                 dataArr: []
                 //                             }
 
-                //                             console.log(q, "k")
+                //                             // console.log(q, "k")
                 //                             try {
                 //                                 let contactInfoHeading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`), 5000)
                 //                                 if (contactInfoHeading) {
                 //                                     obj.heading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`)).getText()
-                //                                     console.log(obj.heading, "heading")
+                //                                     // console.log(obj.heading, "heading")
                 //                                 }
                 //                             }
                 //                             catch (err) {
@@ -445,7 +445,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                                         for (let p = 0; p < contactInfourlList.length; p++) {
                 //                                             let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a)[${p + 1}]`)).getText()
 
-                //                                             console.log(contactLinkElement, "contactLinkElement")
+                //                                             // console.log(contactLinkElement, "contactLinkElement")
 
                 //                                             obj.dataArr.push(contactLinkElement);
                 //                                         }
@@ -453,7 +453,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                                 }
                 //                             }
                 //                             catch (err) {
-                //                                 console.log("inside, catch", err)
+                //                                 // console.log("inside, catch", err)
                 //                                 try {
                 //                                     let contactInfoListExists = await driver.wait(until.elementsLocated(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)), 5000)
                 //                                     if (contactInfoListExists) {
@@ -462,7 +462,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                                         if (contactInfoList) {
                 //                                             for (let p = 0; p < contactInfoList.length; p++) {
                 //                                                 let contactInfoListValue = await driver.findElement(By.xpath(`(((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)[${p + 1}]/span)[1]`)).getText()
-                //                                                 console.log(contactInfoListValue, "contactInfoListValue")
+                //                                                 // console.log(contactInfoListValue, "contactInfoListValue")
 
                 //                                                 obj.dataArr.push(contactInfoListValue);
                 //                                             }
@@ -479,18 +479,18 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
                 //                                         obj.dataArr.push(contactInfoListValue);
                 //                                     }
-                //                                     console.log(err)
+                //                                     // console.log(err)
                 //                                 }
 
                 //                                 console.error(err, "could not find contact info h3")
                 //                             }
-                //                             console.log(obj, "obj")
+                //                             // console.log(obj, "obj")
                 //                             contactInfoArr.push(obj)
                 //                         }
 
                 //                     }
                 //                     else {
-                //                         console.log("not found")
+                //                         // console.log("not found")
                 //                     }
 
                 //                 }
@@ -498,7 +498,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                     console.error(err, "could not find contact info section tags")
                 //                     seleniumErrorHandler()
                 //                 }
-                //                 console.log(contactInfoArr, "contactInfoArr")
+                //                 // console.log(contactInfoArr, "contactInfoArr")
                 //                 resultsArr[j].contactInfoArr = contactInfoArr
                 //             }
 
@@ -521,7 +521,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                 if (tempEducationArrExists) {
                 //                     let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`))
 
-                //                     console.log(internalEducationarr, "internnaleducation arr")
+                //                     // console.log(internalEducationarr, "internnaleducation arr")
                 //                     for (let l = 0; l < internalEducationarr.length; l++) {
 
                 //                         let schoolName = ""
@@ -551,7 +551,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                             schoolDetail,
                 //                             year,
                 //                         }
-                //                         console.log(obj, "education Obj")
+                //                         // console.log(obj, "education Obj")
                 //                         tempEducationArr.push(obj)
                 //                     }
 
@@ -570,7 +570,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //             }
 
                 //             resultsArr[j].educationArr = tempEducationArr
-                //             console.log(tempEducationArr, "tempEducationArr")
+                //             // console.log(tempEducationArr, "tempEducationArr")
 
 
 
@@ -582,7 +582,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //             console.error(err)
                 //             seleniumErrorHandler()
                 //         }
-                //         console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
+                //         // console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
                 //         await driver.get(`${currentUrl}/details/experience/`);
                 //         await driver.sleep(2000)
                 //         try {
@@ -590,7 +590,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
                 //             if (experienceFound) {
                 //                 let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`))
-                //                 console.log(experienceArr, "experienceArr", experienceArr.length)
+                //                 // console.log(experienceArr, "experienceArr", experienceArr.length)
                 //                 let experienceValueArr = []
 
                 //                 if (experienceArr && experienceArr.length > 0) {
@@ -601,7 +601,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                         try {
                 //                             let checkElementHasAnchorTag = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li//div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a`), 5000);
                 //                             if (checkElementHasAnchorTag) {
-                //                                 console.log("inside if")
+                //                                 // console.log("inside if")
                 //                                 try {
                 //                                     companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText();
                 //                                 }
@@ -635,7 +635,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                             }
                 //                         }
                 //                         catch (err) {
-                //                             console.log("inside else", err);
+                //                             // console.log("inside else", err);
                 //                             try {
                 //                                 companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div//span[@aria-hidden="true"]`)).getText();
                 //                             }
@@ -656,11 +656,11 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //                             }
                 //                         }
                 //                         experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
-                //                         console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
+                //                         // console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
                 //                     }
                 //                 }
                 //                 resultsArr[j].experienceArr = experienceValueArr
-                //                 console.log(experienceValueArr, "experienceValueArr")
+                //                 // console.log(experienceValueArr, "experienceValueArr")
                 //             }
                 //         }
                 //         catch (err) {
@@ -677,7 +677,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 //             clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT }).save()
                 //         }
                 //         else {
-                //             console.log("Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists")
+                //             // console.log("Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists,Exists")
                 //             clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT }, { new: true }).exec()
                 //         }
 
@@ -685,7 +685,7 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
 
                 //         await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec()
                 //         if (campaignObj) {
-                //             // console.log(campaignObj, "el,campaignObj", clientsArr)
+                //             // // console.log(campaignObj, "el,campaignObj", clientsArr)
                 //             let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id }).save()
                 //         }
 
@@ -698,11 +698,11 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
                 // }
 
                 if (campaignObj) {
-                    console.log("asd", "asd", campaignsArr[q])
+                    // console.log("asd", "asd", campaignsArr[q])
                     let campaignUpdatedObj = await Campaign.findByIdAndUpdate(`${campaignsArr[q]._id}`, { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" }).exec()
-                    console.log(campaignUpdatedObj, "campaignUpdatedObj")
+                    // console.log(campaignUpdatedObj, "campaignUpdatedObj")
                 }
-                console.log("completed")
+                // console.log("completed")
 
             }
             redisClient.set("isBusy", "false");

@@ -6,8 +6,6 @@ import logger from "morgan";
 import path from "path";
 import { CONFIG } from "./helpers/Config";
 import { errorHandler } from "./helpers/ErrorHandler";
-//routes
-import { Builder } from 'selenium-webdriver';
 import campaignRouter from "./routes/Campaign.routes";
 import leadRouter from "./routes/Lead.routes";
 import leadCommentRouter from "./routes/LeadComment.routes";
@@ -17,7 +15,8 @@ import proxiesRouter from "./routes/Proxies.routes";
 import usersRouter from "./routes/users.routes";
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
-import chrome, { ServiceBuilder } from 'selenium-webdriver/chrome';
+import { Builder } from 'selenium-webdriver';
+import chrome from 'selenium-webdriver/chrome';
 import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
 import { linkedInProfileScrapping } from "./controllers/Campaign.controller";
 import { searchLinkedInFn } from "./helpers/SearchLinkedInFn";
@@ -25,49 +24,32 @@ import CampaignModel from "./models/Campaign.model";
 import customemailRouter from "./routes/customemail.router";
 import emailSettingsRouter from "./routes/EmailSettings.routes";
 import leadStatusRouter from "./routes/LeadStatus.routes";
+const redis = require("redis");
+const schedule = require("node-schedule");
+
 const app = express();
-
-
 app.use(cors());
+// app.use(logger("dev"));
+
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
-    if (err) {
-        console.log(err);
+	if (err) {
+		console.log(err);
     } else {
-        console.log("connected to db at " + CONFIG.MONGOURI);
+        console.log("Connected to db at " + CONFIG.MONGOURI);
     }
 });
-
 // mongoose.set("debug", true)
-
-///////redis setup
-const redis = require('redis');
 
 const redisClient = redis.createClient();
 
 redisClient.on('connect', () => {
-    console.log('Redis connected');
-    redisClient.set('isFree', 'true', (err) => {
-        if (err) {
-            console.error('Error setting key in Redis:', err);
-        } else {
-            console.log('Key set successfully in Redis');
-        }
-    });
+	console.log("Redis connected");
+	redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) : console.log("Key set successfully in Redis")));
 });
 
-redisClient.on('error', (err) => {
-    console.error('Redis connection error:', err);
-});
+redisClient.on('error', (err) => console.error('Redis connection error:', err));
 redisClient.connect();
 
-
-
-//////scheduler
-const schedule = require('node-schedule');
-
-
-// mongoose.set('debug', true)
-// app.use(logger("dev"));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
 app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 }));
@@ -86,21 +68,26 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-const job = schedule.scheduleJob("*/2 * * * *", function () {
-    console.log(`Cron ran at: ${Date.now()}`);
+
+let cronRan = true;
+const job = schedule.scheduleJob("*/1 * * * *", function () {
+    // console.log(`Cron ran at: ${Date.now()}`);
     // const job = schedule.scheduleJob('*/10 * * * *', function () {
     // const job = schedule.scheduleJob('0 0 * * *', function () {
     // const job = schedule.scheduleJob('0 6,18 * * *', function () {
     // getScheduledCampaignsForToday()
-    cronFunc();
-    console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
+    if (cronRan) {
+        cronRan = false;
+        cronFunc();
+    }
+    // console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
 });
 
 export const cronFunc = async () => {
     try {
         let isFree = await redisClient.get("isFree")
-        isFree = isFree == "true" ? true : false
-        console.log(isFree, "isFree")
+        isFree = isFree == "true";
+        // console.log(isFree, "isFree")
         if (isFree) {
             let noUsersLeft = false;
             let noCampaignsLeft = false;
@@ -146,21 +133,21 @@ export const cronFunc = async () => {
 /**
  * Selenium Setup
  */
-let options = new chrome.Options();
+const options = new chrome.Options();
 options.addArguments("no-sandbox")
-options.addArguments('--headless');
+// options.addArguments('--headless');
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
 
 const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+const serviceBuilder = new chrome.ServiceBuilder(chromeDriverPath);
 
 export const driver = new Promise((resolve, reject) => {
     resolve(new Builder()
         .forBrowser("chrome")
         .setChromeService(serviceBuilder)
-        .setChromeOptions(options).build())
-})
+        .setChromeOptions(options).build());
+});
 
 export default app;

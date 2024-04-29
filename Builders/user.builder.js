@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export const UserList = (payload) => {
-    console.log(payload);
+    // console.log(payload);
     let pipeline = [],
         matchCondition = {},
         sortCondition = {};
@@ -43,8 +43,9 @@ export const UserList = (payload) => {
 
     return pipeline;
 };
+
 export const UserListWithCampaigns = (payload) => {
-    console.log(payload);
+    // console.log(payload);
     let pipeline = []
 
 
@@ -134,12 +135,8 @@ export const UserListWithCampaigns = (payload) => {
     return pipeline;
 };
 
-
-
-
-
 export const leadsList = (payload) => {
-    console.log(payload);
+    // console.log(payload);
     let pipeline = [];
     let matchCondition = [
         {
@@ -240,7 +237,7 @@ export const leadsList = (payload) => {
 
     if (payload.school && payload.school != "") {
         let schoolArr = payload.school.split(",");
-        console.log(schoolArr, "schoolArr")
+        // console.log(schoolArr, "schoolArr")
         matchCondition.push({
             '$match': {
                 '$or': [{
@@ -350,12 +347,8 @@ export const leadsList = (payload) => {
     return pipeline;
 };
 
-
-
-
-
 export const leadsDetails = (payload) => {
-    console.log(payload);
+    // console.log(payload);
     let pipeline = [];
     let matchCondition = [
         {

@@ -64,7 +64,7 @@ export const searchLinkedInFn = async () => {
 
 
 
-                console.log("url:", await driver.getCurrentUrl())
+                // console.log("url:", await driver.getCurrentUrl())
                 if (searchInput) {
                     /////////searching for search input on linkedin and entering the query sent by user and submiting the input
 
@@ -73,11 +73,11 @@ export const searchLinkedInFn = async () => {
                     let filterClick = await driver.wait(until.elementLocated(By.xpath("//button[text()='People']")))
                     if (filterClick) {
 
-                        console.log("FILTER CLICKED FOUND")
+                        // console.log("FILTER CLICKED FOUND")
                         //////clicking on people filter
                         await driver.findElement(By.xpath("//button[text()='People']")).click()
                         /////checking if the page is completely loaded or not
-                        console.log("FILTER 1")
+                        // console.log("FILTER 1")
                         try {
 
                             let filterResultsVisibleClick = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
@@ -224,9 +224,9 @@ export const searchLinkedInFn = async () => {
 
                                 // getting total results
                                 try {
-                                    console.log("FILTER 2")
+                                    // console.log("FILTER 2")
                                     totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                    console.log("TOTAL RESULTS", totalResults)
+                                    // console.log("TOTAL RESULTS", totalResults)
 
                                     await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults, })
                                 } catch (error) {
@@ -238,11 +238,11 @@ export const searchLinkedInFn = async () => {
 
 
 
-                                console.log("SCROLL TO BOTTOM THE FFIRST")
+                                // console.log("SCROLL TO BOTTOM THE FFIRST")
                                 ////////locating next button
                                 try {
                                     let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000)
-                                    console.log(nextbutton, "nextbutton")
+                                    // console.log(nextbutton, "nextbutton")
                                     if (nextbutton) {
                                         ////////finding if next button is enabled or not
                                         let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled()
@@ -250,7 +250,7 @@ export const searchLinkedInFn = async () => {
 
                                             try {
 
-                                                console.log("FILTER 3")
+                                                // console.log("FILTER 3")
                                                 let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                                                 if (resultText) {
                                                     ////////getting value of total results
@@ -262,7 +262,7 @@ export const searchLinkedInFn = async () => {
                                             ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                            console.log("SCROLL TO BOTTOM THE ALT")
+                                            // console.log("SCROLL TO BOTTOM THE ALT")
                                             ////////waiting for the elements to load
                                             // await driver.sleep(randomIntFromInterval(1000, 15000))
                                             await driver.sleep(randomIntFromInterval(1000, 2000))
@@ -271,7 +271,7 @@ export const searchLinkedInFn = async () => {
                                                 let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)), 5000)
                                                 if (resultElement) {
 
-                                                    console.log(resultElement.length, "resultElement.length")
+                                                    // console.log(resultElement.length, "resultElement.length")
                                                     ///////looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
                                                         let obj = {}
@@ -285,7 +285,7 @@ export const searchLinkedInFn = async () => {
                                                         if (linkValue) {
                                                             obj.link = linkValue
                                                         }
-                                                        console.log(obj, i, "obj")
+                                                        // console.log(obj, i, "obj")
                                                         resultsArr.push(obj)
                                                     }
                                                 }
@@ -297,7 +297,7 @@ export const searchLinkedInFn = async () => {
                                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
 
-                                            console.log("SCROLL TO BOTTOM THE ALT3.1 ")
+                                            // console.log("SCROLL TO BOTTOM THE ALT3.1 ")
                                             ////////waiting for the elements to load
                                             // await driver.sleep(randomIntFromInterval(1000, 15000))
                                             await driver.sleep(randomIntFromInterval(1000, 2000))
@@ -310,7 +310,7 @@ export const searchLinkedInFn = async () => {
                                                     if (nextbuttonText) {
                                                         ////////locating next button
                                                         let nextButtonValue1 = await driver.wait(until.elementLocated(By.xpath(`//button[@aria-label="Next"]`)))
-                                                        // console.log("nextButtonValue1", nextButtonValue1)
+                                                        // // console.log("nextButtonValue1", nextButtonValue1)
                                                         if (nextButtonValue1) {
                                                             ////////clicking on next button
                                                             await driver.findElement(By.xpath(`//button[@aria-label="Next"]`))?.click()
@@ -332,25 +332,25 @@ export const searchLinkedInFn = async () => {
                                 }
                                 catch (err) {
 
-                                    console.log("else case")
+                                    // console.log("else case")
                                     ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                     await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                    console.log("SCROLL TO BOTTOM THE ALT3.2 ")
+                                    // console.log("SCROLL TO BOTTOM THE ALT3.2 ")
                                     ////////waiting for the elements to load
                                     // await driver.sleep(randomIntFromInterval(1000, 15000))
                                     await driver.sleep(randomIntFromInterval(1000, 2000))
 
                                     try {
 
-                                        console.log("FILTER 4")
+                                        // console.log("FILTER 4")
                                         let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)), 5000)
                                         if (resultText) {
                                             ////////getting value of total results
 
-                                            console.log("FILTER 5")
+                                            // console.log("FILTER 5")
                                             totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                            console.log("TOTAL RESULTS", totalResults)
+                                            // console.log("TOTAL RESULTS", totalResults)
                                         }
                                     } catch (error) {
                                         console.error(error)
@@ -376,7 +376,7 @@ export const searchLinkedInFn = async () => {
                                                 if (linkValue) {
                                                     obj.link = linkValue
                                                 }
-                                                console.log(obj, i, "obj")
+                                                // console.log(obj, i, "obj")
                                                 resultsArr.push(obj)
                                             }
                                         }
@@ -394,13 +394,13 @@ export const searchLinkedInFn = async () => {
                     }
                 }
 
-                console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
+                // console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
                 let lengthOfArray = resultsArr.filter(el => el.link && el.link != "").length
 
                 // /////not for now
                 for (let j = 0; j < lengthOfArray; j++) {
                     try {
-                        //         console.log("LinkedIn", j + 1, lengthOfArray)
+                        //         // console.log("LinkedIn", j + 1, lengthOfArray)
                         //         await driver.get(`${resultsArr[j].link}`);
                         //         await driver.sleep(2000)
 
@@ -443,7 +443,7 @@ export const searchLinkedInFn = async () => {
                         //                         let contactInfoElements = await driver.findElements(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`))
                         //                         await driver.sleep(2000)
 
-                        //                         console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
+                        //                         // console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements")
                         //                         let obj = {}
                         //                         for (let q = 0; q < contactInfoElements.length; q++) {
 
@@ -452,12 +452,12 @@ export const searchLinkedInFn = async () => {
                         //                                 dataArr: []
                         //                             }
 
-                        //                             console.log(q, "k")
+                        //                             // console.log(q, "k")
                         //                             try {
                         //                                 let contactInfoHeading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`), 5000)
                         //                                 if (contactInfoHeading) {
                         //                                     obj.heading = await driver.findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`)).getText()
-                        //                                     console.log(obj.heading, "heading")
+                        //                                     // console.log(obj.heading, "heading")
                         //                                 }
                         //                             }
                         //                             catch (err) {
@@ -473,7 +473,7 @@ export const searchLinkedInFn = async () => {
                         //                                         for (let p = 0; p < contactInfourlList.length; p++) {
                         //                                             let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a)[${p + 1}]`)).getText()
 
-                        //                                             console.log(contactLinkElement, "contactLinkElement")
+                        //                                             // console.log(contactLinkElement, "contactLinkElement")
 
                         //                                             obj.dataArr.push(contactLinkElement);
                         //                                         }
@@ -481,7 +481,7 @@ export const searchLinkedInFn = async () => {
                         //                                 }
                         //                             }
                         //                             catch (err) {
-                        //                                 console.log("inside, catch", err)
+                        //                                 // console.log("inside, catch", err)
                         //                                 try {
                         //                                     let contactInfoListExists = await driver.wait(until.elementsLocated(By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)), 5000)
                         //                                     if (contactInfoListExists) {
@@ -490,7 +490,7 @@ export const searchLinkedInFn = async () => {
                         //                                         if (contactInfoList) {
                         //                                             for (let p = 0; p < contactInfoList.length; p++) {
                         //                                                 let contactInfoListValue = await driver.findElement(By.xpath(`(((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)[${p + 1}]/span)[1]`)).getText()
-                        //                                                 console.log(contactInfoListValue, "contactInfoListValue")
+                        //                                                 // console.log(contactInfoListValue, "contactInfoListValue")
 
                         //                                                 obj.dataArr.push(contactInfoListValue);
                         //                                             }
@@ -507,18 +507,18 @@ export const searchLinkedInFn = async () => {
 
                         //                                         obj.dataArr.push(contactInfoListValue);
                         //                                     }
-                        //                                     console.log(err)
+                        //                                     // console.log(err)
                         //                                 }
 
                         //                                 console.error(err, "could not find contact info h3")
                         //                             }
-                        //                             console.log(obj, "obj")
+                        //                             // console.log(obj, "obj")
                         //                             contactInfoArr.push(obj)
                         //                         }
 
                         //                     }
                         //                     else {
-                        //                         console.log("not found")
+                        //                         // console.log("not found")
                         //                     }
 
                         //                 }
@@ -526,7 +526,7 @@ export const searchLinkedInFn = async () => {
                         //                     console.error(err, "could not find contact info section tags")
                         //                     seleniumErrorHandler()
                         //                 }
-                        //                 console.log(contactInfoArr, "contactInfoArr")
+                        //                 // console.log(contactInfoArr, "contactInfoArr")
                         //                 resultsArr[j].contactInfoArr = contactInfoArr
                         //             }
 
@@ -549,7 +549,7 @@ export const searchLinkedInFn = async () => {
                         //                 if (tempEducationArrExists) {
                         //                     let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated "])`))
 
-                        //                     console.log(internalEducationarr, "internnaleducation arr")
+                        //                     // console.log(internalEducationarr, "internnaleducation arr")
                         //                     for (let l = 0; l < internalEducationarr.length; l++) {
 
                         //                         let schoolName = ""
@@ -579,7 +579,7 @@ export const searchLinkedInFn = async () => {
                         //                             schoolDetail,
                         //                             year,
                         //                         }
-                        //                         console.log(obj, "education Obj")
+                        //                         // console.log(obj, "education Obj")
                         //                         tempEducationArr.push(obj)
                         //                     }
 
@@ -598,7 +598,7 @@ export const searchLinkedInFn = async () => {
                         //             }
 
                         //             resultsArr[j].educationArr = tempEducationArr
-                        //             console.log(tempEducationArr, "tempEducationArr")
+                        //             // console.log(tempEducationArr, "tempEducationArr")
 
 
 
@@ -610,7 +610,7 @@ export const searchLinkedInFn = async () => {
                         //             console.error(err)
                         //             seleniumErrorHandler()
                         //         }
-                        //         console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
+                        //         // console.log("getExperience", `${resultsArr[j].link}/details/experience/`)
                         //         await driver.get(`${currentUrl}/details/experience/`);
                         //         await driver.sleep(10000)
                         //         try {
@@ -618,7 +618,7 @@ export const searchLinkedInFn = async () => {
 
                         //             if (experienceFound) {
                         //                 let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`))
-                        //                 console.log(experienceArr, "experienceArr", experienceArr.length)
+                        //                 // console.log(experienceArr, "experienceArr", experienceArr.length)
                         //                 let experienceValueArr = []
 
                         //                 if (experienceArr && experienceArr.length > 0) {
@@ -629,7 +629,7 @@ export const searchLinkedInFn = async () => {
                         //                         try {
                         //                             let checkElementHasAnchorTag = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li//div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a`), 5000);
                         //                             if (checkElementHasAnchorTag) {
-                        //                                 console.log("inside if")
+                        //                                 // console.log("inside if")
                         //                                 try {
                         //                                     companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`)).getText();
                         //                                 }
@@ -663,7 +663,7 @@ export const searchLinkedInFn = async () => {
                         //                             }
                         //                         }
                         //                         catch (err) {
-                        //                             console.log("inside else", err);
+                        //                             // console.log("inside else", err);
                         //                             try {
                         //                                 companyvalue = await driver.findElement(By.xpath(`(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${k + 1}]/div[@class="display-flex flex-row justify-space-between"]/div/div//span[@aria-hidden="true"]`)).getText();
                         //                             }
@@ -684,11 +684,11 @@ export const searchLinkedInFn = async () => {
                         //                             }
                         //                         }
                         //                         experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
-                        //                         console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
+                        //                         // console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
                         //                     }
                         //                 }
                         //                 resultsArr[j].experienceArr = experienceValueArr
-                        //                 console.log(experienceValueArr, "experienceValueArr")
+                        //                 // console.log(experienceValueArr, "experienceValueArr")
                         //             }
                         //         }
                         //         catch (err) {
@@ -697,11 +697,11 @@ export const searchLinkedInFn = async () => {
 
                         //         let rating = "";
                         //         rating = CalculateRating(resultsArr[j])
-                        //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
+                        //         // // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
                         //         ////////////adding client for campaigns
                         let clientObj
                         let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT }).lean().exec()
-                        console.log(clientExistsCheck, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", !clientExistsCheck)
+                        // console.log(clientExistsCheck, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", !clientExistsCheck)
                         if (!clientExistsCheck) {
                             clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id }).save()
                             if (campaignObj) {
@@ -709,7 +709,7 @@ export const searchLinkedInFn = async () => {
                             }
                         }
                         else {
-                            console.log("here")
+                            // console.log("here")
                             let obj = {
                                 ...clientExistsCheck,
                                 campaignName: campaignObj?.name,
@@ -722,9 +722,9 @@ export const searchLinkedInFn = async () => {
                                 totalResults: campaignObj?.totalResults,
                             }
                             delete obj._id
-                            console.log(obj)
+                            // console.log(obj)
                             let temp = await new PreviousLeads(obj).save()
-                            console.log(temp, "temp")
+                            // console.log(temp, "temp")
                             // clientExistsCheck
                             clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id, searchCompleted: false }, { new: true }).exec()
                         }
@@ -756,7 +756,7 @@ export const searchLinkedInFn = async () => {
                 //     else {
                 //         clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT }, { new: true }).exec()
                 //     }
-                //     console.log(clientObj)
+                //     // console.log(clientObj)
                 //     clientsArr.push(clientObj)
                 // }
 
@@ -764,9 +764,9 @@ export const searchLinkedInFn = async () => {
 
                 // if (clientsArr) {
                 if (campaignObj) {
-                    //         console.log(campaignObj, "el,campaignObj", clientsArr)
+                    //         // console.log(campaignObj, "el,campaignObj", clientsArr)
                     // let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
-                    // console.log(leadsArr, "leadsArr")
+                    // // console.log(leadsArr, "leadsArr")
                     //     }
 
                     let campaignId = campaignObj?._id;
@@ -782,7 +782,7 @@ export const searchLinkedInFn = async () => {
 
 
 
-                console.log("completed")
+                // console.log("completed")
 
 
 

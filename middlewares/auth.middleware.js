@@ -2,11 +2,11 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 
 export const authorizeJwt = async (req, res, next) => {
-    console.log(req.headers)
+    // console.log(req.headers)
     let authorization = req.headers["authorization"];
     let token = authorization && authorization.split("Bearer ")[1];
     if (!token) return res.status(401).json({ message: "Invalid Token" });
-    console.log(token, process.env.JWT_ACCESS_TOKEN_SECRET)
+    // console.log(token, process.env.JWT_ACCESS_TOKEN_SECRET)
     try {
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET);
@@ -22,7 +22,7 @@ export const authorizeJwt = async (req, res, next) => {
 };
 
 export const setUserAndUserObj = async (req, res, next) => {
-    // console.log(req.headers)
+    // // console.log(req.headers)
     let authorization = req.headers["authorization"];
     if (authorization) {
         let token = authorization && authorization.split("Bearer ")[1];

@@ -132,8 +132,9 @@ export const continueScheduled = async (req, res, next) => {
 export const checkLinkedInLoginFunc = async () => {
     let driver = await maindriver
     let isLogin = false
+	await driver.get("https://www.linkedin.com");
     let url = await driver.getCurrentUrl()
-    console.log("url:", url)
+    console.log("url===>>>", url)
     // console.timeEnd("label1")
     if (url.includes('feed') || url.includes('/in/') || url.includes('/search/') || url.includes('/results/')) {
         isLogin = true
@@ -175,7 +176,7 @@ export const linkedInLogin = async (req, res, next) => {
 
                     let proxyAddress = proxyObj.value
                     options.addArguments(`--proxy-server=${proxyAddress}`)
-                    console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
+                    // console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
                 }
 
             } catch (error) {
@@ -194,7 +195,7 @@ export const linkedInLogin = async (req, res, next) => {
 
                     let proxyAddress = proxyObj.value
                     options.addArguments(`--proxy-server=${proxyAddress}`)
-                    console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
+                    // console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
                 }
 
             } catch (error) {
@@ -225,7 +226,7 @@ export const linkedInLogin = async (req, res, next) => {
 
 
             driver.sleep(1000)
-            console.log("url:", await driver.getCurrentUrl())
+            // console.log("url:", await driver.getCurrentUrl())
 
             driver.navigate().refresh();
             // driver.reload
@@ -247,7 +248,7 @@ export const linkedInLogin = async (req, res, next) => {
                 else {
 
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
                     /////////searching for email/phone field
                     let accountName = await driver.wait(until.elementsLocated(By.id("session_key")))
                     if (accountName) {
@@ -262,14 +263,14 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
-                    console.log("logging IN")
+                    // console.log("logging IN")
 
 
 
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)))
-                    console.log("SUBMIT BUTTION", submitbutton)
+                    // console.log("SUBMIT BUTTION", submitbutton)
                     if (submitbutton) {
                         ///////////submiting the login page
                         await driver.findElement(By.xpath(`//button[@type="submit"]`)).click()
@@ -277,9 +278,9 @@ export const linkedInLogin = async (req, res, next) => {
 
                     // login code end
 
-                    console.log("LOGIN")
+                    // console.log("LOGIN")
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
 
 
 
@@ -288,48 +289,48 @@ export const linkedInLogin = async (req, res, next) => {
                 ////////waiting for the elements to load
                 await driver.sleep(3000)
                 let url = await driver.getCurrentUrl()
-                console.log("url:", await driver.getCurrentUrl())
+                // console.log("url:", await driver.getCurrentUrl())
                 // let data = await driver.getPageSource()
-                // console.log(data)
+                // // console.log(data)
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
                 if (url.includes('checkpoint')) { //captcha
                     isCaptcha = true
                     let img = await driver.wait(until.elementLocated(By.xpath(`// iframe[@id="captcha-internal"]`,)))
-                    console.log("Switch to outer outer frame")
+                    // console.log("Switch to outer outer frame")
                     await driver.switchTo().frame("captcha-internal");
-                    console.log("Switch to outer outer frame")
+                    // console.log("Switch to outer outer frame")
                     await driver.sleep(1000)
 
-                    console.log("Switch to outer frame")
+                    // console.log("Switch to outer frame")
                     await driver.switchTo().frame("arkoseframe");
-                    console.log("Switch to outer frame")
+                    // console.log("Switch to outer frame")
                     await driver.sleep(1000)
 
                     await driver.switchTo().frame("fc-iframe-wrap");
-                    console.log("Switch to frame")
+                    // console.log("Switch to frame")
                     await driver.sleep(1000)
 
-                    console.log("Switch to inner frame")
+                    // console.log("Switch to inner frame")
                     await driver.switchTo().frame("CaptchaFrame");
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
 
                     try {
-                        console.log("CLik verify")
+                        // console.log("CLik verify")
                         let img = await driver.wait(until.elementLocated(By.xpath(`// button[@id="home_children_button"]`,))).click()
                         // url = img?.getAttribute('src');
-                        console.log("url:", await driver.getCurrentUrl())
+                        // console.log("url:", await driver.getCurrentUrl())
                     } catch (error) {
                         console.error(error)
                     }
 
                     try {
-                        console.log("GETTING GETTING IMAGES")
+                        // console.log("GETTING GETTING IMAGES")
                         let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`,)))
                         imgUrl = await img?.getAttribute('src');
-                        console.log(imgUrl)
-                        console.log("url:", await driver.getCurrentUrl())
+                        // console.log(imgUrl)
+                        // console.log("url:", await driver.getCurrentUrl())
                     } catch (error) {
                         console.error(error)
                     }
@@ -431,15 +432,15 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
 
         let url = await driver.getCurrentUrl()
         let source = await driver.getPageSource()
-        console.log(url, "CURRENT URL")
+        // console.log(url, "CURRENT URL")
         driver.takeScreenshot().then(
             function (image, err) {
                 let basicFilePath = `./public/uploads/checkCaptcha_${new Date().getTime()}___${encodeURIComponent(url)}___`
                 require('fs').writeFile(`${basicFilePath}.png`, image, 'base64', function (err) {
-                    console.log(err);
+                    // console.log(err);
                 });
                 require('fs').writeFile(`${basicFilePath}.source.txt`, source, function (err) {
-                    console.log(err);
+                    // console.log(err);
                 });
             }
         );
@@ -478,7 +479,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         //     .setChromeService(serviceBuilder)
         //     .setChromeOptions(options).build()
 
-        console.log(await driver.getCurrentUrl())
+        // console.log(await driver.getCurrentUrl())
 
 
 
@@ -506,7 +507,7 @@ export const linkedInSearch = async (req, res, next) => {
 
 
         let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
-        console.log("SEARCH INPUT FOUND")
+        // console.log("SEARCH INPUT FOUND")
 
         res.status(200).json({ message: 'Processing you can close this window' });
 
@@ -527,34 +528,34 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     await redisClientParam.set("isFree", "false");
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
-		console.log(">>>>1");
-        await sendMail(
-            // [
-            "arijit.saha@zysk.tech"
-            // "joel.green@ebslon.com",
-            // "joelgreen737@gmail.com",
-            // "jnjasgreem@gmail.com",
-            // ]
-        );
+		// console.log(">>>>1");
+        // await sendMail(
+        //     // [
+        //     "arijit.saha@zysk.tech"
+        //     // "joel.green@ebslon.com",
+        //     // "joelgreen737@gmail.com",
+        //     // "jnjasgreem@gmail.com",
+        //     // ]
+        // );
         await redisClientParam.set("isFree", "true");
         // throw new Error("not logged in");
     }
 
     let userArr = await User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean().exec();
 
-	console.log(">>>>2");
+	// console.log(">>>>2");
     if (!userArr.length) {
         return true;
     }
 
     let driver = await maindriver;
 
-    for (let j = 0; j < userArr.length; j++) {
-		console.log(">>>>3 : ", j);
+    for (let j = 0; j < 1; j++) {
+        // console.log(">>>>3 : ", j);
         try {
             let campaignObj = await Campaign.findById(userArr[j].campaignId).exec();
 
-            console.log("LinkedIn", j + 1, userArr.length, JSON.stringify(userArr, null, 2));
+            // console.log("LinkedIn", j + 1, userArr.length, JSON.stringify(userArr, null, 2));
             await driver.get(`${userArr[j].link}`);
             await driver.sleep(randomIntFromInterval(1000, 15000));
 
@@ -574,9 +575,9 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             }
 
             try {
-                let location = await driver.wait(until.elementLocated(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)), 5000);
+                let location = await driver.wait(until.elementLocated(By.xpath(`//span[@class="text-body-small inline t-black--light break-words"`)), 5000);
                 if (location) {
-                    let locationValue = await driver.findElement(By.xpath(`//div[@class="pv-text-details__left-panel mt2"]//span`)).getText();
+                    let locationValue = await driver.findElement(By.xpath(`//span[@class="text-body-small inline t-black--light break-words"`)).getText();
                     userArr[j].location = locationValue;
                 }
             } catch (err) {
@@ -590,19 +591,13 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                     await driver.sleep(randomIntFromInterval(1000, 15000));
                     let contactInfoArr = [];
 
-                    ////// //h3
                     try {
-                        let contactInfoElementsExists = await driver.wait(
-                            until.elementLocated(By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`)),
-                            5000
-                        );
+                        let contactInfoElementsExists = await driver.wait(until.elementLocated(By.xpath(`//div[@class='pv-profile-section__section-info section-info']`)), 5000);
                         if (contactInfoElementsExists) {
-                            let contactInfoElements = await driver.findElements(
-                                By.xpath(`//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section`)
-                            );
+                            let contactInfoElements = await driver.findElements(By.xpath(`//div[@class='pv-profile-section__section-info section-info']`));
                             await driver.sleep(randomIntFromInterval(1000, 15000));
 
-                            console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements");
+                            // console.log(contactInfoElements, contactInfoElements.length, "contactInfoElements");
                             let obj = {};
                             for (let q = 0; q < contactInfoElements.length; q++) {
                                 obj = {
@@ -610,17 +605,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     dataArr: [],
                                 };
 
-                                console.log(q, "k");
+                                // console.log(q, "k");
                                 try {
-                                    let contactInfoHeading = await driver.findElement(
-                                        By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`),
-                                        5000
-                                    );
+                                    let contactInfoHeading = await driver.findElement(By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`), 5000);
                                     if (contactInfoHeading) {
-                                        obj.heading = await driver
-                                            .findElement(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section//h3)[${q + 1}]`))
-                                            .getText();
-                                        console.log(obj.heading, "heading");
+                                        obj.heading = await driver.findElement(By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`)).getText();
+                                        // console.log(obj.heading, "heading");
                                     }
                                 } catch (err) {
                                     console.error(err, "could not find contact info h3");
@@ -628,32 +618,21 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 }
 
                                 try {
-                                    let contactInfoElementsExists = await driver.wait(
-                                        until.elementsLocated(By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`)),
-                                        5000
-                                    );
+                                    let contactInfoElementsExists = await driver.wait(until.elementsLocated(By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`)), 5000);
                                     if (contactInfoElementsExists) {
-                                        let contactInfourlList = await driver.findElements(
-                                            By.xpath(`(//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a`)
-                                        );
+                                        let contactInfourlList = await driver.findElements(By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`));
                                         if (contactInfourlList && contactInfourlList.length > 0) {
                                             for (let p = 0; p < contactInfourlList.length; p++) {
-                                                let contactLinkElement = await driver
-                                                    .findElement(
-                                                        By.xpath(
-                                                            `((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]//a)[${p + 1}]`
-                                                        )
-                                                    )
-                                                    .getText();
+                                                let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a)[${p + 1}]`)).getText();
 
-                                                console.log(contactLinkElement, "contactLinkElement");
+                                                // console.log(contactLinkElement, "contactLinkElement");
 
                                                 obj.dataArr.push(contactLinkElement);
                                             }
                                         }
                                     }
                                 } catch (err) {
-                                    console.log("inside, catch", err);
+                                    // console.log("inside, catch", err);
                                     try {
                                         let contactInfoListExists = await driver.wait(
                                             until.elementsLocated(
@@ -676,7 +655,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                                             )
                                                         )
                                                         .getText();
-                                                    console.log(contactInfoListValue, "contactInfoListValue");
+                                                    // console.log(contactInfoListValue, "contactInfoListValue");
 
                                                     obj.dataArr.push(contactInfoListValue);
                                                 }
@@ -697,22 +676,22 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
 
                                             obj.dataArr.push(contactInfoListValue);
                                         }
-                                        console.log(err);
+                                        // console.log(err);
                                     }
 
                                     console.error(err, "could not find contact info h3");
                                 }
-                                console.log(obj, "obj");
+                                // console.log(obj, "obj");
                                 contactInfoArr.push(obj);
                             }
                         } else {
-                            console.log("not found");
+                            // console.log("not found");
                         }
                     } catch (err) {
                         console.error(err, "could not find contact info section tags");
                         seleniumErrorHandler();
                     }
-                    console.log(contactInfoArr, "contactInfoArr");
+                    // console.log(contactInfoArr, "contactInfoArr");
                     userArr[j].contactInfoArr = contactInfoArr;
                 }
             } catch (err) {
@@ -734,7 +713,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                     if (tempEducationArrExists) {
                         let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])`));
 
-                        console.log(internalEducationarr, "internnaleducation arr");
+                        // console.log(internalEducationarr, "internnaleducation arr");
                         for (let l = 0; l < internalEducationarr.length; l++) {
                             let schoolName = "";
                             let schoolDetail = "";
@@ -784,7 +763,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 schoolDetail,
                                 year,
                             };
-                            console.log(obj, "education Obj");
+                            // console.log(obj, "education Obj");
                             tempEducationArr.push(obj);
                         }
                     }
@@ -794,12 +773,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                 }
 
                 userArr[j].educationArr = tempEducationArr;
-                console.log(tempEducationArr, "tempEducationArr");
+                // console.log(tempEducationArr, "tempEducationArr");
             } catch (err) {
                 console.error(err);
                 seleniumErrorHandler();
             }
-            console.log("getExperience", `${userArr[j].link}/details/experience/`);
+            // console.log("getExperience", `${userArr[j].link}/details/experience/`);
             await driver.get(`${currentUrl}/details/experience/`);
             await driver.sleep(randomIntFromInterval(1000, 15000));
             try {
@@ -809,12 +788,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                 );
 
                 if (experienceFound) {
-                    // console.log(randomBoolean(), randomIntFromInterval(100, 5000), "randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()")
+                    // // console.log(randomBoolean(), randomIntFromInterval(100, 5000), "randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()")
                     if (randomBoolean()) {
                         await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`);
                     }
                     let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`));
-                    console.log(experienceArr, "experienceArr", experienceArr.length);
+                    // console.log(experienceArr, "experienceArr", experienceArr.length);
                     let experienceValueArr = [];
 
                     if (experienceArr && experienceArr.length > 0) {
@@ -832,7 +811,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     5000
                                 );
                                 if (checkElementHasAnchorTag) {
-                                    console.log("inside if");
+                                    // console.log("inside if");
                                     try {
                                         companyvalue = await driver
                                             .findElement(
@@ -910,7 +889,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     }
                                 }
                             } catch (err) {
-                                console.log("inside else", err);
+                                // console.log("inside else", err);
                                 try {
                                     companyvalue = await driver
                                         .findElement(
@@ -952,11 +931,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 }
                             }
                             experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
-                            console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
+                            // console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
                         }
                     }
                     userArr[j].experienceArr = experienceValueArr;
-                    console.log(experienceValueArr, "experienceValueArr");
+                    // console.log(experienceValueArr, "experienceValueArr");
 
                     // let obj = {
                     //     ...clientExistsCheck,
@@ -970,11 +949,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                     //     totalResults: campaignObj?.totalResults,
                     // }
                     // delete obj._id
-                    // console.log(obj)
+                    // // console.log(obj)
                     // let temp = await new PreviousLeads(obj).save()
                     // clientExistsCheck
                 }
-                console.log(JSON.stringify(userArr[j], null, 2), "temp");
+                // console.log(JSON.stringify(userArr[j], null, 2), "temp");
             } catch (err) {
                 console.error(err);
             }
@@ -984,9 +963,9 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec();
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
-            //         // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
+            //         // // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
             //         ////////////adding client for campaigns
-            console.log(userArr, "userArr", JSON.stringify(userArr, null, 2));
+            // console.log(userArr, "userArr", JSON.stringify(userArr, null, 2));
         } catch (error) {
             await redisClientParam.set("isFree", "true");
 
@@ -1092,7 +1071,7 @@ export const searchLinkedin = async (req, res, next) => {
 
                     let proxyAddress = proxyObj.value
                     options.addArguments(`--proxy-server=${proxyAddress}`)
-                    console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
+                    // console.log('PROXY SET TO ', `--proxy-server=${proxyAddress}`)
                 }
 
             } catch (error) {
@@ -1108,7 +1087,7 @@ export const searchLinkedin = async (req, res, next) => {
             .setChromeService(serviceBuilder)
 
             .setChromeOptions(options).build()
-        console.log("DRIVER CREATED")
+        // console.log("DRIVER CREATED")
 
         let resultsArr = []
 
@@ -1122,11 +1101,11 @@ export const searchLinkedin = async (req, res, next) => {
             await driver.sleep(randomIntFromInterval(1000, 15000))
 
             let data = await driver.getPageSource()
-            console.log(data)
+            // console.log(data)
 
             let page = await driver.get("https://www.linkedin.com");
 
-            console.log("url:", await driver.getCurrentUrl())
+            // console.log("url:", await driver.getCurrentUrl())
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
 
@@ -1138,7 +1117,7 @@ export const searchLinkedin = async (req, res, next) => {
                 else {
 
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
                     /////////searching for email/phone field
                     let accountName = await driver.wait(until.elementsLocated(By.id("session_key")))
                     if (accountName) {
@@ -1157,7 +1136,7 @@ export const searchLinkedin = async (req, res, next) => {
 
 
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit""]`)))
                     if (submitbutton) {
                         ///////////submiting the login page
@@ -1166,14 +1145,14 @@ export const searchLinkedin = async (req, res, next) => {
 
                     // login code end
 
-                    console.log("LOGIN")
+                    // console.log("LOGIN")
 
-                    console.log("url:", await driver.getCurrentUrl())
+                    // console.log("url:", await driver.getCurrentUrl())
                 }
 
                 ////////waiting for the elements to load
                 await driver.sleep(randomIntFromInterval(1000, 15000))
-                console.log("url:", await driver.getCurrentUrl())
+                // console.log("url:", await driver.getCurrentUrl())
 
 
 
@@ -1183,9 +1162,9 @@ export const searchLinkedin = async (req, res, next) => {
 
                 //////looking for search filter
                 let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
-                console.log("SEARCH INPUT FOUND")
+                // console.log("SEARCH INPUT FOUND")
 
-                console.log("url:", await driver.getCurrentUrl())
+                // console.log("url:", await driver.getCurrentUrl())
                 if (searchInput) {
                     /////////searching for search input on linkedin and entering the query sent by user and submiting the input
                     await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input"]`)).sendKeys(`${req.body.searchQuery}`, Key.ENTER)
@@ -1193,12 +1172,12 @@ export const searchLinkedin = async (req, res, next) => {
                     let filterClick = await driver.wait(until.elementLocated(By.xpath("//button[text()='People']")))
                     if (filterClick) {
 
-                        console.log("FILTER CLICKED FOUND")
+                        // console.log("FILTER CLICKED FOUND")
                         //////clicking on people filter
                         await driver.findElement(By.xpath("//button[text()='People']")).click()
                         /////checking if the page is completely loaded or not
 
-                        console.log("FILTER 6")
+                        // console.log("FILTER 6")
                         let filterResultsVisibleClick = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                         if (filterResultsVisibleClick) {
 
@@ -1273,11 +1252,11 @@ export const searchLinkedin = async (req, res, next) => {
                             ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                             await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                            console.log("SCROLL TO BOTTOM THE FFIRST")
+                            // console.log("SCROLL TO BOTTOM THE FFIRST")
                             ////////locating next button
                             try {
                                 let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000)
-                                console.log(nextbutton, "nextbutton")
+                                // console.log(nextbutton, "nextbutton")
                                 if (nextbutton) {
                                     ////////finding if next button is enabled or not
                                     let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled()
@@ -1285,14 +1264,14 @@ export const searchLinkedin = async (req, res, next) => {
 
                                         try {
 
-                                            console.log("FILTER 7")
+                                            // console.log("FILTER 7")
                                             let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                                             if (resultText) {
                                                 ////////getting value of total results
 
-                                                console.log("FILTER 8")
+                                                // console.log("FILTER 8")
                                                 totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                                console.log("TOTAL RESULTS", totalResults)
+                                                // console.log("TOTAL RESULTS", totalResults)
                                             }
                                         } catch (error) {
                                             console.error(error)
@@ -1301,14 +1280,14 @@ export const searchLinkedin = async (req, res, next) => {
                                         ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                         await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                        console.log("SCROLL TO BOTTOM THE ALT")
+                                        // console.log("SCROLL TO BOTTOM THE ALT")
                                         ////////waiting for the elements to load
                                         await driver.sleep(1000)
                                         ////////locating results div
                                         let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`)))
                                         if (resultElement) {
 
-                                            console.log(resultElement.length, "resultElement.length")
+                                            // console.log(resultElement.length, "resultElement.length")
                                             ///////looping through the results
                                             for (let i = 0; i < resultElement.length; i++) {
                                                 let obj = {}
@@ -1322,7 +1301,7 @@ export const searchLinkedin = async (req, res, next) => {
                                                 if (linkValue) {
                                                     obj.link = linkValue
                                                 }
-                                                console.log(obj, i, "obj")
+                                                // console.log(obj, i, "obj")
                                                 resultsArr.push(obj)
                                             }
                                         }
@@ -1330,7 +1309,7 @@ export const searchLinkedin = async (req, res, next) => {
                                         await driver.executeScript(`window.scrollTo(0, 4500)`)
 
 
-                                        console.log("SCROLL TO BOTTOM THE ALT2 ")
+                                        // console.log("SCROLL TO BOTTOM THE ALT2 ")
                                         ////////waiting for the elements to load
                                         await driver.sleep(1000)
                                         ////////finding if next button is visible or not
@@ -1341,7 +1320,7 @@ export const searchLinkedin = async (req, res, next) => {
                                             if (nextbuttonText) {
                                                 ////////locating next button
                                                 let nextButtonValue1 = await driver.wait(until.elementLocated(By.xpath(`//button[@aria-label="Next"]`)))
-                                                // console.log("nextButtonValue1", nextButtonValue1)
+                                                // // console.log("nextButtonValue1", nextButtonValue1)
                                                 if (nextButtonValue1) {
                                                     ////////clicking on next button
                                                     await driver.findElement(By.xpath(`//button[@aria-label="Next"]`))?.click()
@@ -1359,24 +1338,24 @@ export const searchLinkedin = async (req, res, next) => {
                             }
                             catch (err) {
 
-                                console.log("else case")
+                                // console.log("else case")
                                 ///////scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                 await driver.executeScript(`window.scrollTo(0, 4500)`)
 
-                                console.log("SCROLL TO BOTTOM THE ALT3.3 ")
+                                // console.log("SCROLL TO BOTTOM THE ALT3.3 ")
                                 ////////waiting for the elements to load
                                 await driver.sleep(randomIntFromInterval(1000, 15000))
 
                                 try {
 
-                                    console.log("FILTER 9")
+                                    // console.log("FILTER 9")
                                     let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)))
                                     if (resultText) {
                                         ////////getting value of total results
 
-                                        console.log("FILTER 10")
+                                        // console.log("FILTER 10")
                                         totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]//h2[@class="pb2 t-black--light t-14"]`)).getText()
-                                        console.log("TOTAL RESULTS", totalResults)
+                                        // console.log("TOTAL RESULTS", totalResults)
                                     }
                                 } catch (error) {
                                     console.error(error)
@@ -1400,7 +1379,7 @@ export const searchLinkedin = async (req, res, next) => {
                                         if (linkValue) {
                                             obj.link = linkValue
                                         }
-                                        console.log(obj, i, "obj")
+                                        // console.log(obj, i, "obj")
                                         resultsArr.push(obj)
                                     }
                                 }
@@ -1409,7 +1388,7 @@ export const searchLinkedin = async (req, res, next) => {
                         }
                     }
                 }
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             } else {
                 await driver.navigate().refresh()
                 setTimeout(() => {
@@ -1421,7 +1400,7 @@ export const searchLinkedin = async (req, res, next) => {
             /////not for now
             for (let j = 0; j < lengthOfArray; j++) {
                 try {
-                    console.log(lengthOfArray[j].link, "lengthOfArray[j].link")
+                    // console.log(lengthOfArray[j].link, "lengthOfArray[j].link")
                     await driver.get(`${lengthOfArray[j].link}`);
                     await driver.sleep(randomIntFromInterval(1000, 15000))
 
@@ -1465,7 +1444,7 @@ export const searchLinkedin = async (req, res, next) => {
                     clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { el, role: rolesObj?.CLIENT }, { new: true }).exec()
                 }
                 await new UserLogs({ ...el, role: rolesObj?.CLIENT }).save()
-                console.log(clientObj)
+                // console.log(clientObj)
                 clientsArr.push(clientObj)
             }
 
@@ -1474,9 +1453,9 @@ export const searchLinkedin = async (req, res, next) => {
                 clientsArr = clientsArr.map(el => ({ clientId: el._id }))
                 let campaignObj = await new Campaign({ ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save()
                 if (campaignObj) {
-                    console.log(campaignObj, "el,campaignObj", clientsArr)
+                    // console.log(campaignObj, "el,campaignObj", clientsArr)
                     let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
-                    console.log(leadsArr, "leadsArr")
+                    // console.log(leadsArr, "leadsArr")
                 }
                 let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignObj._id, { resultsArr: clientsArr }).exec()
             }
@@ -1651,7 +1630,7 @@ export const checkRatingForClient = async (req, res, next) => {
         let clientObj = await User.findById(req.params.id).exec()
 
         let rating = CalculateRating(clientObj)
-        console.log(rating)
+        // console.log(rating)
         res.status(200).json({ message: "rating", data: rating, success: true });
     } catch (error) {
         console.error(error)
@@ -1689,7 +1668,7 @@ export const sendCampaignToSevanta = async (req, res, next) => {
 
         let email = `chiratae@mydealflow.com`
 
-        console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
+        // console.log(userObj.mailSettingsObj, "userObj.mailSettingsObj")
 
 
         let agentObj = await User.findById(req.user.userId).exec()

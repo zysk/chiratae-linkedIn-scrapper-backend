@@ -12,7 +12,7 @@ export const generateUid = async () => {
             check = false;
             return tempUid;
         }
-        console.log("GENERATING NEW UID,Current", tempUid);
+        // console.log("GENERATING NEW UID,Current", tempUid);
     }
 };
 
