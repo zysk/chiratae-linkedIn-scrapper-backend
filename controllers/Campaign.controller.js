@@ -422,16 +422,8 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     await redisClientParam.set("isFree", "false");
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
-        await sendMail(
-            // [
-            "arijit.saha@zysk.tech"
-            // "joel.green@ebslon.com",
-            // "joelgreen737@gmail.com",
-            // "jnjasgreem@gmail.com",
-            // ]
-        );
+        await sendMail("arijit.saha@zysk.tech");
         await redisClientParam.set("isFree", "true");
-        // throw new Error("not logged in");
     }
 
     let userArr = await User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean().exec();
@@ -446,7 +438,6 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
         try {
             let campaignObj = await Campaign.findById(userArr[j].campaignId).exec();
             await driver.get(`${userArr[j].link}`);
-            console.log(">>>>>>>>>>>>>>>>>>>>>>", `${userArr[j].link}`);
             await driver.sleep(randomIntFromInterval(1000, 15000));
 
             if (randomBoolean()) {
@@ -454,30 +445,30 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             }
 
             let currentUrl = await driver.getCurrentUrl();
+
+            // ! Capturing Current Position
             try {
                 let currentPosition = await driver.wait(until.elementLocated(By.xpath(`//div[@class="text-body-medium break-words"]`)), 5000);
                 if (currentPosition) {
                     let currentPositionValue = await driver.findElement(By.xpath(`//div[@class="text-body-medium break-words"]`)).getText();
-                    console.log(`Current Position of ${userArr[j].name}======>`, currentPositionValue);
                     userArr[j].currentPosition = currentPositionValue;
                 }
             } catch (err) {
-                // console.log(err);
                 seleniumErrorHandler();
             }
 
+            // ! Capturing Current Location
             try {
                 let location = await driver.wait(until.elementLocated(By.xpath(`//span[@class="text-body-small inline t-black--light break-words"]`)), 5000);
                 if (location) {
                     let locationValue = await driver.findElement(By.xpath(`//span[@class="text-body-small inline t-black--light break-words"]`)).getText();
-                    console.log(`Current location of ${userArr[j].name}======>`, locationValue);
                     userArr[j].location = locationValue;
                 }
             } catch (err) {
-                // console.log(err);
                 seleniumErrorHandler();
             }
 
+            // ! Capturing the contact info details
             try {
                 let contactInfoLinkExists = await driver.wait(until.elementLocated(By.xpath(`//a[text()="Contact info"]`)), 5000);
                 if (contactInfoLinkExists) {
@@ -486,16 +477,10 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                     let contactInfoArr = [];
 
                     try {
-                        let contactInfoElementsExists = await driver.wait(
-                            until.elementLocated(By.xpath(`//div[@class='pv-profile-section__section-info section-info']`)),
-                            5000
-                        );
+                        let contactInfoElementsExists = await driver.wait(until.elementLocated(By.xpath(`//div[@class='pv-profile-section__section-info section-info']`)), 5000);
                         if (contactInfoElementsExists) {
-                            let contactInfoElements = await driver.findElements(
-                                By.xpath(`//div[@class='pv-profile-section__section-info section-info']`)
-                            );
+                            let contactInfoElements = await driver.findElements(By.xpath(`//div[@class='pv-profile-section__section-info section-info']/section`));
                             await driver.sleep(randomIntFromInterval(1000, 15000));
-
                             let obj = {};
                             for (let q = 0; q < contactInfoElements.length; q++) {
                                 obj = {
@@ -504,126 +489,78 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 };
 
                                 try {
-                                    let contactInfoHeading = await driver.findElement(
-                                        By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`),
-                                        5000
-                                    );
+                                    let contactInfoHeading = await driver.findElement(By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`), 5000);
                                     if (contactInfoHeading) {
-                                        obj.heading = await driver
-                                            .findElement(By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`))
-                                            .getText();
-                                        // console.log(obj.heading, "heading");
+                                        obj.heading = await driver.findElement(By.xpath(`(//h3[@class='pv-contact-info__header t-16 t-black t-bold'])[${q + 1}]`)).getText();
                                     }
                                 } catch (err) {
-                                    console.error(err, "could not find contact info h3");
                                     seleniumErrorHandler();
                                 }
 
                                 try {
-                                    let contactInfoElementsExists = await driver.wait(
-                                        until.elementsLocated(By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`)),
-                                        5000
-                                    );
+                                    let contactInfoElementsExists = await driver.wait(until.elementsLocated(By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`)), 5000);
                                     if (contactInfoElementsExists) {
-                                        let contactInfourlList = await driver.findElements(
-                                            By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`)
-                                        );
+                                        let contactInfourlList = await driver.findElements(By.xpath(`(//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a`));
                                         if (contactInfourlList && contactInfourlList.length > 0) {
                                             for (let p = 0; p < contactInfourlList.length; p++) {
-                                                let contactLinkElement = await driver
-                                                    .findElement(
-                                                        By.xpath(
-                                                            `((//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a)[${p + 1}]`
-                                                        )
-                                                    )
-                                                    .getText();
-
-                                                // // console.log(contactLinkElement, "contactLinkElement");
-
+                                                let contactLinkElement = await driver.findElement(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}]//a)[${p + 1}]`)).getText();
                                                 obj.dataArr.push(contactLinkElement);
                                             }
                                         }
                                     }
                                 } catch (err) {
                                     try {
-                                        let contactInfoListExists = await driver.wait(
-                                            until.elementsLocated(
-                                                By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)
-                                            ),
-                                            5000
-                                        );
+                                        let contactInfoListExists = await driver.wait(until.elementsLocated(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}]/ul/li)`)), 5000);
                                         if (contactInfoListExists) {
-                                            let contactInfoList = await driver.findElements(
-                                                By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)`)
-                                            );
+                                            let contactInfoList = await driver.findElements(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}]/ul/li)`));
                                             if (contactInfoList) {
                                                 for (let p = 0; p < contactInfoList.length; p++) {
-                                                    let contactInfoListValue = await driver
-                                                        .findElement(
-                                                            By.xpath(
-                                                                `(((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}]/ul/li)[${
-                                                                    p + 1
-                                                                }]/span)[1]`
-                                                            )
-                                                        )
-                                                        .getText();
-                                                    // // console.log(contactInfoListValue, "contactInfoListValue");
-
+                                                    let contactInfoListValue = await driver.findElement(By.xpath(`(((//section[@class='pv-contact-info__contact-type'])[${q + 1}]/ul/li)[${p + 1}]/span)[1]`)).getText();
                                                     obj.dataArr.push(contactInfoListValue);
                                                 }
                                             } else {
-                                                console.error("Not found link");
+                                                seleniumErrorHandler();
                                             }
                                         }
                                     } catch (err) {
-                                        let contactInfoList = await driver.findElements(
-                                            By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`)
-                                        );
+                                        let contactInfoList = await driver.findElements(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}])//div/span`));
                                         if (contactInfoList) {
-                                            let contactInfoListValue = await driver
-                                                .findElement(
-                                                    By.xpath(`((//section[@class="pv-profile-section pv-contact-info artdeco-container-card"]//div[@class="pv-profile-section__section-info section-info"]//section)[${q + 1}])//div/span`)
-                                                )
-                                                .getText();
+                                            let contactInfoListValue = await driver.findElement(By.xpath(`((//section[@class='pv-contact-info__contact-type'])[${q + 1}])//div/span`)).getText();
 
                                             obj.dataArr.push(contactInfoListValue);
                                         }
-                                        // // console.log(err);
+                                        seleniumErrorHandler();
                                     }
-
-                                    console.error(err, "could not find contact info h3");
                                 }
                                 contactInfoArr.push(obj);
                             }
                         } else {
-                            // // console.log("not found");
+                            seleniumErrorHandler();
                         }
                     } catch (err) {
-                        console.error(err, "could not find contact info section tags");
                         seleniumErrorHandler();
                     }
+                    console.log("Users Contact Info", contactInfoArr);
                     userArr[j].contactInfoArr = contactInfoArr;
                 }
             } catch (err) {
-                console.error(err);
                 seleniumErrorHandler();
             }
 
+            // ! Capturing the Educational Details
             try {
                 let tempEducationArr = [];
                 await driver.get(`${currentUrl}/details/education/`);
                 await driver.sleep(randomIntFromInterval(1000, 15000));
 
-                //ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"]
                 try {
                     if (randomBoolean()) {
                         await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`);
                     }
-                    let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])`)), 5000);
+                    let tempEducationArrExists = await driver.wait(until.elementLocated(By.xpath(`//div[@class="scaffold-finite-scroll__content"]`)), 5000);
                     if (tempEducationArrExists) {
-                        let internalEducationarr = await driver.findElements(By.xpath(`(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])`));
+                        let internalEducationarr = await driver.findElements(By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li`));
 
-                        // // console.log(internalEducationarr, "internnaleducation arr");
                         for (let l = 0; l < internalEducationarr.length; l++) {
                             let schoolName = "";
                             let schoolDetail = "";
@@ -631,41 +568,33 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             try {
                                 schoolName = await driver
                                     .findElement(
-                                        By.xpath(
-                                            `(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${
-                                                l + 1
-                                            }]/div/div//div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`
-                                        )
+                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/div/div/div/div/span[@aria-hidden="true"]`)
                                     )
                                     .getText();
                             } catch (err) {
-                                console.error(err);
+                                seleniumErrorHandler();
                             }
                             try {
                                 schoolDetail = await driver
                                     .findElement(
                                         By.xpath(
-                                            `(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[${
                                                 l + 1
-                                            }]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal"]//span[@aria-hidden="true"]`
+                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                         )
                                     )
                                     .getText();
                             } catch (err) {
-                                console.error(err);
+                                seleniumErrorHandler();
                             }
                             try {
                                 year = await driver
                                     .findElement(
-                                        By.xpath(
-                                            `(//ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"])[${
-                                                l + 1
-                                            }]/div/div//div[@class="display-flex flex-row justify-space-between"]/a//span[@class="t-14 t-normal t-black--light"]//span[@aria-hidden="true"]`
-                                        )
+                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/span[2]/span[@aria-hidden="true"]`)
                                     )
                                     .getText();
                             } catch (err) {
-                                console.error(err);
+                                seleniumErrorHandler();
                             }
 
                             let obj = {
@@ -673,36 +602,33 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 schoolDetail,
                                 year,
                             };
-                            // // console.log(obj, "education Obj");
+
                             tempEducationArr.push(obj);
                         }
                     }
                 } catch (err) {
-                    console.error(err);
                     seleniumErrorHandler();
                 }
-
                 userArr[j].educationArr = tempEducationArr;
+                console.log("Users Educational Details", tempEducationArr);
             } catch (err) {
-                console.error(err);
                 seleniumErrorHandler();
             }
-            // // console.log("getExperience", `${userArr[j].link}/details/experience/`);
+
+            // ! Capturing the Experience Details
             await driver.get(`${currentUrl}/details/experience/`);
             await driver.sleep(randomIntFromInterval(1000, 15000));
             try {
-                let experienceFound = await driver.wait(
-                    until.elementLocated(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`)),
-                    5000
-                );
+                let experienceFound = await driver.wait(until.elementLocated(By.xpath(`//div[@class="scaffold-finite-scroll__content"]`)), 5000);
 
                 if (experienceFound) {
-                    // // // console.log(randomBoolean(), randomIntFromInterval(100, 5000), "randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()randomBoolean()")
                     if (randomBoolean()) {
                         await driver.executeScript(`window.scrollTo(0, ${randomIntFromInterval(100, 1000)})`);
                     }
-                    let experienceArr = await driver.findElements(By.xpath(`//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"]`));
-                    // // console.log(experienceArr, "experienceArr", experienceArr.length);
+                    let experienceArr = await driver.findElements(
+                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"]`)
+                    );
+
                     let experienceValueArr = [];
 
                     if (experienceArr && experienceArr.length > 0) {
@@ -713,138 +639,124 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             try {
                                 let checkElementHasAnchorTag = await driver.findElement(
                                     By.xpath(
-                                        `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li//div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
+                                        `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                             k + 1
-                                        }]/div[@class="display-flex flex-row justify-space-between"]/a`
-                                    ),
-                                    5000
+                                        }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a`
+                                    )
                                 );
-                                if (checkElementHasAnchorTag) {
-                                    // // console.log("inside if");
-                                    try {
-                                        companyvalue = await driver
-                                            .findElement(
-                                                By.xpath(
-                                                    `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                        k + 1
-                                                    }]/div[@class="display-flex flex-row justify-space-between"]/a/div//span[@aria-hidden="true"]`
-                                                )
-                                            )
-                                            .getText();
-                                    } catch (error) {
-                                        try {
-                                            companyvalue = await driver
-                                                .findElement(
-                                                    By.xpath(
-                                                        `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                            k + 1
-                                                        }]/div[@class="display-flex flex-row justify-space-between"]/div/div/span/span[@aria-hidden="true"]`
-                                                    )
-                                                )
-                                                .getText();
-                                        } catch (error) {
-                                            console.error(error);
-                                        }
-                                        console.error(error);
-                                    }
-                                    try {
-                                        value = await driver
-                                            .findElement(
-                                                By.xpath(
-                                                    `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                        k + 1
-                                                    }]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
-                                                )
-                                            )
-                                            .getText();
-                                    } catch (error) {
-                                        value = await driver
-                                            .findElement(
-                                                By.xpath(
-                                                    `((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                        k + 1
-                                                    }]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@aria-hidden="true"])[1]`
-                                                )
-                                            )
-                                            .getText();
-                                        console.error(error);
-                                    }
-                                    try {
-                                        year = await driver
-                                            .findElement(
-                                                By.xpath(
-                                                    `((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                        k + 1
-                                                    }]/div[@class="display-flex flex-row justify-space-between"]/a/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`
-                                                )
-                                            )
-                                            .getText();
-                                    } catch (error) {
-                                        try {
-                                            year = await driver
-                                                .findElement(
-                                                    By.xpath(
-                                                        `((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
-                                                            k + 1
-                                                        }]//a/span[@class="t-14 t-normal"])[1]`
-                                                    )
-                                                )
-                                                .getText();
-                                        } catch (error) {
-                                            console.error(error);
-                                        }
 
-                                        console.error(error);
+                                if (checkElementHasAnchorTag) {
+                                    let commonCompanyValue = "";
+
+                                    try {
+                                        commonCompanyValue = await driver
+                                            .findElement(
+                                                By.xpath(
+                                                    `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
+                                                        k + 1
+                                                    }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a/div[@class="display-flex flex-wrap align-items-center full-height"]/div/div/div/span[@aria-hidden="true"]`
+                                                )
+                                            )
+                                            .getText();
+                                    } catch (error) {
+                                        seleniumErrorHandler();
+                                    }
+
+                                    let checkInnerElementOfAnchorTag = await driver.findElements(
+                                        By.xpath(
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
+                                                k + 1
+                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li`
+                                        )
+                                    );
+
+                                    if (checkInnerElementOfAnchorTag && checkInnerElementOfAnchorTag.length > 0) {
+                                        for (let a = 0; a < checkInnerElementOfAnchorTag.length; a++) {
+                                            companyvalue = commonCompanyValue;
+
+                                            try {
+                                                value = await driver
+                                                    .findElement(
+                                                        By.xpath(
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
+                                                                k + 1
+                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li[${
+                                                                a + 1
+                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/div/div/div/div/span[@aria-hidden="true"]`
+                                                        )
+                                                    )
+                                                    .getText();
+                                            } catch (error) {
+                                                seleniumErrorHandler();
+                                            }
+
+                                            try {
+                                                year = await driver
+                                                    .findElement(
+                                                        By.xpath(
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
+                                                                k + 1
+                                                            }]/div/div/div/div[2]/ul/li/div[@class="pvs-list__container"]/div/div/ul/li[${
+                                                                a + 1
+                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@class="pvs-entity__caption-wrapper"]`
+                                                        )
+                                                    )
+                                                    .getText();
+                                            } catch (error) {
+                                                seleniumErrorHandler();
+                                            }
+
+                                            experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
+                                        }
                                     }
                                 }
                             } catch (err) {
-                                // // console.log("inside else", err);
                                 try {
                                     companyvalue = await driver
                                         .findElement(
                                             By.xpath(
-                                                `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                                     k + 1
-                                                }]/div[@class="display-flex flex-row justify-space-between"]/div/div//span[@aria-hidden="true"]`
+                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/div/div/div/div//span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.error(error);
+                                    seleniumErrorHandler();
                                 }
+
                                 try {
                                     value = await driver
                                         .findElement(
                                             By.xpath(
-                                                `(//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                                     k + 1
-                                                }]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
+                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.error(error);
+                                    seleniumErrorHandler();
                                 }
                                 try {
                                     year = await driver
                                         .findElement(
                                             By.xpath(
-                                                `((//main//section/div[@class="pvs-list__container"]/div/div/ul[@class="pvs-list "]/li/div/div/div[@class="display-flex flex-column full-width align-self-center"])[${
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                                     k + 1
-                                                }]/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal t-black--light"]/span[@aria-hidden="true"])[1]`
+                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span/span[@class="pvs-entity__caption-wrapper"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.error(error);
+                                    seleniumErrorHandler();
                                 }
+                                experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
                             }
-                            experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
-                            // // console.log({ company: companyvalue, companyDetail: value, year: year }, "{ company: companyvalue, companyDetail: value, year: year }");
                         }
                     }
                     userArr[j].experienceArr = experienceValueArr;
-                    // // console.log(experienceValueArr, "experienceValueArr");
+                    console.log("Users Experience details", experienceValueArr);
 
                     // let obj = {
                     //     ...clientExistsCheck,
@@ -862,25 +774,19 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                     // let temp = await new PreviousLeads(obj).save()
                     // clientExistsCheck
                 }
-                // // console.log(JSON.stringify(userArr[j], null, 2), "temp");
             } catch (err) {
-                console.error(err);
+                seleniumErrorHandler();
             }
             let rating = "";
             rating = CalculateRating(userArr[j]);
+            console.log("User Rating", rating);
             await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec();
             await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec();
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
-            //         // // // console.log("ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating", rating, "ratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingratingrating")
-            //         ////////////adding client for campaigns
-            // // console.log(userArr, "userArr", JSON.stringify(userArr, null, 2));
         } catch (error) {
             await redisClientParam.set("isFree", "true");
-
-            throw error;
-            // console.error(error)
-            // next(error)
+            next(error);
         }
     }
     await redisClientParam.set("isFree", "true");
