@@ -434,7 +434,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
 
     let driver = await maindriver;
 
-    for (let j = 0; j < 1; j++) {
+    for (let j = 0; j < userArr.length; j++) {
         try {
             let campaignObj = await Campaign.findById(userArr[j].campaignId).exec();
             await driver.get(`${userArr[j].link}`);
@@ -717,7 +717,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                             By.xpath(
                                                 `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                                     k + 1
-                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/div/div/div/div//span[@aria-hidden="true"]`
+                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
@@ -731,7 +731,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                             By.xpath(
                                                 `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
                                                     k + 1
-                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
+                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/div/div/div/div//span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
