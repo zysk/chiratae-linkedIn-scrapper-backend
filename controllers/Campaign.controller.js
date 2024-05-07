@@ -422,7 +422,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     await redisClientParam.set("isFree", "false");
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
-        await sendMail("arijit.saha@zysk.tech");
+        await sendMail("manvendra.singh@zysk.tech");
         await redisClientParam.set("isFree", "true");
     }
 
@@ -780,7 +780,8 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             let rating = "";
             rating = CalculateRating(userArr[j]);
             console.log("User Rating", rating);
-            await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec();
+            const test = await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec();
+            console.log(test);
             await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec();
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])

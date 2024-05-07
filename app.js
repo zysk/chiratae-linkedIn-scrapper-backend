@@ -24,6 +24,7 @@ import CampaignModel from "./models/Campaign.model";
 import customemailRouter from "./routes/customemail.router";
 import emailSettingsRouter from "./routes/EmailSettings.routes";
 import leadStatusRouter from "./routes/LeadStatus.routes";
+import { generalModelStatuses } from "./helpers/Constants";
 const redis = require("redis");
 const schedule = require("node-schedule");
 
@@ -85,7 +86,7 @@ export const cronFunc = async () => {
     try {
         let isFree = await redisClient.get("isFree")
         isFree = isFree == "true";
-        // // console.log(isFree, "isFree")
+        // console.log(isFree, "isFree")
         if (isFree) {
             let noUsersLeft = false;
             let noCampaignsLeft = false;
@@ -98,7 +99,7 @@ export const cronFunc = async () => {
 
             if (noUsersLeft) {
                 try {
-                    noCampaignsLeft = await searchLinkedInFn()
+                    noCampaignsLeft = await searchLinkedInFn(redisClient)
                 } catch (error) {
                     console.error("searchLinkedInFn error =>>", error)
                 }
