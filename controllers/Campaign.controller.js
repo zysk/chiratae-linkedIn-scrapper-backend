@@ -144,7 +144,6 @@ export const linkedInLogin = async (req, res, next) => {
 
         let options = new chrome.Options();
         options.addArguments("no-sandbox");
-        // options.addArguments('--headless');
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1080");
@@ -372,7 +371,9 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         // let debug = lastSelenium.capabilities.map_["goog:chromeOptions"].debuggerAddress
 
         // let options = new chrome.Options();
-        // // options.addArguments('--headless');
+        // if (process.env.NODE_ENV == "prod") {
+        //     options.addArguments("--headless");
+        // }
         // options.setPageLoadStrategy(PageLoadStrategy.EAGER)
         // options.addArguments('--disable-gpu');
         // options.addArguments('--window-size=1920,1080');
@@ -782,7 +783,6 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             rating = CalculateRating(userArr[j]);
             console.log("User Rating", rating);
             const test = await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec();
-            console.log(test);
             await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec();
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
@@ -792,6 +792,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
         }
     }
     await redisClientParam.set("isFree", "true");
+    return true;
 };
 
 export const linkedInProfileScrappingReq = async (req, res, next) => {
@@ -840,7 +841,9 @@ export const searchLinkedin = async (req, res, next) => {
 
         let options = new chrome.Options();
         options.addArguments("no-sandbox");
-        options.addArguments("--headless");
+        if (process.env.NODE_ENV == "prod") {
+            options.addArguments("--headless");
+        }
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1080");
@@ -1345,6 +1348,7 @@ export const getPastCampaign = async (req, res, next) => {
         ];
 
         let SearchResultArr = await Campaign.aggregate(pipeline);
+        console.log(SearchResultArr);
 
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {

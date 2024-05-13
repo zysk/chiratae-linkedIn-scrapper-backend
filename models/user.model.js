@@ -3,7 +3,7 @@ import { rolesObj } from "../helpers/Constants";
 
 let User = mongoose.Schema(
     {
-        /////common fields
+        // common fields
         name: String,
         isActive: { type: Boolean, default: false },
         role: {
@@ -12,19 +12,20 @@ let User = mongoose.Schema(
         },
 
         searchCompleted: { type: Boolean, default: false },
-        /////user fields
+        // user fields
         campaignId: { type: mongoose.Types.ObjectId, ref: "campaignId" },
         email: { type: String },
         phone: { type: Number },
         employeeId: String,
         password: String,
-        ////////client fields
+        // client fields
         link: String,
         educationArr: Array,
         experienceArr: Array,
         contactInfoArr: Array,
         location: String,
         currentPosition: String,
+        rating: String,
         mailSettingsObj: {
             mailHost: String,
             mailPort: String,
@@ -33,7 +34,6 @@ let User = mongoose.Schema(
             mailEncryption: String,
             mailService: String,
         },
-
     },
     { timestamps: true }
 );

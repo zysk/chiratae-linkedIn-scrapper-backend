@@ -15,9 +15,9 @@ import proxiesRouter from "./routes/Proxies.routes";
 import usersRouter from "./routes/users.routes";
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
-import { Builder } from 'selenium-webdriver';
-import chrome from 'selenium-webdriver/chrome';
-import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
+import { Builder } from "selenium-webdriver";
+import chrome from "selenium-webdriver/chrome";
+import { PageLoadStrategy } from "selenium-webdriver/lib/capabilities";
 import { linkedInProfileScrapping } from "./controllers/Campaign.controller";
 import { searchLinkedInFn } from "./helpers/SearchLinkedInFn";
 import CampaignModel from "./models/Campaign.model";
@@ -33,8 +33,8 @@ app.use(cors());
 // app.use(logger("dev"));
 
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
-	if (err) {
-		console.log(err);
+    if (err) {
+        console.log(err);
     } else {
         console.log("Connected to db at " + CONFIG.MONGOURI);
     }
@@ -43,14 +43,13 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 
 const redisClient = redis.createClient();
 
-redisClient.on('connect', () => {
-	console.log("Redis connected");
-	redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) :  console.log("Key set successfully in Redis")));
+redisClient.on("connect", () => {
+    console.log("Redis connected");
+    redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) : console.log("Key set successfully in Redis")));
 });
 
-redisClient.on('error', (err) => console.error('Redis connection error:', err));
+redisClient.on("error", (err) => console.error("Redis connection error:", err));
 redisClient.connect();
-
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
 app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 }));
@@ -84,7 +83,7 @@ const job = schedule.scheduleJob("*/10 * * * *", function () {
 
 export const cronFunc = async () => {
     try {
-        let isFree = await redisClient.get("isFree")
+        let isFree = await redisClient.get("isFree");
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
         if (isFree) {
@@ -93,48 +92,53 @@ export const cronFunc = async () => {
 
             try {
                 noUsersLeft = await linkedInProfileScrapping(redisClient);
+                console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
-                console.error("linkedInProfileScrapping error =>>", error)
+                console.error("linkedInProfileScrapping error =>>", error);
             }
 
             if (noUsersLeft) {
                 try {
-                    noCampaignsLeft = await searchLinkedInFn(redisClient)
+                    noCampaignsLeft = await searchLinkedInFn(redisClient);
+                    console.log("noCampaignsLeft", noCampaignsLeft);
                 } catch (error) {
-                    console.error("searchLinkedInFn error =>>", error)
+                    console.error("searchLinkedInFn error =>>", error);
                 }
             }
 
-            if (noCampaignsLeft) { // reset users and campaign
+            if (noCampaignsLeft) {
+                // reset users and campaign
                 try {
-                    await CampaignModel.updateMany({}, {
-                        status: generalModelStatuses.CREATED,
-                        isSearched: false,
-                        processing: false,
-                        // $inc: { timesRun: 1 }
-                    })
+                    await CampaignModel.updateMany(
+                        {},
+                        {
+                            status: generalModelStatuses.CREATED,
+                            isSearched: false,
+                            processing: false,
+                            $inc: { timesRun: 1 }
+                        }
+                    );
+                    console.log("Search completed >>>>>>>>>>>>>>>>>>>>>>");
                 } catch (error) {
-
-                    console.error("campaign update many error =>>", error)
+                    console.error("campaign update many error =>>", error);
                 }
             }
-
         }
     } catch (error) {
-        console.error("ERROR IN CRON FUNC", error)
+        console.error("ERROR IN CRON FUNC", error);
     }
-}
+};
 // sendCustomMail()
 // app.use()
-
-
 
 /**
  * Selenium Setup
  */
 const options = new chrome.Options();
 options.addArguments("no-sandbox");
-options.addArguments('--headless');
+if (process.env.NODE_ENV == "prod") {
+	options.addArguments("--headless");
+}
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments('--window-size=1920,1080');
@@ -143,10 +147,7 @@ const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or whereve
 const serviceBuilder = new chrome.ServiceBuilder(chromeDriverPath);
 
 export const driver = new Promise((resolve, reject) => {
-    resolve(new Builder()
-        .forBrowser("chrome")
-        .setChromeService(serviceBuilder)
-        .setChromeOptions(options).build());
+    resolve(new Builder().forBrowser("chrome").setChromeService(serviceBuilder).setChromeOptions(options).build());
 });
 
 export default app;
