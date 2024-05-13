@@ -137,10 +137,11 @@ export const cronFunc = async () => {
 const options = new chrome.Options();
 options.addArguments("--no-sandbox");
 if (process.env.NODE_ENV == "prod") {
-	options.addArguments("--headless");
+	options.addArguments("--headless=new");
 }
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
+options.addArguments("--remote-allow-origins=*");
 options.addArguments('--window-size=1920,1080');
 
 const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver

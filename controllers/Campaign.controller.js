@@ -146,6 +146,7 @@ export const linkedInLogin = async (req, res, next) => {
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
+		options.addArguments("--remote-allow-origins=*");
         options.addArguments("--window-size=1920,1080");
 
         let imgUrl = "";
@@ -842,10 +843,11 @@ export const searchLinkedin = async (req, res, next) => {
         let options = new chrome.Options();
         options.addArguments("--no-sandbox");
         if (process.env.NODE_ENV == "prod") {
-            options.addArguments("--headless");
+            options.addArguments("--headless=new");
         }
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
+		options.addArguments("--remote-allow-origins=*");
         options.addArguments("--window-size=1920,1080");
 
         if (req.body.proxyId) {
