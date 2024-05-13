@@ -214,7 +214,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     seleniumErrorHandler();
                                 }
 
-                                console.log("SCROLL TO BOTTOM THE FIRST");
+                                // console.log("SCROLL TO BOTTOM THE FIRST");
                                 // ? locating next button
                                 try {
                                     let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000);
@@ -237,7 +237,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             // ? scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                             await driver.executeScript(`window.scrollTo(0, 4500)`);
 
-                                            // console.log("SCROLL TO BOTTOM THE ALT")
+                                            // console.log("SCROLL TO BOTTOM THE ALT>>>>>>>>>>>>>>>>>>>>>>>")
                                             // ? waiting for the elements to load
                                             await driver.sleep(randomIntFromInterval(1000, 2000));
                                             // ? locating results div
@@ -245,26 +245,26 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let resultElement = await driver.wait(
                                                     until.elementsLocated(
                                                         By.xpath(
-                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li/div[@data-view-name="search-entity-result-universal-template"]/div` // todo: need to fix this
+                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`
                                                         )
                                                     ),
                                                     5000
                                                 );
                                                 if (resultElement) {
-                                                    // console.log(resultElement.length, "resultElement.length")
+                                                    console.log(resultElement.length, "resultElement.length")
                                                     // ? looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
                                                         let obj = {};
                                                         // ? locating name of the users
                                                         let name = await driver
-                                                            .findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)) // todo: need to fix this
+                                                            .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`))
                                                             .getText();
                                                         if (name) {
                                                             obj.name = name?.split("\n")[0];
                                                         }
                                                         // ? locating profile link of the users
                                                         let linkValue = await driver
-                                                            .findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`)) // todo: copy the top one
+                                                            .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`))
                                                             .getAttribute("href");
                                                         if (linkValue) {
                                                             obj.link = linkValue;
@@ -322,34 +322,33 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                         console.error(error);
                                         seleniumErrorHandler();
                                     }
-
                                     // ? locating results div
                                     try {
                                         let resultElement = await driver.wait(
                                             until.elementsLocated(
                                                 By.xpath(
-                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]//li//div[@class="entity-result"]//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"]`
+                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`
                                                 )
                                             ),
                                             5000
                                         );
+                                        // console.log("runnnnn till herereeeeeeeeeeeeerererer");
                                         if (resultElement) {
+                                            // console.log(">>>>>>>>>>>>>>>>> resultElement", resultElement.length);
                                             // ? looping through the results
                                             for (let i = 0; i < resultElement.length; i++) {
                                                 let obj = {};
                                                 // ? locating name of the users
                                                 let name = await driver
-                                                    .findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`))
+                                                    .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`))
                                                     .getText();
-                                                console.log(">>>>>>>>>>>>>>>>>>>>> NAME", name);
                                                 if (name) {
                                                     obj.name = name?.split("\n")[0];
                                                 }
                                                 // ? locating profile link of the users
                                                 let linkValue = await driver
-                                                    .findElement(By.xpath(`(//div[@class="entity-result__item"]//div[@class="entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light"])[${i + 1}]//span//span/a`))
+                                                    .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`))
                                                     .getAttribute("href");
-                                                console.log(">>>>>>>>>>>>>>>>>> LINK", linkValue);
                                                 if (linkValue) {
                                                     obj.link = linkValue;
                                                 }
@@ -662,10 +661,10 @@ export const searchLinkedInFn = async (redisClientParam) => {
                         let clientExistsCheck = await User.findOne({ name: new RegExp(`^${resultsArr[j].name}$`), url: new RegExp(`^${resultsArr[j].url}$`), role: rolesObj?.CLIENT })
                             .lean()
                             .exec();
-                        console.log("clientExistsCheck",clientExistsCheck);
+                        // console.log("clientExistsCheck", clientExistsCheck);
                         if (!clientExistsCheck) {
                             clientObj = await new User({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id }).save();
-                            console.log("clientObj", clientObj);
+                            // console.log("clientObj", clientObj);
                             if (campaignObj) {
                                 let leadsArr = await new Lead({ clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).save();
                             }
@@ -689,7 +688,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                             clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id, searchCompleted: false }, { new: true }).exec();
                         }
                         if (campaignObj) {
-                            let leadsArr = await Lead.findOneAndUpdate({ clientId: clientExistsCheck?._id }, { clientId: clientObj._id, campaignId: campaignObj._id, isSearched: false }).exec();
+                            let leadsArr = await Lead.findOneAndUpdate({ clientId: clientExistsCheck?._id }, { clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).exec();
                         }
 
                         await new UserLogs({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save();
@@ -742,4 +741,5 @@ export const searchLinkedInFn = async (redisClientParam) => {
         throw error;
     }
     await redisClientParam.set("isFree", "true");
+    return true;
 };

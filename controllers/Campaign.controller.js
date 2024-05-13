@@ -781,7 +781,6 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             rating = CalculateRating(userArr[j]);
             console.log("User Rating", rating);
             const test = await User.findByIdAndUpdate(userArr[j]._id, { ...userArr[j], role: rolesObj?.CLIENT, rating, searchCompleted: true }).exec();
-            console.log(test);
             await Lead.updateMany({ clientId: `${userArr[j]._id}` }, { rating }).exec();
             //         let rating = "";
             //         rating = CalculateRating(resultsArr[j])
@@ -791,6 +790,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
         }
     }
     await redisClientParam.set("isFree", "true");
+    return true;
 };
 
 export const linkedInProfileScrappingReq = async (req, res, next) => {
@@ -1343,6 +1343,7 @@ export const getPastCampaign = async (req, res, next) => {
         ];
 
         let SearchResultArr = await Campaign.aggregate(pipeline);
+        console.log(SearchResultArr);
 
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {
