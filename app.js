@@ -135,7 +135,7 @@ export const cronFunc = async () => {
  * Selenium Setup
  */
 const options = new chrome.Options();
-options.addArguments("no-sandbox");
+options.addArguments("--no-sandbox");
 if (process.env.NODE_ENV == "prod") {
 	options.addArguments("--headless");
 }
