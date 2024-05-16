@@ -1,9 +1,8 @@
-
 import Proxies from "../models/Proxies.model";
 
 export const createNewProxy = async (req, res, next) => {
     try {
-        let existsCheck = await Proxies.findOne({ value: req.body.value }).exec()
+        let existsCheck = await Proxies.findOne({ value: req.body.value }).exec();
         if (existsCheck) {
             throw new Error("Proxy Already Exists!");
         }
@@ -15,10 +14,9 @@ export const createNewProxy = async (req, res, next) => {
     }
 };
 
-
 export const getProxies = async (req, res, next) => {
     try {
-        let ProxiesArr = await Proxies.find().exec()
+        let ProxiesArr = await Proxies.find().exec();
         res.status(200).json({ message: "Proxies found", data: ProxiesArr, success: true });
     } catch (error) {
         console.error(error);
@@ -36,4 +34,3 @@ export const deleteProxy = async (req, res, next) => {
         next(error);
     }
 };
-

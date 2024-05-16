@@ -1,6 +1,6 @@
-import express from 'express'
+import express from "express";
 
-const router = express.Router()
+const router = express.Router();
 
 router.use("/users", usersRouter);
 router.use("/campaign", campaignRouter);
@@ -13,4 +13,4 @@ router.use("/leadComments", leadCommentRouter);
 router.use("/emailSettings", emailSettingsRouter);
 router.use("/customemail", customemailRouter);
 
-export default router
+export default router;

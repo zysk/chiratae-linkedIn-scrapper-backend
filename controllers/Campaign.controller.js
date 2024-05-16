@@ -36,11 +36,9 @@ export const handleLogoutAndLoginAnotherAccount = async (req, res, next) => {
         let driver = await maindriver;
         driver.sleep(1000);
 
-        let logoutButton = await driver.wait(
-            until.elementsLocated(By.xpath(`//button[@aria-expanded="false" and @class="global-nav__primary-link artdeco-dropdown__trigger artdeco-dropdown__trigger--placement-bottom ember-view" and @type="button"]`))
-        );
+        let logoutButton = await driver.wait(until.elementsLocated(By.xpath(`(//span[@class='t-12 global-nav__primary-link-text'])[1]`)));
         if (logoutButton) {
-            await driver.findElement(By.xpath(`//button[@aria-expanded="false" and @class="global-nav__primary-link artdeco-dropdown__trigger artdeco-dropdown__trigger--placement-bottom ember-view" and @type="button"]`)).click();
+            await driver.findElement(By.xpath(`(//span[@class='t-12 global-nav__primary-link-text'])[1]`)).click();
 
             driver.sleep(1000);
 
@@ -146,7 +144,7 @@ export const linkedInLogin = async (req, res, next) => {
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
-		options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--remote-allow-origins=*");
         options.addArguments("--window-size=1920,1080");
 
         let imgUrl = "";
@@ -847,7 +845,7 @@ export const searchLinkedin = async (req, res, next) => {
         }
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--disable-gpu");
-		options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--remote-allow-origins=*");
         options.addArguments("--window-size=1920,1080");
 
         if (req.body.proxyId) {

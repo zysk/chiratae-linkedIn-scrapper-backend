@@ -16,12 +16,9 @@ export const generateUid = async () => {
     }
 };
 
-
-
-
-
 export const generateRandomNumbers = (n) => {
-    var add = 1, max = 12 - add;   // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.
+    var add = 1,
+        max = 12 - add; // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.
 
     if (n > max) {
         return generate(max) + generate(n - max);
@@ -32,17 +29,13 @@ export const generateRandomNumbers = (n) => {
     var number = Math.floor(Math.random() * (max - min + 1)) + min;
 
     return ("" + number).substring(add);
+};
+
+export function randomIntFromInterval(min, max) {
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
-
-
-
-
-export function randomIntFromInterval(min, max) { // min and max included
-    return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-
 
 export function randomBoolean() {
-    return Math.random() < 0.4
+    return Math.random() < 0.4;
 }

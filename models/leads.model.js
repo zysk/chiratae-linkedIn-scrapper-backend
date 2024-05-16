@@ -8,11 +8,11 @@ let lead = mongoose.Schema(
         leadAssignedToId: { type: mongoose.Types.ObjectId, ref: "User" },
         status: {
             type: String,
-            default: "CREATED"
+            default: "CREATED",
         },
         rating: {
             type: String,
-            default: "Low"
+            default: "Low",
         },
         isSearched: { type: Boolean, default: false },
     },

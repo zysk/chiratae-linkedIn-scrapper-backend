@@ -1,3 +1,1 @@
-export const seleniumErrorHandler = () => {
-
-}
+export const seleniumErrorHandler = () => {};

@@ -10,7 +10,6 @@ router.patch("/updateById/:id", updateUser);
 router.get("/getById/:id", getUserById);
 router.get("/setUserRating", setUserRating);
 
-
 router.delete("/deleteById/:id", deleteUser);
 
 //admin =

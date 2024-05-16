@@ -6,7 +6,7 @@ let SeleniumSession = mongoose.Schema(
         sessiong_data: Object,
         capabilities: Object,
     },
-    { timestamps: true, }
+    { timestamps: true }
 );
 
 export default mongoose.model("SeleniumSession", SeleniumSession);

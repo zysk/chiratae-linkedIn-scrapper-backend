@@ -18,11 +18,9 @@ export const registerUser = async (req, res, next) => {
         }
         if (req.body.password) {
             req.body.password = await encryptPassword(req.body.password);
+        } else {
+            throw new Error("Password is mandatory");
         }
-        else {
-            throw new Error("Password is mandatory")
-        }
-
 
         let newUser = await new Users(req.body).save();
 
@@ -66,17 +64,12 @@ export const login = async (req, res, next) => {
     }
 };
 
-
-
-
 export const getUserById = async (req, res, next) => {
     try {
         let userObj = await Users.findById(req.params.id).exec();
         if (!userObj) {
             throw new Error("User Not found");
         }
-
-
 
         res.status(201).json({ message: "found User", data: userObj, success: true });
     } catch (err) {
@@ -91,12 +84,10 @@ export const updateUser = async (req, res, next) => {
             throw new Error("User Not found");
         }
         if (!req.body.password || req.body.password == "") {
-            delete req.body.password
-        }
-        else {
+            delete req.body.password;
+        } else {
             req.body.password = await encryptPassword(req.body.password);
         }
-
 
         // // console.log(req.body, "192.168.0.23:3000/", "req.params.id", req.params.id)
         await Users.findByIdAndUpdate(req.params.id, req.body).exec();
@@ -109,11 +100,11 @@ export const updateUser = async (req, res, next) => {
 
 export const getUsers = async (req, res, next) => {
     try {
-        let query = {}
+        let query = {};
         if (req.query.role) {
-            query = { ...query, role: req.query.role }
+            query = { ...query, role: req.query.role };
         }
-        let UsersArr = await Users.find(query).exec()
+        let UsersArr = await Users.find(query).exec();
         // // console.log(UsersArr, "UsersArr")
         res.status(200).json({ message: "Users", data: UsersArr, success: true });
     } catch (error) {
@@ -121,9 +112,6 @@ export const getUsers = async (req, res, next) => {
         next(error);
     }
 };
-
-
-
 
 export const getUserDetailsWithCampaignsData = async (req, res, next) => {
     try {
@@ -145,7 +133,6 @@ export const deleteUser = async (req, res, next) => {
         next(error);
     }
 };
-
 
 //ADMIN============
 export const registerAdmin = async (req, res, next) => {
@@ -190,17 +177,16 @@ export const loginAdmin = async (req, res, next) => {
     }
 };
 
-
 export const setUserRating = async (req, res, next) => {
     try {
         const usersArr = await Users.find({ role: "CLIENT" }).exec();
         // // console.log(usersArr.length)
-        let count = 0
+        let count = 0;
         for (let j = 0; j <= usersArr.length - 1; j++) {
             // // // console.log("j", j, usersArr[j])
             let rating = await CalculateRating(usersArr[j]);
             await Users.findByIdAndUpdate(usersArr[j]._id, { rating }).exec();
-            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec()
+            await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec();
             // if (rating != "LOW") {
             //     // // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             //     count += 1
@@ -210,8 +196,7 @@ export const setUserRating = async (req, res, next) => {
             // }
         }
 
-        res.status(200).json({ message: 'as', success: true });
-
+        res.status(200).json({ message: "as", success: true });
     } catch (err) {
         // // console.log(err);
         next(err);

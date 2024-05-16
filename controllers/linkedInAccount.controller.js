@@ -1,10 +1,9 @@
-
 import LinkedInAccounts from "../models/LinkedInAccounts.model";
 // import { upload } from "../helpers/fileUpload";
 
 export const createNewLinkedInAccount = async (req, res, next) => {
     try {
-        let existsCheck = await LinkedInAccounts.findOne({ name: req.body.name, password: req.body.password }).exec()
+        let existsCheck = await LinkedInAccounts.findOne({ name: req.body.name, password: req.body.password }).exec();
         if (existsCheck) {
             throw new Error("LinkedInAccount Already Exists with same name or password !");
         }
@@ -16,10 +15,9 @@ export const createNewLinkedInAccount = async (req, res, next) => {
     }
 };
 
-
 export const getLinkedInAccounts = async (req, res, next) => {
     try {
-        let LinkedInAccountsArr = await LinkedInAccounts.find().exec()
+        let LinkedInAccountsArr = await LinkedInAccounts.find().exec();
         res.status(200).json({ message: "LinkedInAccounts found", data: LinkedInAccountsArr, success: true });
     } catch (error) {
         console.error(error);
@@ -37,4 +35,3 @@ export const deleteLinkedInAccount = async (req, res, next) => {
         next(error);
     }
 };
-

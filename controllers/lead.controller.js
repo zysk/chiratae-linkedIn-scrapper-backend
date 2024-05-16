@@ -1,4 +1,3 @@
-
 import { leadsDetails, leadsList } from "../Builders/user.builder";
 import Lead from "../models/leads.model";
 import User from "../models/user.model";
@@ -6,7 +5,7 @@ import LeadLogs from "../models/LeadLogs.model";
 
 export const createNewLead = async (req, res, next) => {
     try {
-        let existsCheck = await Lead.findOne({ value: req.body.value }).exec()
+        let existsCheck = await Lead.findOne({ value: req.body.value }).exec();
         if (existsCheck) {
             throw new Error("Lead Already Exists!");
         }
@@ -18,57 +17,53 @@ export const createNewLead = async (req, res, next) => {
     }
 };
 
-
 export const getLeads = async (req, res, next) => {
     try {
-        let query = {}
+        let query = {};
         if (req.query.role == "USER") {
             if (req.query.userId) {
-                query = { ...query, leadAssignedToId: `${req.query.userId}` }
+                query = { ...query, leadAssignedToId: `${req.query.userId}` };
             }
         }
         // // console.log(req.query, "skip")
         if (req.query.skip) {
-            query = { ...query, skip: parseInt(req.query.skip) }
+            query = { ...query, skip: parseInt(req.query.skip) };
         }
         if (req.query.limit) {
-            query = { ...query, limit: parseInt(req.query.limit) }
+            query = { ...query, limit: parseInt(req.query.limit) };
         }
         if (req.query.filter) {
-            query = { ...query, filter: req.query.filter }
+            query = { ...query, filter: req.query.filter };
         }
         if (req.query.searchQueryValue) {
-            query = { ...query, searchQueryValue: req.query.searchQueryValue }
+            query = { ...query, searchQueryValue: req.query.searchQueryValue };
         }
         if (req.query.school) {
-            query = { ...query, school: req.query.school }
+            query = { ...query, school: req.query.school };
         }
         if (req.query.company) {
-            query = { ...query, company: req.query.company }
+            query = { ...query, company: req.query.company };
         }
         // // console.log(leadsList(query), "leadsList(query)")
-        let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec()
-        let totalLeads = 0
+        let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec();
+        let totalLeads = 0;
         if (req.query.userId) {
-            totalLeads = await Lead.find({ leadAssignedToId: `${req.query.userId}` }).count()
+            totalLeads = await Lead.find({ leadAssignedToId: `${req.query.userId}` }).count();
         } else {
             if (req.query.filter == "assigned") {
                 // // console.log("assigned")
-                totalLeads = await Lead.find({ leadAssignedToId: { $exists: true } }).count()
-            }
-            else if (req.query.filter == "un-assigned") {
+                totalLeads = await Lead.find({ leadAssignedToId: { $exists: true } }).count();
+            } else if (req.query.filter == "un-assigned") {
                 // // console.log("un-assigned")
-                totalLeads = await Lead.find({ leadAssignedToId: { $exists: false } }).count()
-            }
-            else if (req.query.searchQueryValue && req.query.searchQueryValue != "") {
+                totalLeads = await Lead.find({ leadAssignedToId: { $exists: false } }).count();
+            } else if (req.query.searchQueryValue && req.query.searchQueryValue != "") {
                 // // console.log("req.query.searchQueryValue")
-                totalLeads = LeadStatusArr.length
+                totalLeads = LeadStatusArr.length;
 
                 // // console.log(totalLeads, "!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@######################EE$$$$$$$$$$$")
-            }
-            else {
+            } else {
                 // // console.log("else")
-                totalLeads = await Lead.find().count()
+                totalLeads = await Lead.find().count();
             }
         }
         // // console.log(totalLeads, "totalLeads")
@@ -81,15 +76,15 @@ export const getLeads = async (req, res, next) => {
 };
 export const getLeadById = async (req, res, next) => {
     try {
-        let query = {}
-        query = { ...query, id: req.params.id }
+        let query = {};
+        query = { ...query, id: req.params.id };
         if (req.query.role == "USER") {
             if (req.query.userId) {
-                query = { ...query, leadAssignedToId: `${req.query.userId}` }
+                query = { ...query, leadAssignedToId: `${req.query.userId}` };
             }
         }
 
-        let LeadStatusArr = await Lead.aggregate([leadsDetails(query)]).exec()
+        let LeadStatusArr = await Lead.aggregate([leadsDetails(query)]).exec();
 
         res.status(200).json({ message: "Lead found", data: LeadStatusArr[0], success: true });
     } catch (error) {
@@ -98,15 +93,13 @@ export const getLeadById = async (req, res, next) => {
     }
 };
 
-
-
 export const assignLeadToUser = async (req, res, next) => {
     try {
-        let LeadObj = await Lead.findById(req.params.id).exec()
+        let LeadObj = await Lead.findById(req.params.id).exec();
         if (!LeadObj) {
             throw new Error("Lead not found !");
         }
-        let userObj = await User.findById(req.body.userId).exec()
+        let userObj = await User.findById(req.body.userId).exec();
         if (!userObj) {
             throw new Error("Sub User not found !");
         }
@@ -114,12 +107,10 @@ export const assignLeadToUser = async (req, res, next) => {
             leadId: LeadObj._id,
             value: `${userObj?.name}`,
             previousValue: `N.A.`,
-            message: `Lead assigned to ${userObj?.name}`
-        }).save()
+            message: `Lead assigned to ${userObj?.name}`,
+        }).save();
 
-
-        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { leadAssignedToId: req.body.userId }).exec()
-
+        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { leadAssignedToId: req.body.userId }).exec();
 
         res.status(200).json({ message: "Lead Assigned", success: true });
     } catch (error) {
@@ -129,35 +120,36 @@ export const assignLeadToUser = async (req, res, next) => {
 };
 export const automaticallyAssignLeadsToUser = async (req, res, next) => {
     try {
-
         let totalUsersArr = await User.find({ isActive: true }).find();
 
         if ((totalUsersArr && totalUsersArr.length == 0) || !totalUsersArr) {
-            throw new Error("No active sub users found to allot leads to .")
+            throw new Error("No active sub users found to allot leads to .");
         }
 
-        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } }).lean().exec();
+        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } })
+            .lean()
+            .exec();
 
         if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
-            throw new Error("No leads left to allot.")
+            throw new Error("No leads left to allot.");
         }
-        let finalLeadsPool = toatalLeadsArr
+        let finalLeadsPool = toatalLeadsArr;
 
         console.time();
 
         while (finalLeadsPool && finalLeadsPool.length > 0) {
             for (let i = 0; i <= totalUsersArr.length - 1; i++) {
                 if (finalLeadsPool && finalLeadsPool.length == 0) {
-                    break
+                    break;
                 }
 
                 await new LeadLogs({
                     leadId: finalLeadsPool[0]._id,
                     value: `${totalUsersArr[i]?._id}`,
                     previousValue: `N.A.`,
-                    message: `Lead assigned to ${totalUsersArr[i]?.name}`
-                }).save()
-                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
+                    message: `Lead assigned to ${totalUsersArr[i]?.name}`,
+                }).save();
+                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec();
                 finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
             }
         }
@@ -170,40 +162,39 @@ export const automaticallyAssignLeadsToUser = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 export const automaticallyAssignLeadsToSelectedUsers = async (req, res, next) => {
     try {
-
         let totalUsersArr = req.body.usersArr;
 
         if ((totalUsersArr && totalUsersArr.length == 0) || !totalUsersArr) {
-            throw new Error("No active sub users found to allot leads to .")
+            throw new Error("No active sub users found to allot leads to .");
         }
 
-        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } }).lean().exec();
+        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } })
+            .lean()
+            .exec();
 
         if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
-            throw new Error("No leads left to allot.")
+            throw new Error("No leads left to allot.");
         }
-        let finalLeadsPool = toatalLeadsArr
+        let finalLeadsPool = toatalLeadsArr;
 
         console.time();
 
         while (finalLeadsPool && finalLeadsPool.length > 0) {
             for (let i = 0; i <= totalUsersArr.length - 1; i++) {
                 if (finalLeadsPool && finalLeadsPool.length == 0) {
-                    break
+                    break;
                 }
 
                 await new LeadLogs({
                     leadId: finalLeadsPool[0]._id,
                     value: `${totalUsersArr[i]?._id}`,
                     previousValue: `N.A.`,
-                    message: `Lead assigned to ${totalUsersArr[i]?.name}`
-                }).save()
-                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec()
+                    message: `Lead assigned to ${totalUsersArr[i]?.name}`,
+                }).save();
+                let updatedLead = await Lead.findByIdAndUpdate(finalLeadsPool[0]._id, { leadAssignedToId: totalUsersArr[i]?._id }).exec();
                 finalLeadsPool = finalLeadsPool.filter((elx, index) => index != 0);
             }
         }
@@ -217,10 +208,9 @@ export const automaticallyAssignLeadsToSelectedUsers = async (req, res, next) =>
     }
 };
 
-
 export const changeLeadStatus = async (req, res, next) => {
     try {
-        let LeadObj = await Lead.findById(req.params.id).exec()
+        let LeadObj = await Lead.findById(req.params.id).exec();
         if (!LeadObj) {
             throw new Error("Lead not found !");
         }
@@ -230,12 +220,9 @@ export const changeLeadStatus = async (req, res, next) => {
             value: `${req.body.status}`,
             previousValue: `${LeadObj?.status}`,
             message: `Lead status changed to ${req.body.status} from ${LeadObj?.status} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
-        }).save()
+        }).save();
 
-
-
-        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { status: req.body.status }).exec()
-
+        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { status: req.body.status }).exec();
 
         res.status(200).json({ message: "Lead Status Updated", success: true });
     } catch (error) {
@@ -246,7 +233,7 @@ export const changeLeadStatus = async (req, res, next) => {
 
 export const changeLeadRating = async (req, res, next) => {
     try {
-        let LeadObj = await Lead.findById(req.params.id).exec()
+        let LeadObj = await Lead.findById(req.params.id).exec();
         if (!LeadObj) {
             throw new Error("Lead not found !");
         }
@@ -256,10 +243,9 @@ export const changeLeadRating = async (req, res, next) => {
             value: `${req.body.rating}`,
             previousValue: `${LeadObj?.rating}`,
             message: `Lead rating changed to ${req.body.rating} from ${LeadObj?.rating} by ${req?.user?.userObj?.role == "ADMIN" ? "ADMIN" : req?.user?.user?.name}`,
-        }).save()
+        }).save();
 
-        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { rating: req.body.rating }).exec()
-
+        let updatedLead = await Lead.findByIdAndUpdate(req.params.id, { rating: req.body.rating }).exec();
 
         res.status(200).json({ message: "Lead Rating Updated", success: true });
     } catch (error) {

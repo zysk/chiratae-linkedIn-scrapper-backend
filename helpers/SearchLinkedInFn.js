@@ -243,28 +243,36 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             // ? locating results div
                                             try {
                                                 let resultElement = await driver.wait(
-                                                    until.elementsLocated(
-                                                        By.xpath(
-                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`
-                                                        )
-                                                    ),
+                                                    until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`)),
                                                     5000
                                                 );
                                                 if (resultElement) {
-                                                    console.log(resultElement.length, "resultElement.length")
+                                                    console.log(resultElement.length, "resultElement.length");
                                                     // ? looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
                                                         let obj = {};
                                                         // ? locating name of the users
                                                         let name = await driver
-                                                            .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`))
+                                                            .findElement(
+                                                                By.xpath(
+                                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                        i + 1
+                                                                    }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
+                                                                )
+                                                            )
                                                             .getText();
                                                         if (name) {
                                                             obj.name = name?.split("\n")[0];
                                                         }
                                                         // ? locating profile link of the users
                                                         let linkValue = await driver
-                                                            .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`))
+                                                            .findElement(
+                                                                By.xpath(
+                                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                        i + 1
+                                                                    }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
+                                                                )
+                                                            )
                                                             .getAttribute("href");
                                                         if (linkValue) {
                                                             obj.link = linkValue;
@@ -324,14 +332,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     }
                                     // ? locating results div
                                     try {
-                                        let resultElement = await driver.wait(
-                                            until.elementsLocated(
-                                                By.xpath(
-                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`
-                                                )
-                                            ),
-                                            5000
-                                        );
+                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`)), 5000);
                                         // console.log("runnnnn till herereeeeeeeeeeeeerererer");
                                         if (resultElement) {
                                             // console.log(">>>>>>>>>>>>>>>>> resultElement", resultElement.length);
@@ -340,14 +341,26 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let obj = {};
                                                 // ? locating name of the users
                                                 let name = await driver
-                                                    .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`))
+                                                    .findElement(
+                                                        By.xpath(
+                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                i + 1
+                                                            }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
+                                                        )
+                                                    )
                                                     .getText();
                                                 if (name) {
                                                     obj.name = name?.split("\n")[0];
                                                 }
                                                 // ? locating profile link of the users
                                                 let linkValue = await driver
-                                                    .findElement(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${i+1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`))
+                                                    .findElement(
+                                                        By.xpath(
+                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                i + 1
+                                                            }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
+                                                        )
+                                                    )
                                                     .getAttribute("href");
                                                 if (linkValue) {
                                                     obj.link = linkValue;

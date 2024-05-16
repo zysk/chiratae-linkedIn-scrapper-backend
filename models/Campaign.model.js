@@ -19,12 +19,12 @@ let Campaign = mongoose.Schema(
         },
         status: {
             type: String,
-            default: generalModelStatuses.CREATED
+            default: generalModelStatuses.CREATED,
         },
 
         isSearched: {
             type: Boolean,
-            default: false
+            default: false,
         },
         resultsArr: [
             {

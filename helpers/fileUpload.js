@@ -1,15 +1,14 @@
-var multer = require('multer');
+var multer = require("multer");
 
 ////////////////////////multer configs
 var storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'public/uploads/')
+    destination: function (req, file, cb) {
+        cb(null, "public/uploads/");
     },
-    filename: function(req, file, cb) {
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + "-" + Date.now() + `.${file.mimetype.split("/")[1]}`);
+    },
+});
 
-        cb(null, file.fieldname + '-' + Date.now() + `.${file.mimetype.split('/')[1]}`)
-    }
-})
-
-var upload = multer({ storage: storage })
-module.exports = { upload }
+var upload = multer({ storage: storage });
+module.exports = { upload };
