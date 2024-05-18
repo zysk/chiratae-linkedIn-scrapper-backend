@@ -3,6 +3,7 @@ import LinkedInAccounts from "../models/LinkedInAccounts.model";
 
 export const createNewLinkedInAccount = async (req, res, next) => {
     try {
+        req.body.password = Buffer.from(req.body.password, "base64").toString("ascii");
         let existsCheck = await LinkedInAccounts.findOne({ name: req.body.name, password: req.body.password }).exec();
         if (existsCheck) {
             throw new Error("LinkedInAccount Already Exists with same name or password !");

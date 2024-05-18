@@ -199,7 +199,6 @@ export const linkedInLogin = async (req, res, next) => {
             driver.navigate().refresh();
             // driver.reload
             // check login
-
             ///////checking if the page is loaded
             if (handleCheckPageLoaded(driver)) {
                 // login code start
@@ -217,7 +216,7 @@ export const linkedInLogin = async (req, res, next) => {
                     let password = await driver.wait(until.elementsLocated(By.id("session_password")));
                     if (password) {
                         /////////entering value for password field
-                        await driver.findElement(By.id("session_password")).sendKeys(`${req.body.password}`);
+                        await driver.findElement(By.id("session_password")).sendKeys(`${Buffer.from(req.body.password, "base64").toString("ascii")}`);
                     }
                     ///////////searching the login page
 
@@ -250,28 +249,49 @@ export const linkedInLogin = async (req, res, next) => {
                 if (url.includes("checkpoint")) {
                     //captcha
                     isCaptcha = true;
-                    let img = await driver.wait(until.elementLocated(By.xpath(`// iframe[@id="captcha-internal"]`)));
-                    // console.log("Switch to outer outer frame");
-                    await driver.switchTo().frame("captcha-internal");
-                    // console.log("Switch to outer outer frame");
-                    await driver.sleep(1000);
+                    try {
+                        // Wait for the outer iframe to be located
+                        let outerIframe = await driver.wait(until.elementLocated(By.id("captcha-internal")), 20000);
+                        // console.log("Switch to outer outer frame");
+                        await driver.switchTo().frame(outerIframe);
+                        // console.log("Switched to outer outer frame");
+                        await driver.sleep(1000);
+                    
+                        // Wait for the second level iframe to be located
+                        let middleIframe = await driver.wait(until.elementLocated(By.id("arkoseframe")), 20000);
+                        // console.log("Switch to outer frame");
+                        await driver.switchTo().frame(middleIframe);
+                        // console.log("Switched to outer frame");
+                        await driver.sleep(1000);
+                    
+                        // Wait for the inner iframe to be located
+                        let innerIframe = await driver.wait(until.elementLocated(By.xpath(`//iframe[@aria-label='Verification challenge']`)), 20000);
+                        // console.log("Switch to frame");
+                        await driver.switchTo().frame(innerIframe);
+                        // console.log("Switched to frame");
+                        await driver.sleep(1000);
 
-                    // console.log("Switch to outer frame");
-                    await driver.switchTo().frame("arkoseframe");
-                    // console.log("Switch to outer frame");
-                    await driver.sleep(1000);
-
-                    await driver.switchTo().frame("fc-iframe-wrap");
-                    // console.log("Switch to frame");
-                    await driver.sleep(1000);
-
-                    // console.log("Switch to inner frame");
-                    await driver.switchTo().frame("CaptchaFrame");
-                    // console.log("url:", await driver.getCurrentUrl());
+                        // Wait for the inner iframe to be located
+                        let innerIframe1 = await driver.wait(until.elementLocated(By.id(`fc-iframe-wrap`)), 20000);
+                        // console.log("Switch to frame111");
+                        await driver.switchTo().frame(innerIframe1);
+                        // console.log("Switched to frame111");
+                        await driver.sleep(1000);
+                    
+                        // Wait for the innermost iframe to be located
+                        let captchaIframe = await driver.wait(until.elementLocated(By.id("CaptchaFrame")), 20000);
+                        // console.log("Switch to inner frame");
+                        await driver.switchTo().frame(captchaIframe);
+                        // console.log("Switched to inner frame");
+                        // console.log("url:", await driver.getCurrentUrl());
+                    } catch (error) {
+                        console.error("An error occurred while switching frames:", error);
+                    }
+                    
 
                     try {
-                        // console.log("CLik verify");
-                        let img = await driver.wait(until.elementLocated(By.xpath(`// button[@id="home_children_button"]`))).click();
+                        console.log("CLik verify");
+                        let img = await driver.wait(until.elementLocated(By.xpath(`//button[@id="home_children_button"]`))).click();
                         // url = img?.getAttribute('src');
                         // console.log("url:", await driver.getCurrentUrl());
                     } catch (error) {
@@ -280,7 +300,7 @@ export const linkedInLogin = async (req, res, next) => {
 
                     try {
                         // console.log("GETTING GETTING IMAGES");
-                        let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
+                        let img = await driver.wait(until.elementLocated(By.xpath(`//div[@id="game_challengeItem"]//img`)));
                         imgUrl = await img?.getAttribute("src");
                         // console.log(imgUrl);
                         // console.log("url:", await driver.getCurrentUrl());
@@ -293,7 +313,6 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
-
         res.json({ captcha: isCaptcha, imgUrl });
     } catch (error) {
         console.error(error);
@@ -330,7 +349,6 @@ export const getLinkedInCaptcha = async (req, res, next) => {
 export const sendLinkedInCaptchaInput = async (req, res, next) => {
     try {
         let driver = await maindriver;
-
         let imageNumber = req.body.imageNumber;
 
         let asdf = await driver.wait(until.elementLocated(By.xpath(`// li[@id="image${imageNumber}"]//a`))).click();
@@ -1348,7 +1366,6 @@ export const getPastCampaign = async (req, res, next) => {
         ];
 
         let SearchResultArr = await Campaign.aggregate(pipeline);
-        console.log(SearchResultArr);
 
         res.status(200).json({ message: "Search Results", data: SearchResultArr, success: true });
     } catch (error) {

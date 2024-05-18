@@ -33,7 +33,6 @@ export const registerUser = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        // // console.log(req.body);
         const userObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) })
             .lean()
             .exec();
@@ -59,7 +58,6 @@ export const login = async (req, res, next) => {
             throw { status: 401, message: "user Not Found" };
         }
     } catch (err) {
-        // // console.log(err);
         next(err);
     }
 };
@@ -157,10 +155,8 @@ export const registerAdmin = async (req, res, next) => {
 };
 export const loginAdmin = async (req, res, next) => {
     try {
-        // // console.log(req.body, "Asd");
         const adminObj = await Users.findOne({ email: new RegExp(`^${req.body.email}$`) }).exec();
         if (adminObj) {
-            // // console.log(adminObj, "adminObj")
             const passwordCheck = await comparePassword(adminObj.password, req.body.password);
             if (passwordCheck) {
                 let accessToken = await generateAccessJwt({ userId: adminObj._id, role: adminObj.role, user: { name: adminObj.name, email: adminObj.email, phone: adminObj.phone, _id: adminObj._id } });
@@ -172,7 +168,6 @@ export const loginAdmin = async (req, res, next) => {
             throw { status: 401, message: "User Not Found" };
         }
     } catch (err) {
-        // // console.log(err);
         next(err);
     }
 };
