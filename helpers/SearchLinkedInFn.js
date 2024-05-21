@@ -698,7 +698,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                             let temp = await new PreviousLeads(obj).save();
                             // // console.log(temp, "temp")
                             // clientExistsCheck
-                            clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id, searchCompleted: false }, { new: true }).exec();
+                            clientObj = await User.findByIdAndUpdate(clientExistsCheck._id, { ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj?._id, searchCompleted: true }, { new: true }).exec();
                         }
                         if (campaignObj) {
                             let leadsArr = await Lead.findOneAndUpdate({ clientId: clientExistsCheck?._id }, { clientId: clientObj._id, campaignId: campaignObj._id, isSearched: true }).exec();
