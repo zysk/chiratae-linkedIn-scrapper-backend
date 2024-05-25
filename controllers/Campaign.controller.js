@@ -148,6 +148,7 @@ export const linkedInLogin = async (req, res, next) => {
         options.addArguments("--window-size=1920,1080");
 
         let imgUrl = "";
+        let captchaMessage = "";
 
         if (req.body.proxyId) {
             try {
@@ -292,6 +293,7 @@ export const linkedInLogin = async (req, res, next) => {
                     try {
                         console.log("CLik verify");
                         let img = await driver.wait(until.elementLocated(By.xpath(`//button[@id="home_children_button"]`))).click();
+                        captchaMessage = await driver.findElement(By.xpath(`//div[@id="game_children_text"]/h2`)).getText();
                         // url = img?.getAttribute('src');
                         // console.log("url:", await driver.getCurrentUrl());
                     } catch (error) {
@@ -313,7 +315,8 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
-        res.json({ captcha: isCaptcha, imgUrl });
+        console.log({ captcha: isCaptcha, imgUrl, captchaMessage });
+        res.json({ captcha: isCaptcha, imgUrl, captchaMessage });
     } catch (error) {
         console.error(error);
         next(error);
