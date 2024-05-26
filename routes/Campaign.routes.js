@@ -14,6 +14,7 @@ import {
     sendCampaignToSevanta,
     addCampaignToQueue,
     cron,
+    verifyOtp,
 } from "../controllers/Campaign.controller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 let router = express.Router();
@@ -32,6 +33,7 @@ router.post("/linklogin", linkedInLogin);
 router.post("/logoutAndLogoutAnotherAccount", handleLogoutAndLoginAnotherAccount);
 router.post("/linkCaptcha", sendLinkedInCaptchaInput);
 router.post("/linkSearch", linkedInSearch);
+router.post("/verifyOtp", verifyOtp);
 router.post("/addDealToSavanta/:id", authorizeJwt, sendCampaignToSevanta);
 router.get("/cron", cron);
 // router.get("/checkRatingForClient/:id", checkRatingForClient);

@@ -137,7 +137,7 @@ export const checkLinkedInLogin = async (req, res, next) => {
 };
 
 export const linkedInLogin = async (req, res, next) => {
-	console.log(`Inside Login`);
+    console.log(`Inside Login`);
     try {
         let isCaptcha = false;
 
@@ -352,18 +352,18 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
     try {
         let driver = await maindriver;
         let imageNumber = req.body.imageNumber;
-		await driver.sleep(4000);
+        await driver.sleep(4000);
 
-        let element = await driver.wait(until.elementLocated(By.xpath(`// li[@id="image${imageNumber}"]//a`)), 10000);
-		await driver.wait(until.elementIsVisible(element), 10000);
+        let element = await driver.wait(until.elementLocated(By.xpath(`//li[@id="image${imageNumber}"]//a`)), 10000);
+        await driver.wait(until.elementIsVisible(element), 10000);
         await driver.wait(until.elementIsEnabled(element), 10000);
-		const isDisplayed = await element.isDisplayed();
+        const isDisplayed = await element.isDisplayed();
         const isEnabled = await element.isEnabled();
-		console.log(`Element details. Displayed: ${isDisplayed}, Enabled: ${isEnabled}`);
-		console.log("imageNumber ===>>>>>", imageNumber);
-		if (isDisplayed && isEnabled) {
+        console.log(`Element details. Displayed: ${isDisplayed}, Enabled: ${isEnabled}`);
+        console.log("imageNumber ===>>>>>", imageNumber);
+        if (isDisplayed && isEnabled) {
             await element.click();
-			console.log(`Element clicked..........`);
+            console.log(`Element clicked..........`);
         } else {
             console.error("Element is not clickable");
         }
@@ -385,33 +385,41 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                 // console.log(err);
             });
         });
-		console.log("URL ====>>>>> ", url);
+        console.log("URL ====>>>>> ", url);
 
+        // if (url.includes("checkpoint")) {
+        //     //captcha
+        // 	console.log("Inside if condition......");
+        //     isCaptcha = true;
+        //     try {
+        //         let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
+        //         imgUrl = await img?.getAttribute("src");
+        //     } catch (error) {
+        // 		console.log("Inside catch condition......", error);
+        //         console.error(error);
+        //     }
+        // }
+
+        // ! Let’s do a quick verification -- //h1[@class="content__header"]
+        // ! The login attempt seems suspicious. To finish signing in please enter the verification code we sent to your email address. -- //form[@id="email-pin-challenge"]/h2
+        // ! Form -- //form[@id="email-pin-challenge"] // this will be the check condition
+        // ! input box -- //form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]
+        // ! button -- //form[@id="email-pin-challenge"]/div[@class="form__action"]/button
+        // ! resend message -- //form[@id="email-pin-challenge"]/div[@class="form__action"]/p
+        // ! resend button -- //form[@id="email-pin-challenge"]/div[@class="form__action"]/p/button
+        let otpRequired = false;
+        let otpMessage = "";
         if (url.includes("checkpoint")) {
-            //captcha
-			console.log("Inside if condition......");
-            isCaptcha = true;
             try {
-                let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
-                imgUrl = await img?.getAttribute("src");
+                let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/h2`)), 20000);
+                if (otpForm) {
+                    otpRequired = true;
+                    otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`)).getText();
+                }
             } catch (error) {
-				console.log("Inside catch condition......", error);
-                console.error(error);
+                console.error(error)
             }
         }
-
-		url = await driver.getCurrentUrl();
-        source = await driver.getPageSource();
-
-		driver.takeScreenshot().then(function (image, err) {
-            let basicFilePath = `${process.cwd()}/public/uploads/checkCaptcha_${Date.now()}___${encodeURIComponent(url)}___`;
-            require("fs").writeFile(`${basicFilePath}.png`, image, "base64", function (err) {
-                // console.log(err);
-            });
-            require("fs").writeFile(`${basicFilePath}.source.txt`, source, function (err) {
-                // console.log(err);
-            });
-        });
 
         // let lastSelenium = await SeleniumSessionModel.findOne().sort({ createdAt: 'desc' }).lean.exec()
 
@@ -436,7 +444,46 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
 
         // console.log(await driver.getCurrentUrl());
 
-        res.json({ message: "testing", isCaptcha, imgUrl });
+        res.json({ message: "testing", isCaptcha, imgUrl, otpRequired, otpMessage });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+export const verifyOtp = async (req, res, next) => {
+    try {
+        let otpRequired = true;
+        let driver = await maindriver;
+        await driver.sleep(4000);
+
+        let element = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]`)), 10000);
+        
+        if (element) {
+            console.log("Entering OTP");
+            await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]`)).sendKeys(`${req.body.otp}`);
+        }
+
+
+        let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/button`)));
+        
+        if (submitbutton) {
+            await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/button`)).click();
+            otpRequired = false;
+        }
+
+        console.log("OTP verified");
+
+        // if(req.body.resendOtp) {
+        //     let resendButton = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/p/button`)), 10000);
+
+        //     if(resendButton) {
+        //         await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/p/button`)).click();
+        //     }
+        // }
+
+
+        res.json({message: 'Email verified successfully', otpRequired})
     } catch (error) {
         console.error(error);
         next(error);
