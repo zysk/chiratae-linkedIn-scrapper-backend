@@ -371,10 +371,11 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                 // console.log(err);
             });
         });
+		console.log("URL ====>>>>> ", url);
 
         if (url.includes("checkpoint")) {
             //captcha
-
+			console.log("Inside if condition<<<<<<<<<<<=======");
             isCaptcha = true;
             try {
                 let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
