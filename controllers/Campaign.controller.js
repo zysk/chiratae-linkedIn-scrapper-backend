@@ -353,9 +353,17 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let imageNumber = req.body.imageNumber;
 		await driver.sleep(4000);
 
-        let asdf = await driver.wait(until.elementLocated(By.xpath(`// li[@id="image${imageNumber}"]//a`))).click();
-		console.log("Image clicked =========>>>>>>>>>>>", asdf);
+        let element = await driver.wait(until.elementLocated(By.xpath(`// li[@id="image${imageNumber}"]//a`)), 10000);
+		await driver.wait(until.elementIsVisible(element), 10000);
+        await driver.wait(until.elementIsEnabled(element), 10000);
+		console.log(`Element details. Displayed: ${isDisplayed}, Enabled: ${isEnabled}`);
 		console.log("imageNumber ===>>>>>", imageNumber);
+		if (isDisplayed && isEnabled) {
+            await element.click();
+			console.log(`Element clicked..........`);
+        } else {
+            console.error("Element is not clickable");
+        }
 
         let imgUrl = "";
         let isCaptcha = false;
