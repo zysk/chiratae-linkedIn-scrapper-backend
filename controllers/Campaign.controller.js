@@ -140,12 +140,12 @@ export const linkedInLogin = async (req, res, next) => {
     try {
         let isCaptcha = false;
 
-        let options = new chrome.Options();
-        options.addArguments("--no-sandbox");
-        options.setPageLoadStrategy(PageLoadStrategy.EAGER);
-        options.addArguments("--disable-gpu");
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--window-size=1920,1080");
+        // let options = new chrome.Options();
+        // options.addArguments("--no-sandbox");
+        // options.setPageLoadStrategy(PageLoadStrategy.EAGER);
+        // options.addArguments("--disable-gpu");
+        // options.addArguments("--remote-allow-origins=*");
+        // options.addArguments("--window-size=1920,1080");
 
         let imgUrl = "";
         let captchaMessage = "";
@@ -163,8 +163,8 @@ export const linkedInLogin = async (req, res, next) => {
             }
         }
 
-        const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-        const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+        // const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+        // const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
         if (req.body.proxyId) {
             try {
@@ -190,9 +190,9 @@ export const linkedInLogin = async (req, res, next) => {
             // await driver.get('http://httpbin.org/ip')
 
             // await driver.sleep(3000)
-            let data = await driver.getPageSource();
+            // let data = await driver.getPageSource();
 
-            let page = await driver.get("https://www.linkedin.com");
+            // let page = await driver.get("https://www.linkedin.com");
 
             driver.sleep(1000);
             // console.log("url:", await driver.getCurrentUrl());
@@ -221,7 +221,7 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
-                    // console.log("logging IN");
+                    console.log("logging IN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)));
@@ -257,14 +257,14 @@ export const linkedInLogin = async (req, res, next) => {
                         await driver.switchTo().frame(outerIframe);
                         // console.log("Switched to outer outer frame");
                         await driver.sleep(1000);
-                    
+
                         // Wait for the second level iframe to be located
                         let middleIframe = await driver.wait(until.elementLocated(By.id("arkoseframe")), 20000);
                         // console.log("Switch to outer frame");
                         await driver.switchTo().frame(middleIframe);
                         // console.log("Switched to outer frame");
                         await driver.sleep(1000);
-                    
+
                         // Wait for the inner iframe to be located
                         let innerIframe = await driver.wait(until.elementLocated(By.xpath(`//iframe[@aria-label='Verification challenge']`)), 20000);
                         // console.log("Switch to frame");
@@ -278,7 +278,7 @@ export const linkedInLogin = async (req, res, next) => {
                         await driver.switchTo().frame(innerIframe1);
                         // console.log("Switched to frame111");
                         await driver.sleep(1000);
-                    
+
                         // Wait for the innermost iframe to be located
                         let captchaIframe = await driver.wait(until.elementLocated(By.id("CaptchaFrame")), 20000);
                         // console.log("Switch to inner frame");
@@ -288,7 +288,6 @@ export const linkedInLogin = async (req, res, next) => {
                     } catch (error) {
                         console.error("An error occurred while switching frames:", error);
                     }
-                    
 
                     try {
                         console.log("CLik verify");
@@ -315,6 +314,7 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
+        console.log({ captcha: isCaptcha, imgUrl, captchaMessage });
         res.json({ captcha: isCaptcha, imgUrl, captchaMessage });
     } catch (error) {
         console.error(error);
