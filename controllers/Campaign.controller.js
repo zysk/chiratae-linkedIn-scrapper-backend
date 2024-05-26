@@ -140,12 +140,12 @@ export const linkedInLogin = async (req, res, next) => {
     try {
         let isCaptcha = false;
 
-        // let options = new chrome.Options();
-        // options.addArguments("--no-sandbox");
-        // options.setPageLoadStrategy(PageLoadStrategy.EAGER);
-        // options.addArguments("--disable-gpu");
-        // options.addArguments("--remote-allow-origins=*");
-        // options.addArguments("--window-size=1920,1080");
+        let options = new chrome.Options();
+        options.addArguments("--no-sandbox");
+        options.setPageLoadStrategy(PageLoadStrategy.EAGER);
+        options.addArguments("--disable-gpu");
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--window-size=1920,1080");
 
         let imgUrl = "";
         let captchaMessage = "";
@@ -163,8 +163,8 @@ export const linkedInLogin = async (req, res, next) => {
             }
         }
 
-        // const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
-        // const serviceBuilder = new ServiceBuilder(chromeDriverPath);
+        const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+        const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
         if (req.body.proxyId) {
             try {
@@ -190,9 +190,9 @@ export const linkedInLogin = async (req, res, next) => {
             // await driver.get('http://httpbin.org/ip')
 
             // await driver.sleep(3000)
-            // let data = await driver.getPageSource();
+            let data = await driver.getPageSource();
 
-            // let page = await driver.get("https://www.linkedin.com");
+            let page = await driver.get("https://www.linkedin.com");
 
             driver.sleep(1000);
             // console.log("url:", await driver.getCurrentUrl());
@@ -221,7 +221,7 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
-                    console.log("logging IN");
+                    // console.log("logging IN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)));
@@ -314,7 +314,6 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
-        console.log({ captcha: isCaptcha, imgUrl, captchaMessage });
         res.json({ captcha: isCaptcha, imgUrl, captchaMessage });
     } catch (error) {
         console.error(error);
