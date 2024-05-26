@@ -137,7 +137,6 @@ export const checkLinkedInLogin = async (req, res, next) => {
 };
 
 export const linkedInLogin = async (req, res, next) => {
-	console.log(`Inside Login`);
     try {
         let isCaptcha = false;
 
@@ -222,7 +221,7 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
-                    console.log("logging IN");
+                    // console.log("logging IN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)));
@@ -234,7 +233,7 @@ export const linkedInLogin = async (req, res, next) => {
 
                     // login code end
 
-                    console.log("LOGIN");
+                    // console.log("LOGIN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                 }
@@ -389,12 +388,13 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
 
         if (url.includes("checkpoint")) {
             //captcha
-			console.log("Inside if condition<<<<<<<<<<<=======");
+			console.log("Inside if condition......");
             isCaptcha = true;
             try {
                 let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
                 imgUrl = await img?.getAttribute("src");
             } catch (error) {
+				console.log("Inside catch condition......", error);
                 console.error(error);
             }
         }
