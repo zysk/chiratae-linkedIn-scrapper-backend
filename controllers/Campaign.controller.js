@@ -353,6 +353,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let imageNumber = req.body.imageNumber;
 
         let asdf = await driver.wait(until.elementLocated(By.xpath(`// li[@id="image${imageNumber}"]//a`))).click();
+		console.log("Image clicked =========>>>>>>>>>>>", asdf);
 
         let imgUrl = "";
         let isCaptcha = false;
