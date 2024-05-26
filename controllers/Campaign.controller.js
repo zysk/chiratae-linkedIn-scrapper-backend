@@ -137,6 +137,7 @@ export const checkLinkedInLogin = async (req, res, next) => {
 };
 
 export const linkedInLogin = async (req, res, next) => {
+	console.log(`Inside Login`);
     try {
         let isCaptcha = false;
 
@@ -221,7 +222,7 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                     ///////////searching the login page
 
-                    // console.log("logging IN");
+                    console.log("logging IN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                     let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@type="submit"]`)));
@@ -233,7 +234,7 @@ export const linkedInLogin = async (req, res, next) => {
 
                     // login code end
 
-                    // console.log("LOGIN");
+                    console.log("LOGIN");
 
                     // console.log("url:", await driver.getCurrentUrl());
                 }
