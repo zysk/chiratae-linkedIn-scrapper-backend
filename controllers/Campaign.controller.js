@@ -377,7 +377,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let source = await driver.getPageSource();
         // console.log(url, "CURRENT URL");
         driver.takeScreenshot().then(function (image, err) {
-            let basicFilePath = `./public/uploads/checkCaptcha_${new Date().getTime()}___${encodeURIComponent(url)}___`;
+            let basicFilePath = `${process.cwd()}/public/uploads/checkCaptcha_${Date.now()}___${encodeURIComponent(url)}___`;
             require("fs").writeFile(`${basicFilePath}.png`, image, "base64", function (err) {
                 // console.log(err);
             });
@@ -399,6 +399,19 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                 console.error(error);
             }
         }
+
+		url = await driver.getCurrentUrl();
+        source = await driver.getPageSource();
+
+		driver.takeScreenshot().then(function (image, err) {
+            let basicFilePath = `${process.cwd()}/public/uploads/checkCaptcha_${Date.now()}___${encodeURIComponent(url)}___`;
+            require("fs").writeFile(`${basicFilePath}.png`, image, "base64", function (err) {
+                // console.log(err);
+            });
+            require("fs").writeFile(`${basicFilePath}.source.txt`, source, function (err) {
+                // console.log(err);
+            });
+        });
 
         // let lastSelenium = await SeleniumSessionModel.findOne().sort({ createdAt: 'desc' }).lean.exec()
 
