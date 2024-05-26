@@ -1,7 +1,7 @@
 export const errorHandler = (err, req, res, next) => {
     console.error(err);
-    res.statusMessage = err.message;
-    res.statusText = err.message;
+    // res.statusMessage = err.message;
+    // res.statusText = err.message;
     if (err.status) {
         return res.status(err.status).json({ message: err.message });
     }
