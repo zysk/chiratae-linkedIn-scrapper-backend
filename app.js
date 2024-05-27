@@ -92,7 +92,7 @@ export const cronFunc = async () => {
 
             try {
                 noUsersLeft = await linkedInProfileScrapping(redisClient);
-                console.log("noUsersLeft", noUsersLeft);
+                // console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
                 console.error("linkedInProfileScrapping error =>>", error);
             }
@@ -100,7 +100,7 @@ export const cronFunc = async () => {
             if (noUsersLeft) {
                 try {
                     noCampaignsLeft = await searchLinkedInFn(redisClient);
-                    console.log("noCampaignsLeft", noCampaignsLeft);
+                    // console.log("noCampaignsLeft", noCampaignsLeft);
                 } catch (error) {
                     console.error("searchLinkedInFn error =>>", error);
                 }

@@ -12,6 +12,8 @@ import UserLogs from "../models/userLogs.model";
 import { randomIntFromInterval } from "./utils";
 import { checkLinkedInLoginFunc } from "../controllers/Campaign.controller";
 
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
 export const searchLinkedInFn = async (redisClientParam) => {
     try {
         await redisClientParam.set("isFree", "false");
@@ -247,7 +249,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                     5000
                                                 );
                                                 if (resultElement) {
-                                                    console.log(resultElement.length, "resultElement.length");
+                                                    // console.log(resultElement.length, "resultElement.length");
                                                     // ? looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
                                                         let obj = {};
@@ -381,6 +383,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
                 // // console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
                 let lengthOfArray = resultsArr.filter((el) => el.link && el.link != "").length;
+				// console.log(`resultsArr 1111====>>>> ${resultsArr.length}`);
+				// console.log(`lengthOfArray 1111====>>>> ${lengthOfArray}`);
 
                 // /////not for now
                 for (let j = 0; j < lengthOfArray; j++) {
@@ -706,7 +710,10 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
                         await new UserLogs({ ...resultsArr[j], role: rolesObj?.CLIENT, campaignId: campaignObj._id, userId: clientObj?._id }).save();
 
-                        await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec();
+						// console.log(`campaignObj 333===>>> ${JSON.stringify(campaignObj)}`);
+						// console.log(`clientObj 333===>>> ${clientObj}`);
+                        let resultData = await Campaign.findByIdAndUpdate(campaignObj._id, { $push: { resultsArr: { clientId: clientObj._id } } }).exec();
+						// console.log(`resultData ===>>> ${campaignObj._id}, ${resultData}`);
                         // await driver.sleep(10000)
                     } catch (err) {
                         console.error(err);
@@ -729,18 +736,22 @@ export const searchLinkedInFn = async (redisClientParam) => {
                 // }
 
                 // if (clientsArr) {
-                if (campaignObj) {
-                    //         // // console.log(campaignObj, "el,campaignObj", clientsArr)
-                    // let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
-                    // // // console.log(leadsArr, "leadsArr")
-                    //     }
+					if (campaignObj) {
+						//         // // console.log(campaignObj, "el,campaignObj", clientsArr)
+						// let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
+						// // // console.log(leadsArr, "leadsArr")
+						//     }
 
-                    let campaignId = campaignObj?._id;
+						let campaignId = campaignObj?._id;
 
-                    delete campaignObj?._id;
-                    delete campaignObj?.timesRun;
+						delete campaignObj?._id;
+						delete campaignObj?.timesRun;
 
-                    let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignId, { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } }).exec();
+						let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+						// console.log(`dataToStore ===>>> ${dataToStore}`);
+						await sleep(15000);
+						let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
+						// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
 
                 // // console.log("completed")

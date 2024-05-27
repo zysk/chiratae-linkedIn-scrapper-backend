@@ -458,7 +458,7 @@ export const verifyOtp = async (req, res, next) => {
         await driver.sleep(4000);
 
         let element = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]`)), 10000);
-        
+
         if (element) {
             console.log("Entering OTP");
             await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]`)).sendKeys(`${req.body.otp}`);
@@ -466,7 +466,7 @@ export const verifyOtp = async (req, res, next) => {
 
 
         let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/button`)));
-        
+
         if (submitbutton) {
             await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/button`)).click();
             otpRequired = false;
@@ -1341,8 +1341,10 @@ export const searchLinkedin = async (req, res, next) => {
                 clientsArr.push(clientObj);
             }
 
+			console.log(`clientArr: 1111=========>>>>>>>>> ${clientsArr}`);
             if (clientsArr) {
                 clientsArr = clientsArr.map((el) => ({ clientId: el._id }));
+				console.log(`clientArr: 2222=========>>>>>>>>> ${clientsArr}`);
                 let campaignObj = await new Campaign({ ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save();
                 if (campaignObj) {
                     // console.log(campaignObj, "el,campaignObj", clientsArr);
@@ -1458,7 +1460,7 @@ export const getPastCampaignById = async (req, res, next) => {
             let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map((el) => el.clientId)] } })
                 .lean()
                 .exec();
-
+			console.log(`clientArr ==>> ${clientArr}`);
             SearchResultObj.resultsArr = clientArr;
         }
         res.status(200).json({ message: "Search Result object", data: SearchResultObj, success: true });
