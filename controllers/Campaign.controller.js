@@ -248,66 +248,65 @@ export const linkedInLogin = async (req, res, next) => {
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
+                let otpRequired = false;
+                let otpMessage = "";
                 if (url.includes("checkpoint")) {
-                    //captcha
-                    isCaptcha = true;
                     try {
-                        // Wait for the outer iframe to be located
-                        let outerIframe = await driver.wait(until.elementLocated(By.id("captcha-internal")), 20000);
-                        // console.log("Switch to outer outer frame");
-                        await driver.switchTo().frame(outerIframe);
-                        // console.log("Switched to outer outer frame");
-                        await driver.sleep(1000);
+                        let captchaCheck = await driver.findElement(By.id("captcha-internal"), 5000);
+                        if (captchaCheck) {
+                            //captcha
+                            isCaptcha = true;
+                            try {
+                                let outerIframe = await driver.wait(until.elementLocated(By.id("captcha-internal")), 5000);
+                                await driver.switchTo().frame(outerIframe);
+                                await driver.sleep(1000);
 
-                        // Wait for the second level iframe to be located
-                        let middleIframe = await driver.wait(until.elementLocated(By.id("arkoseframe")), 20000);
-                        // console.log("Switch to outer frame");
-                        await driver.switchTo().frame(middleIframe);
-                        // console.log("Switched to outer frame");
-                        await driver.sleep(1000);
+                                let middleIframe = await driver.wait(until.elementLocated(By.id("arkoseframe")), 5000);
+                                await driver.switchTo().frame(middleIframe);
+                                await driver.sleep(1000);
 
-                        // Wait for the inner iframe to be located
-                        let innerIframe = await driver.wait(until.elementLocated(By.xpath(`//iframe[@aria-label='Verification challenge']`)), 20000);
-                        // console.log("Switch to frame");
-                        await driver.switchTo().frame(innerIframe);
-                        // console.log("Switched to frame");
-                        await driver.sleep(1000);
+                                let innerIframe = await driver.wait(until.elementLocated(By.xpath(`//iframe[@aria-label='Verification challenge']`)), 5000);
+                                await driver.switchTo().frame(innerIframe);
+                                await driver.sleep(1000);
 
-                        // Wait for the inner iframe to be located
-                        let innerIframe1 = await driver.wait(until.elementLocated(By.id(`fc-iframe-wrap`)), 20000);
-                        // console.log("Switch to frame111");
-                        await driver.switchTo().frame(innerIframe1);
-                        // console.log("Switched to frame111");
-                        await driver.sleep(1000);
+                                let innerIframe1 = await driver.wait(until.elementLocated(By.id(`fc-iframe-wrap`)), 5000);
+                                await driver.switchTo().frame(innerIframe1);
+                                await driver.sleep(1000);
 
-                        // Wait for the innermost iframe to be located
-                        let captchaIframe = await driver.wait(until.elementLocated(By.id("CaptchaFrame")), 20000);
-                        // console.log("Switch to inner frame");
-                        await driver.switchTo().frame(captchaIframe);
-                        // console.log("Switched to inner frame");
-                        // console.log("url:", await driver.getCurrentUrl());
+                                let captchaIframe = await driver.wait(until.elementLocated(By.id("CaptchaFrame")), 5000);
+                                await driver.switchTo().frame(captchaIframe);
+                            } catch (error) {
+                                console.error("An error occurred while switching frames:", error);
+                            }
+
+                            try {
+                                console.log("CLik verify");
+                                let img = await driver.wait(until.elementLocated(By.xpath(`//button[@id="home_children_button"]`))).click();
+                                captchaMessage = await driver.findElement(By.xpath(`//div[@id="game_children_text"]/h2`)).getText();
+                            } catch (error) {
+                                console.error(error);
+                            }
+
+                            try {
+                                let img = await driver.wait(until.elementLocated(By.xpath(`//div[@id="game_challengeItem"]//img`)));
+                                imgUrl = await img?.getAttribute("src");
+                            } catch (error) {
+                                console.error(error);
+                            }
+                        }
                     } catch (error) {
-                        console.error("An error occurred while switching frames:", error);
-                    }
-
-                    try {
-                        console.log("CLik verify");
-                        let img = await driver.wait(until.elementLocated(By.xpath(`//button[@id="home_children_button"]`))).click();
-                        captchaMessage = await driver.findElement(By.xpath(`//div[@id="game_children_text"]/h2`)).getText();
-                        // url = img?.getAttribute('src');
-                        // console.log("url:", await driver.getCurrentUrl());
-                    } catch (error) {
-                        console.error(error);
-                    }
-
-                    try {
-                        // console.log("GETTING GETTING IMAGES");
-                        let img = await driver.wait(until.elementLocated(By.xpath(`//div[@id="game_challengeItem"]//img`)));
-                        imgUrl = await img?.getAttribute("src");
-                        // console.log(imgUrl);
-                        // console.log("url:", await driver.getCurrentUrl());
-                    } catch (error) {
-                        console.error(error);
+                        let otpCheck = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`), 5000);
+                        if (otpCheck) {
+                            try {
+                                let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/h2`)), 5000);
+                                if (otpForm) {
+                                    otpRequired = true;
+                                    otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`)).getText();
+                                }
+                            } catch (error) {
+                                console.error(error);
+                            }
+                        }
                     }
                 }
             }
@@ -315,7 +314,7 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
-        res.json({ captcha: isCaptcha, imgUrl, captchaMessage });
+        res.json({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
     } catch (error) {
         console.error(error);
         next(error);
@@ -389,7 +388,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let otpRequired = false;
         let otpMessage = "";
 
-        if(url.includes("checkpoint")){
+        if (url.includes("checkpoint")) {
             try {
                 let captchaCheck = await driver.findElement(By.xpath(`// div[@id="game_challengeItem"]//img`), 5000);
                 if (captchaCheck) {
@@ -414,7 +413,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                             otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`)).getText();
                         }
                     } catch (error) {
-                        console.error(error)
+                        console.error(error);
                     }
                 }
             }
@@ -489,7 +488,6 @@ export const verifyOtp = async (req, res, next) => {
             await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/div/input[@class="form__input--text input_verification_pin"]`)).sendKeys(`${req.body.otp}`);
         }
 
-
         let submitbutton = await driver.wait(until.elementsLocated(By.xpath(`//form[@id="email-pin-challenge"]/div[@class="form__action"]/button`)));
 
         if (submitbutton) {
@@ -507,8 +505,7 @@ export const verifyOtp = async (req, res, next) => {
         //     }
         // }
 
-
-        res.json({message: 'Email verified successfully', otpRequired})
+        res.json({ message: "Email verified successfully", otpRequired });
     } catch (error) {
         console.error(error);
         next(error);
@@ -1366,10 +1363,10 @@ export const searchLinkedin = async (req, res, next) => {
                 clientsArr.push(clientObj);
             }
 
-			console.log(`clientArr: 1111=========>>>>>>>>> ${clientsArr}`);
+            console.log(`clientArr: 1111=========>>>>>>>>> ${clientsArr}`);
             if (clientsArr) {
                 clientsArr = clientsArr.map((el) => ({ clientId: el._id }));
-				console.log(`clientArr: 2222=========>>>>>>>>> ${clientsArr}`);
+                console.log(`clientArr: 2222=========>>>>>>>>> ${clientsArr}`);
                 let campaignObj = await new Campaign({ ...req.body, totalResults: totalResults, resultsArr: clientsArr, isSearched: true }).save();
                 if (campaignObj) {
                     // console.log(campaignObj, "el,campaignObj", clientsArr);
@@ -1485,7 +1482,7 @@ export const getPastCampaignById = async (req, res, next) => {
             let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map((el) => el.clientId)] } })
                 .lean()
                 .exec();
-			console.log(`clientArr ==>> ${clientArr}`);
+            console.log(`clientArr ==>> ${clientArr}`);
             SearchResultObj.resultsArr = clientArr;
         }
         res.status(200).json({ message: "Search Result object", data: SearchResultObj, success: true });
