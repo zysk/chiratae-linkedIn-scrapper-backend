@@ -1482,7 +1482,7 @@ export const getPastCampaignById = async (req, res, next) => {
             let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map((el) => el.clientId)] } })
                 .lean()
                 .exec();
-            console.log(`clientArr ==>> ${clientArr}`);
+			// console.log(`clientArr ==>> ${clientArr}`);
             SearchResultObj.resultsArr = clientArr;
         }
         res.status(200).json({ message: "Search Result object", data: SearchResultObj, success: true });
