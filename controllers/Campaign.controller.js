@@ -396,6 +396,19 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let otpRequired = false;
         let otpMessage = "";
 
+        if(url.includes("login-challenge-submit") || url.includes("login-submit")){
+            console.log("inside wrong password block>>>>");
+            try {
+                let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
+                if(wrongPasswordError){
+                    console.log({ error: wrongPasswordError });
+                    return res.json({ error: wrongPasswordError });
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
         if (url.includes("checkpoint")) {
             try {
                 let captchaCheck = await driver.findElement(By.xpath(`// div[@id="game_challengeItem"]//img`), 5000);
