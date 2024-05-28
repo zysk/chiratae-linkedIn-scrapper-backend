@@ -182,6 +182,9 @@ export const linkedInLogin = async (req, res, next) => {
 
         let driver = await maindriver;
 
+		let otpRequired = false;
+        let otpMessage = "";
+
         // let driver = await new Builder()
         //     .forBrowser("chrome")
         //     .setChromeService(serviceBuilder)
@@ -248,8 +251,6 @@ export const linkedInLogin = async (req, res, next) => {
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
-                let otpRequired = false;
-                let otpMessage = "";
                 if (url.includes("checkpoint")) {
                     try {
                         let captchaCheck = await driver.findElement(By.id("captcha-internal"), 5000);
