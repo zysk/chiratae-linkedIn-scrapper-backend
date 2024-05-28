@@ -22,9 +22,11 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
         let loggedIn = await checkLinkedInLoginFunc();
         if (!loggedIn) {
-            await sendMail("manvendra.singh@zysk.tech");
+            let allEmails = await LinkedInAccountsModel.find().exec();
+            emails = allEmails.map((element) => element.name);
+            await sendMail(emails);
             await redisClient.set("isFree", "true");
-            throw new Error("not logged in");
+            return false;
         }
 
         let campaignArr = await Campaign.find({ status: generalModelStatuses.CREATED, isSearched: false, processing: false }).lean().exec();

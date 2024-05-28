@@ -41,7 +41,9 @@ export const getScheduledCampaignsForToday = async (beforeDate = null) => {
             if (url.includes("feed")) {
                 isLogin = true;
             } else {
-                sendMail("mulahajedu@jollyfree.com", todayEnd.toISOString());
+				let allEmails = await LinkedInAccountsModel.find().exec();
+                emails = allEmails.map((element) => element.name);
+                sendMail(emails, todayEnd.toISOString());
                 redisClient.set("isBusy", "false");
                 return;
             }

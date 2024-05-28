@@ -18,6 +18,7 @@ import { randomBoolean, randomIntFromInterval } from "../helpers/utils";
 import CampaignModel from "../models/Campaign.model";
 import ProxiesModel from "../models/Proxies.model";
 import UserLogs from "../models/userLogs.model";
+import LinkedInAccountsModel from "../models/LinkedInAccounts.model";
 
 //account name alwin ebslon
 ///email: alwin.ponnan@ebslon.com
@@ -196,7 +197,7 @@ export const linkedInLogin = async (req, res, next) => {
             // await driver.sleep(3000)
             let data = await driver.getPageSource();
 
-            let page = await driver.get("https://www.linkedin.com/checkpoint/lg/sign-in-another-account");            
+            let page = await driver.get("https://www.linkedin.com/checkpoint/lg/sign-in-another-account");
 
             driver.sleep(1000);
             // console.log("url:", await driver.getCurrentUrl());
@@ -561,8 +562,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     await redisClientParam.set("isFree", "false");
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
-        await sendMail("manvendra.singh@zysk.tech");
+		let allEmails = await LinkedInAccountsModel.find().exec();
+		emails = allEmails.map(element => element.name);
+        await sendMail(emails);
         await redisClientParam.set("isFree", "true");
+		return false;
     }
 
     let userArr = await User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean().exec();
