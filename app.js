@@ -68,18 +68,19 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-const job = schedule.scheduleJob("0 0-23/2 * * *", function () {
-	cronFunc();
+const job = schedule.scheduleJob("0 */2 * * *", function () {
+    cronFunc();
 
-	/**
-	 * Cron list
-	 */
+    /**
+     * Cron list
+     */
     // ? "0 0-23/2 * * *" : Will run every 2 hour.
     // ? "28 * * * *" : Will run at 1:28 AM, 2:28 AM, 3:28 AM, and so on, every day.
     // ? "*/10 * * * *" => Will run every 10 minutes.
     // ? "0 0 * * *" : Will run every midnight.
     // ? "0 6 18 * * *" : Will execute only on the 18th day of each month at 6:00 in the morning.
     // ? "0 6,18 * * *" : Will execute at 6:00 in the morning and again at 6:00 in the evening, every day.
+    // ? "0 */2 * * *" : Will execute every 2 hours, specifically at the start of the hour (e.g., at 00:00, 02:00, 04:00, and so on) every day, every month, and every day of the week.
 });
 
 export const cronFunc = async () => {
