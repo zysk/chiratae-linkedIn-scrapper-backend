@@ -68,17 +68,18 @@ app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
-const job = schedule.scheduleJob("*/10 * * * *", function () {
-    // console.log(`Cron ran at: ${Date.now()}`);
-    // const job = schedule.scheduleJob('*/10 * * * *', function () {
-    // const job = schedule.scheduleJob('0 0 * * *', function () {
-    // const job = schedule.scheduleJob('0 6,18 * * *', function () {
-    // getScheduledCampaignsForToday()
-    // if (cronRan) {
-    //     cronRan = false;
-    //     cronFunc();
-    // }
-    // // console.log("At 06:00 and 18:00 on every day-of-week from Sunday through Saturday.")
+const job = schedule.scheduleJob("0 0-23/2 * * *", function () {
+	cronFunc();
+
+	/**
+	 * Cron list
+	 */
+    // ? "0 0-23/2 * * *" : Will run every 2 hour.
+    // ? "28 * * * *" : Will run at 1:28 AM, 2:28 AM, 3:28 AM, and so on, every day.
+    // ? "*/10 * * * *" => Will run every 10 minutes.
+    // ? "0 0 * * *" : Will run every midnight.
+    // ? "0 6 18 * * *" : Will execute only on the 18th day of each month at 6:00 in the morning.
+    // ? "0 6,18 * * *" : Will execute at 6:00 in the morning and again at 6:00 in the evening, every day.
 });
 
 export const cronFunc = async () => {
