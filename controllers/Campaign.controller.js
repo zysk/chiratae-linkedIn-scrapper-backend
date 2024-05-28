@@ -112,7 +112,7 @@ export const continueScheduled = async (req, res, next) => {
 
 export const checkLinkedInLoginFunc = async () => {
     let driver = await maindriver;
-    await driver.get("https://www.linkedin.com");
+    await driver.get("https://www.linkedin.com/checkpoint/lg/sign-in-another-account");
     let isLogin = false;
     let url = await driver.getCurrentUrl();
     // // console.log("url:", url);
@@ -196,7 +196,7 @@ export const linkedInLogin = async (req, res, next) => {
             // await driver.sleep(3000)
             let data = await driver.getPageSource();
 
-            let page = await driver.get("https://www.linkedin.com");
+            let page = await driver.get("https://www.linkedin.com/checkpoint/lg/sign-in-another-account");            
 
             driver.sleep(1000);
             // console.log("url:", await driver.getCurrentUrl());
@@ -210,20 +210,14 @@ export const linkedInLogin = async (req, res, next) => {
                 if (req.body.oneTimeLink) {
                     let page = await driver.get(req.body.oneTimeLink); // one time login link
                 } else {
-                    // console.log("url:", await driver.getCurrentUrl());
-                    /////////searching for email/phone field
-                    let accountName = await driver.wait(until.elementsLocated(By.id("session_key")));
+                    let accountName = await driver.wait(until.elementsLocated(By.id("username")));
                     if (accountName) {
-                        /////////searching for email/phone field
-                        await driver.findElement(By.id("session_key")).sendKeys(`${req.body.accountName}`);
+                        await driver.findElement(By.id("username")).sendKeys(`${req.body.accountName}`);
                     }
-                    /////////searching for password field
-                    let password = await driver.wait(until.elementsLocated(By.id("session_password")));
+                    let password = await driver.wait(until.elementsLocated(By.id("password")));
                     if (password) {
-                        /////////entering value for password field
-                        await driver.findElement(By.id("session_password")).sendKeys(`${Buffer.from(req.body.password, "base64").toString("ascii")}`);
+                        await driver.findElement(By.id("password")).sendKeys(`${Buffer.from(req.body.password, "base64").toString("ascii")}`);
                     }
-                    ///////////searching the login page
 
                     console.log("logging IN");
 
@@ -251,6 +245,19 @@ export const linkedInLogin = async (req, res, next) => {
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
+                if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
+                    console.log("inside wrong password block>>>>");
+                    try {
+                        let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
+                        if(wrongPasswordError){
+                            console.log({ error: wrongPasswordError });
+                            return res.json({ error: wrongPasswordError });
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                }
+
                 if (url.includes("checkpoint")) {
                     try {
                         let captchaCheck = await driver.findElement(By.id("captcha-internal"), 5000);
@@ -388,6 +395,19 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         console.log("URL ====>>>>> ", url);
         let otpRequired = false;
         let otpMessage = "";
+
+        if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
+            console.log("inside wrong password block>>>>");
+            try {
+                let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
+                if(wrongPasswordError){
+                    console.log({ error: wrongPasswordError });
+                    return res.json({ error: wrongPasswordError });
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
 
         if (url.includes("checkpoint")) {
             try {
