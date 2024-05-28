@@ -245,7 +245,7 @@ export const linkedInLogin = async (req, res, next) => {
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
-                if(url.includes("login-challenge-submit") || url.includes("login-submit")){
+                if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
                     console.log("inside wrong password block>>>>");
                     try {
                         let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
@@ -396,7 +396,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let otpRequired = false;
         let otpMessage = "";
 
-        if(url.includes("login-challenge-submit") || url.includes("login-submit")){
+        if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
             console.log("inside wrong password block>>>>");
             try {
                 let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
