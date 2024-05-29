@@ -5,9 +5,14 @@ import Customemail from "../models/Customemail.model";
 
 export const createcustomemail = async (req, res, next) => {
     try {
-        let newElement = await new Customemail(req.body).save();
+        await new Customemail(req.body).save();
+		let emails;
 
-        await sendCustomMail(req.body.email, req.body.subject, req.body.content);
+		if (req.body.email.includes(",")) {
+			emails = req.body.email.split(",");
+		}
+
+        await sendCustomMail(emails, req.body.subject, req.body.content);
 
         res.status(200).json({ message: "Email Sent", success: true });
     } catch (error) {
