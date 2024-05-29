@@ -90,6 +90,7 @@ const job = schedule.scheduleJob("0 */2 * * *", function () {
 
 export const cronFunc = async () => {
     try {
+		console.log("Search Started >>>>>>>>>>>>>>>>>>>>>>");
         let isFree = await redisClient.get("isFree");
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
@@ -98,7 +99,9 @@ export const cronFunc = async () => {
             let noCampaignsLeft = false;
 
             try {
+				console.log("Profile Scrapping Started >>>>>>>>>>>>>>>>>>>>>>");
                 noUsersLeft = await linkedInProfileScrapping(redisClient);
+				console.log("Profile Scrapping Completed <<<<<<<<<<<<<<<<<<<<");
                 // console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
                 console.error("linkedInProfileScrapping error =>>", error);
@@ -106,7 +109,9 @@ export const cronFunc = async () => {
 
             if (noUsersLeft) {
                 try {
+					console.log("Linkedin Search Started >>>>>>>>>>>>>>>>>>>>>>");
                     noCampaignsLeft = await searchLinkedInFn(redisClient);
+					console.log("Linkedin Search Completed <<<<<<<<<<<<<<<<<<<<");
                     // console.log("noCampaignsLeft", noCampaignsLeft);
                 } catch (error) {
                     console.error("searchLinkedInFn error =>>", error);
@@ -116,16 +121,16 @@ export const cronFunc = async () => {
             if (noCampaignsLeft) {
                 // reset users and campaign
                 try {
-                    await CampaignModel.updateMany(
-                        {},
+					await CampaignModel.updateMany(
+						{},
                         {
-                            status: generalModelStatuses.CREATED,
+							status: generalModelStatuses.CREATED,
                             isSearched: false,
                             processing: false,
                             $inc: { timesRun: 1 }
                         }
                     );
-                    console.log("Search completed >>>>>>>>>>>>>>>>>>>>>>");
+                    console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
                 } catch (error) {
                     console.error("campaign update many error =>>", error);
                 }
