@@ -36,9 +36,9 @@ export const searchLinkedInFn = async (redisClientParam) => {
             return true;
         }
 
-        let resultsArr = [];
 
         for (let i = 0; i < campaignArr.length; i++) {
+			let resultsArr = [];
             try {
                 let campaignObj = campaignArr[i];
 
