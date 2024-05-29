@@ -100,7 +100,7 @@ export const cronFunc = async () => {
 
             try {
 				console.log("Profile Scrapping Started >>>>>>>>>>>>>>>>>>>>>>");
-                // noUsersLeft = await linkedInProfileScrapping(redisClient);
+                noUsersLeft = await linkedInProfileScrapping(redisClient);
 				console.log("Profile Scrapping Completed <<<<<<<<<<<<<<<<<<<<");
                 // console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
@@ -118,23 +118,23 @@ export const cronFunc = async () => {
                 }
             }
 
-            if (noCampaignsLeft) {
-                // reset users and campaign
-                try {
-					await CampaignModel.updateMany(
-						{},
-                        {
-							status: generalModelStatuses.CREATED,
-                            isSearched: false,
-                            processing: false,
-                            $inc: { timesRun: 1 }
-                        }
-                    );
-					console.log("Campaign Updated <<<<<<<<<<<<<<<<<<<<");
-                } catch (error) {
-					console.error("campaign update many error =>>", error);
-                }
-            }
+            // if (noCampaignsLeft) {
+            //     // reset users and campaign
+            //     try {
+			// 		await CampaignModel.updateMany(
+			// 			{},
+            //             {
+			// 				status: generalModelStatuses.CREATED,
+            //                 isSearched: false,
+            //                 processing: false,
+            //                 $inc: { timesRun: 1 }
+            //             }
+            //         );
+			// 		console.log("Campaign Updated <<<<<<<<<<<<<<<<<<<<");
+            //     } catch (error) {
+			// 		console.error("campaign update many error =>>", error);
+            //     }
+            // }
 			console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
         }
     } catch (error) {

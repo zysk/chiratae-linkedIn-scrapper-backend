@@ -210,7 +210,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                 // ? getting total results
                                 try {
                                     totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
-                                    // console.log("TOTAL RESULTS", totalResults)
+                                    console.log("TOTAL RESULTS - 1111", totalResults)
 
                                     await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults });
                                 } catch (error) {
@@ -330,7 +330,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                         if (resultText) {
                                             // ? getting value of total results
                                             totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
-                                            // console.log("TOTAL RESULTS", totalResults)
+                                            console.log("TOTAL RESULTS - 2222", totalResults)
                                         }
                                     } catch (error) {
                                         console.error(error);
@@ -758,14 +758,14 @@ export const searchLinkedInFn = async (redisClientParam) => {
 					// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 					// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 
-					console.log(`campaignObj 111===>>> ${JSON.stringify(campaignObj)}`);
+					// console.log(`campaignObj 111===>>> ${JSON.stringify(campaignObj)}`);
 					let dataToStore = { ...campaignObj, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
-					console.log(`campaignId 111===>>> ${campaignId}`);
-					console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
+					// console.log(`campaignId 111===>>> ${campaignId}`);
+					// console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
 					// await new Promise((resolve) => setTimeout(resolve, 10000));
-					console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
+					// console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
 					await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
-					console.log(`completed ===>>> ${JSON.stringify(dataToStore)}`);
+					// console.log(`completed ===>>> ${JSON.stringify(dataToStore)}`);
 					// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
 
