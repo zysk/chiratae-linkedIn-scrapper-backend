@@ -136,7 +136,9 @@ export const cronFunc = async () => {
             //     }
             // }
 			console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
-        }
+        } else {
+			console.log("Redis not free <<<<<<<<<<<<<<<<<<<<");
+		}
     } catch (error) {
         console.error("ERROR IN CRON FUNC", error);
     }
