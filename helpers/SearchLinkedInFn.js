@@ -701,7 +701,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                 accountName: campaignObj?.accountName,
                                 searchedSchool: campaignObj?.school,
                                 searchedCompany: campaignObj?.company,
-                                // totalResults: campaignObj?.totalResults,
+                                totalResults: campaignObj?.totalResults,
                             };
                             delete obj._id;
                             // // console.log(obj)
@@ -753,15 +753,16 @@ export const searchLinkedInFn = async (redisClientParam) => {
 					delete campaignObj?._id;
 					delete campaignObj?.timesRun;
 					delete campaignObj?.resultsArr;
+					delete campaignObj?.totalResults;
 
 					// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 					// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 
 					console.log(`campaignObj 111===>>> ${JSON.stringify(campaignObj)}`);
-					let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" };
+					let dataToStore = { ...campaignObj, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 					console.log(`campaignId 111===>>> ${campaignId}`);
 					console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
-					await new Promise((resolve) => setTimeout(resolve, 10000));
+					// await new Promise((resolve) => setTimeout(resolve, 10000));
 					console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
 					await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 					console.log(`completed ===>>> ${JSON.stringify(dataToStore)}`);
