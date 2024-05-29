@@ -282,8 +282,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                             obj.link = linkValue;
                                                         }
                                                         resultsArr.push(obj);
-														console.log(`obj 11==>> ${obj}`);
-														console.log(`resultsArr 11==>> ${resultsArr}`);
+														// console.log(`obj 11==>> ${obj}`);
+														// console.log(`resultsArr 11==>> ${resultsArr}`);
                                                     }
                                                 }
                                             } catch (err) {
@@ -372,8 +372,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                     obj.link = linkValue;
                                                 }
                                                 resultsArr.push(obj);
-												console.log(`obj 22==>> ${obj}`);
-                                                console.log(`resultsArr 22==>> ${resultsArr}`);
+												// console.log(`obj 22==>> ${obj}`);
+                                                // console.log(`resultsArr 22==>> ${resultsArr}`);
                                             }
                                         }
                                     } catch (err) {
