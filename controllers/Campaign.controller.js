@@ -563,7 +563,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
 		let allEmails = await LinkedInAccountsModel.find().exec();
-		emails = allEmails.map(element => element.name);
+		let emails = allEmails.map(element => element.name);
         await sendMail(emails);
         await redisClientParam.set("isFree", "true");
 		return false;

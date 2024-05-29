@@ -24,7 +24,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
         let loggedIn = await checkLinkedInLoginFunc();
         if (!loggedIn) {
             let allEmails = await LinkedInAccountsModel.find().exec();
-            emails = allEmails.map((element) => element.name);
+            let emails = allEmails.map((element) => element.name);
             await sendMail(emails);
             await redisClient.set("isFree", "true");
             return false;
