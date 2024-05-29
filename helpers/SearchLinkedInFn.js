@@ -701,7 +701,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                 accountName: campaignObj?.accountName,
                                 searchedSchool: campaignObj?.school,
                                 searchedCompany: campaignObj?.company,
-                                totalResults: campaignObj?.totalResults,
+                                // totalResults: campaignObj?.totalResults,
                             };
                             delete obj._id;
                             // // console.log(obj)
