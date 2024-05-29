@@ -100,7 +100,7 @@ export const cronFunc = async () => {
 
             try {
 				console.log("Profile Scrapping Started >>>>>>>>>>>>>>>>>>>>>>");
-                noUsersLeft = await linkedInProfileScrapping(redisClient);
+                // noUsersLeft = await linkedInProfileScrapping(redisClient);
 				console.log("Profile Scrapping Completed <<<<<<<<<<<<<<<<<<<<");
                 // console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
