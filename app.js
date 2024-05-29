@@ -95,7 +95,7 @@ export const cronFunc = async () => {
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
         if (isFree) {
-            let noUsersLeft = false;
+            let noUsersLeft = true;
             let noCampaignsLeft = false;
 
             try {
@@ -134,8 +134,8 @@ export const cronFunc = async () => {
                 } catch (error) {
 					console.error("campaign update many error =>>", error);
                 }
-				console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
             }
+			console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
         }
     } catch (error) {
         console.error("ERROR IN CRON FUNC", error);
