@@ -17,7 +17,7 @@ export const sendMail = async (emails) => {
         let transporterObj = {
             host: emailSettingsObj.mailHost,
             port: parseInt(emailSettingsObj.mailPort),
-            secure: true, // true for 465, false for other ports
+            secure: parseInt(emailSettingsObj.mailPort) == 465 || 587, // true for 465, false for other ports
             service: emailSettingsObj.mailService,
             auth: {
                 user: emailSettingsObj.mailUserName, // generated ethereal user

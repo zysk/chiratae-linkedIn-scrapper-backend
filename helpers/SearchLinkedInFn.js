@@ -13,8 +13,6 @@ import { randomIntFromInterval } from "./utils";
 import { checkLinkedInLoginFunc } from "../controllers/Campaign.controller";
 import { sendMail } from "../helpers/nodeMailer";
 
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-
 export const searchLinkedInFn = async (redisClientParam) => {
     try {
         await redisClientParam.set("isFree", "false");
@@ -750,12 +748,12 @@ export const searchLinkedInFn = async (redisClientParam) => {
 						delete campaignObj?._id;
 						delete campaignObj?.timesRun;
 
-						let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
-						await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
+						// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+						// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 
-						// let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+						let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 						// console.log(`dataToStore ===>>> ${dataToStore}`);
-						// setTimeout(15000);
+						await new Promise((resolve) => setTimeout(resolve, 10000));
 						await Campaign.findByIdAndUpdate(campaignId, campaignObj).exec();
 						// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
