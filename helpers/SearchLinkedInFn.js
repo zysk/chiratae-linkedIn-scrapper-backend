@@ -11,6 +11,7 @@ import PreviousLeads from "../models/previousLeads.model";
 import UserLogs from "../models/userLogs.model";
 import { randomIntFromInterval } from "./utils";
 import { checkLinkedInLoginFunc } from "../controllers/Campaign.controller";
+import { sendMail } from "../helpers/nodeMailer";
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
