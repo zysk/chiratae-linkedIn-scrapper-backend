@@ -69,9 +69,12 @@ app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 */2 * * *", function () {
-	console.log(`Executing every 2 hours as per UTC timezone, displaying as per IST. Last ran at ${new Date().toLocaleString(`en-IN`, {timeZone: `Asia/Kolkata`, timeZoneName: `short`, hour12: true})}`);
-	console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, {timeZone: process.env.TZ, timeZoneName: `short`, hour12: true})}`);
-    cronFunc();
+	if ((process.env.ENABLE_CRON)) {
+		console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, {timeZone: process.env.TZ, timeZoneName: `short`, hour12: true})}`);
+		cronFunc();
+    } else {
+		console.log(`Cron is disabled. Checking every 2 hours. Last checked at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
+	}
 
     /**
      * Cron list
