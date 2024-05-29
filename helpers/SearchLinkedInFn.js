@@ -4,7 +4,7 @@ import Lead from "../models/leads.model";
 import User from "../models/user.model";
 // const chrome = require('/usr/bin/chromedriver');  ///////chrome for server
 // const chrome = require('./chromedriver').path;
-import { driver as maindriver, redisClient } from "../app";
+import { driver as maindriver } from "../app";
 import { generalModelStatuses, rolesObj } from "../helpers/Constants";
 import { seleniumErrorHandler } from "../helpers/seleniumErrorHandler";
 import PreviousLeads from "../models/previousLeads.model";
@@ -25,7 +25,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
             let allEmails = await LinkedInAccountsModel.find().exec();
             let emails = allEmails.map((element) => element.name);
             await sendMail(emails);
-            await redisClient.set("isFree", "true");
+            await redisClientParam.set("isFree", "true");
             return false;
         }
 

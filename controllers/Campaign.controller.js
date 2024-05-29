@@ -7,7 +7,7 @@ import User from "../models/user.model";
 import path from "path";
 import chrome, { ServiceBuilder } from "selenium-webdriver/chrome";
 import { PageLoadStrategy } from "selenium-webdriver/lib/capabilities";
-import { cronFunc, driver as maindriver, redisClient } from "../app";
+import { cronFunc, driver as maindriver } from "../app";
 import { CalculateRating } from "../helpers/CalculateRating";
 import { rolesObj } from "../helpers/Constants";
 import { sendCustomMailToSavanta, sendMail } from "../helpers/nodeMailer";
