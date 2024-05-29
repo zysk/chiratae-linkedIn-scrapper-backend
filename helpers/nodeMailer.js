@@ -9,7 +9,8 @@ export const sendMail = async (emails) => {
         // // console.log(email)
         // create reusable transporter object using the default SMTP transport
         let emailSettingsObj = await EmailSettings.findOne().exec();
-        let linkedLoginUrl = url + `/scheduleCampaignLogin`;
+        // let linkedLoginUrl = url + `/scheduleCampaignLogin`;
+        let linkedLoginUrl = `${url}/Campaign`;
 
         // send mail with defined transport object
 
