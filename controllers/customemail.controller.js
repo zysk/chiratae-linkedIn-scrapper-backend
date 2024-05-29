@@ -8,7 +8,7 @@ export const createcustomemail = async (req, res, next) => {
 		let body = JSON.parse(JSON.stringify(req.body));
 
 		for (let index = 0; index < body.email.length; index++) {
-			await new Customemail({ ...body, email: body.email[i] }).save();
+			await new Customemail({ ...body, email: body.email[index] }).save();
         }
 
         await sendCustomMail(req.body.email, req.body.subject, req.body.content);
