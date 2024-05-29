@@ -130,10 +130,11 @@ export const cronFunc = async () => {
                             $inc: { timesRun: 1 }
                         }
                     );
-                    console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
+					console.log("Campaign Updated <<<<<<<<<<<<<<<<<<<<");
                 } catch (error) {
-                    console.error("campaign update many error =>>", error);
+					console.error("campaign update many error =>>", error);
                 }
+				console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
             }
         }
     } catch (error) {

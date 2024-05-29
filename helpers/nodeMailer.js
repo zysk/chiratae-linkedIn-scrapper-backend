@@ -17,13 +17,18 @@ export const sendMail = async (emails) => {
         let transporterObj = {
             host: emailSettingsObj.mailHost,
             port: parseInt(emailSettingsObj.mailPort),
-            secure: parseInt(emailSettingsObj.mailPort) == 465 || 587, // true for 465, false for other ports
+
             service: emailSettingsObj.mailService,
             auth: {
                 user: emailSettingsObj.mailUserName, // generated ethereal user
                 pass: emailSettingsObj.mailUserPassword, // generated ethereal password
             },
         };
+		if (parseInt(emailSettingsObj.mailPort) != 2525) {
+			Object.assign(transporterObj, {secure: true});
+		} else {
+			Object.assign(transporterObj, {secureConnection: true});
+		}
         // // console.log(transporterObj, "transporterObj")
         const transporter = nodemailer.createTransport(transporterObj);
         let obj = {
