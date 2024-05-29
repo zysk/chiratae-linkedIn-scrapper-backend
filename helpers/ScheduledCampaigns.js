@@ -11,6 +11,7 @@ import User from "../models/user.model";
 import { rolesObj } from "../helpers/Constants";
 import { seleniumErrorHandler } from "../helpers/seleniumErrorHandler";
 import { generateRandomNumbers } from "./utils";
+import LinkedInAccountsModel from "../models/LinkedInAccounts.model";
 
 export const getScheduledCampaignsForToday = async (beforeDate = null) => {
     try {

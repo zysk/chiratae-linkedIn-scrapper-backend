@@ -12,6 +12,7 @@ import UserLogs from "../models/userLogs.model";
 import { randomIntFromInterval } from "./utils";
 import { checkLinkedInLoginFunc } from "../controllers/Campaign.controller";
 import { sendMail } from "../helpers/nodeMailer";
+import LinkedInAccountsModel from "../models/LinkedInAccounts.model";
 
 export const searchLinkedInFn = async (redisClientParam) => {
     try {
