@@ -95,7 +95,7 @@ export const cronFunc = async () => {
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
         if (isFree) {
-            let noUsersLeft = true;
+            let noUsersLeft = false;
             let noCampaignsLeft = false;
 
             try {
