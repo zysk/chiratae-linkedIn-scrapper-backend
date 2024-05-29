@@ -6,10 +6,10 @@ import Customemail from "../models/Customemail.model";
 export const createcustomemail = async (req, res, next) => {
     try {
 		let body = JSON.parse(JSON.stringify(req.body));
-		let finalBody = [];
 
-		body.email.forEach(element => finalBody.push({ ...body, email: element }));
-        await new Customemail(finalBody).save();
+		for (let index = 0; index < body.email.length; index++) {
+			await new Customemail({ ...body, email: body.email[i] }).save();
+        }
 
         await sendCustomMail(req.body.email, req.body.subject, req.body.content);
 
