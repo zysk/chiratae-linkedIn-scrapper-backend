@@ -750,10 +750,13 @@ export const searchLinkedInFn = async (redisClientParam) => {
 						delete campaignObj?._id;
 						delete campaignObj?.timesRun;
 
-						let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+						let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+						await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
+
+						// let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 						// console.log(`dataToStore ===>>> ${dataToStore}`);
-						setTimeout(15000);
-						let campaignUpdatedObj = await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
+						// setTimeout(15000);
+						await Campaign.findByIdAndUpdate(campaignId, campaignObj).exec();
 						// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
 
