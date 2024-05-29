@@ -737,27 +737,31 @@ export const searchLinkedInFn = async (redisClientParam) => {
                 // }
 
                 // if (clientsArr) {
-					if (campaignObj) {
-						//         // // console.log(campaignObj, "el,campaignObj", clientsArr)
-						// let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
-						// // // console.log(leadsArr, "leadsArr")
-						//     }
+				if (campaignObj) {
+					//         // // console.log(campaignObj, "el,campaignObj", clientsArr)
+					// let leadsArr = await Lead.insertMany([...clientsArr.map(el => ({ clientId: el._id, ...el, campaignId: campaignObj._id }))])
+					// // // console.log(leadsArr, "leadsArr")
+					//     }
 
-						let campaignId = campaignObj?._id;
+					let campaignId = campaignObj?._id;
 
-						delete campaignObj?._id;
-						delete campaignObj?.timesRun;
+					delete campaignObj?._id;
+					delete campaignObj?.timesRun;
 
-						// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
-						// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
+					// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
+					// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 
-						let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
-						console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
-						await new Promise((resolve) => setTimeout(resolve, 10000));
-						console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
-						await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
-						console.log(`completed ===>>> ${dataToStore}`);
-						// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
+					let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" };
+					let finalData = {
+                        $set: dataToStore,
+						$inc: { timesRun: 1 }
+                    };
+					console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
+					await new Promise((resolve) => setTimeout(resolve, 10000));
+					console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
+					await Campaign.findByIdAndUpdate(campaignId, finalData).exec();
+					console.log(`completed ===>>> ${dataToStore}`);
+					// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
 
                 // // console.log("completed")
