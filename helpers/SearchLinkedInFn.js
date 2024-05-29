@@ -282,6 +282,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                             obj.link = linkValue;
                                                         }
                                                         resultsArr.push(obj);
+														console.log(`obj 11==>> ${obj}`);
+														console.log(`resultsArr 11==>> ${resultsArr}`);
                                                     }
                                                 }
                                             } catch (err) {
@@ -370,6 +372,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                     obj.link = linkValue;
                                                 }
                                                 resultsArr.push(obj);
+												console.log(`obj 22==>> ${obj}`);
+                                                console.log(`resultsArr 22==>> ${resultsArr}`);
                                             }
                                         }
                                     } catch (err) {
@@ -385,7 +389,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
                 // // console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
                 let lengthOfArray = resultsArr.filter((el) => el.link && el.link != "").length;
-				// console.log(`resultsArr 1111====>>>> ${resultsArr.length}`);
+				console.log(`resultsArr 33====>>>> ${resultsArr.length} -- ${lengthOfArray}`);
 				// console.log(`lengthOfArray 1111====>>>> ${lengthOfArray}`);
 
                 // /////not for now
@@ -748,6 +752,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
 					delete campaignObj?._id;
 					delete campaignObj?.timesRun;
+					delete campaignObj?.resultsArr;
 
 					// let dataToStore = { totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED", $inc: { timesRun: 1 } };
 					// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
