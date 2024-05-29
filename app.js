@@ -69,12 +69,12 @@ app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 */2 * * *", function () {
-	if ((process.env.ENABLE_CRON == `true`)) {
-		console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, {timeZone: process.env.TZ, timeZoneName: `short`, hour12: true})}`);
-		cronFunc();
+	if (process.env.ENABLE_CRON == "true") {
+        console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
+        cronFunc();
     } else {
-		console.log(`Cron is disabled. Checking every 2 hours. Last checked at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
-	}
+        console.log(`Cron is disabled. Checking every 2 hours. Last checked at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
+    }
 
     /**
      * Cron list
@@ -90,7 +90,7 @@ const job = schedule.scheduleJob("0 */2 * * *", function () {
 
 export const cronFunc = async () => {
     try {
-		console.log("Search Started >>>>>>>>>>>>>>>>>>>>>>");
+		console.log("Search Started >>>>>>>>>");
         let isFree = await redisClient.get("isFree");
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
@@ -98,46 +98,55 @@ export const cronFunc = async () => {
             let noUsersLeft = false;
             let noCampaignsLeft = false;
 
+			try {
+				console.log("Linkedin Search Started >>>>>>>>>");
+				noCampaignsLeft = await searchLinkedInFn(redisClient);
+				console.log("Linkedin Search Completed <<<<<<<<<");
+				// console.log("noCampaignsLeft", noCampaignsLeft);
+			} catch (error) {
+				console.error("searchLinkedInFn error =>>", error);
+			}
+
             try {
-				console.log("Profile Scrapping Started >>>>>>>>>>>>>>>>>>>>>>");
+                console.log("Profile Scrapping Started >>>>>>>>>");
                 noUsersLeft = await linkedInProfileScrapping(redisClient);
-				console.log("Profile Scrapping Completed <<<<<<<<<<<<<<<<<<<<");
+                console.log("Profile Scrapping Completed <<<<<<<<<");
                 // console.log("noUsersLeft", noUsersLeft);
             } catch (error) {
                 console.error("linkedInProfileScrapping error =>>", error);
             }
 
-            if (noUsersLeft) {
-                try {
-					console.log("Linkedin Search Started >>>>>>>>>>>>>>>>>>>>>>");
-                    noCampaignsLeft = await searchLinkedInFn(redisClient);
-					console.log("Linkedin Search Completed <<<<<<<<<<<<<<<<<<<<");
-                    // console.log("noCampaignsLeft", noCampaignsLeft);
-                } catch (error) {
-                    console.error("searchLinkedInFn error =>>", error);
-                }
-            }
+            // if (noUsersLeft) {
+            //     try {
+            // 		console.log("Linkedin Search Started >>>>>>>>>");
+            //         noCampaignsLeft = await searchLinkedInFn(redisClient);
+            // 		console.log("Linkedin Search Completed <<<<<<<<<");
+            //         // console.log("noCampaignsLeft", noCampaignsLeft);
+            //     } catch (error) {
+            //         console.error("searchLinkedInFn error =>>", error);
+            //     }
+            // }
 
             // if (noCampaignsLeft) {
             //     // reset users and campaign
             //     try {
-			// 		await CampaignModel.updateMany(
-			// 			{},
+            // 		await CampaignModel.updateMany(
+            // 			{},
             //             {
-			// 				status: generalModelStatuses.CREATED,
+            // 				status: generalModelStatuses.CREATED,
             //                 isSearched: false,
             //                 processing: false,
             //                 $inc: { timesRun: 1 }
             //             }
             //         );
-			// 		console.log("Campaign Updated <<<<<<<<<<<<<<<<<<<<");
+            // 		console.log("Campaign Updated <<<<<<<<<");
             //     } catch (error) {
-			// 		console.error("campaign update many error =>>", error);
+            // 		console.error("campaign update many error =>>", error);
             //     }
             // }
-			console.log("Search Completed <<<<<<<<<<<<<<<<<<<<");
+            console.log("Search Completed <<<<<<<<<");
         } else {
-			console.log("Redis not free <<<<<<<<<<<<<<<<<<<<");
+			console.log("Redis not free <<<<<<<<<");
 		}
     } catch (error) {
         console.error("ERROR IN CRON FUNC", error);
