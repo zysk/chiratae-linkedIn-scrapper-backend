@@ -69,7 +69,7 @@ app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 */2 * * *", function () {
-	if ((process.env.ENABLE_CRON)) {
+	if ((process.env.ENABLE_CRON == `true`)) {
 		console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, {timeZone: process.env.TZ, timeZoneName: `short`, hour12: true})}`);
 		cronFunc();
     } else {
