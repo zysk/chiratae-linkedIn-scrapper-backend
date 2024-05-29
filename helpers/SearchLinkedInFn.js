@@ -753,11 +753,13 @@ export const searchLinkedInFn = async (redisClientParam) => {
 					// await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 
 					let dataToStore = { ...campaignObj, totalResults: totalResults, processing: false, isSearched: true, status: "COMPLETED" };
+					console.log(`campaignId 111===>>> ${campaignId}`);
 					console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
 					await new Promise((resolve) => setTimeout(resolve, 10000));
+					console.log(`campaignId 222===>>> ${campaignId}`);
 					console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
 					await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
-					console.log(`completed ===>>> ${dataToStore}`);
+					console.log(`completed ===>>> ${JSON.stringify(dataToStore)}`);
 					// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
                 }
 
