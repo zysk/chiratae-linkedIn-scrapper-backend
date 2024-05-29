@@ -27,7 +27,7 @@ export const sendMail = async (emails) => {
         // // console.log(transporterObj, "transporterObj")
         const transporter = nodemailer.createTransport(transporterObj);
         let obj = {
-            from: emailSettingsObj.mailUserName, // sender address
+            from: emailSettingsObj.mailFromAddress, // sender address
             to: emails, // list of receivers
             subject: "LinkedIn account is not logged in please login now", // Subject line
             text: `LinkedIn account is not logged in please login now ${linkedLoginUrl}`, // plain text body
@@ -98,7 +98,7 @@ export const sendCustomMail = async (email, subject, content) => {
 
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
-            from: emailSettingsObj?.mailUserName, // sender address
+            from: emailSettingsObj?.mailFromAddress, // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: content, // plain text body
@@ -160,7 +160,7 @@ export const sendCustomMailToSavanta = async (email, mailSettingsObj, subject, c
         // // console.log(temp, "temp")
         // send mail with defined transport object
         let temp = await customTransporter.sendMail({
-            from: mailSettingsObj?.mailUserName, // sender address
+            from: mailSettingsObj?.mailFromAddress, // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: content, // plain text body
