@@ -146,6 +146,7 @@ export const cronFunc = async () => {
             // 		console.error("campaign update many error =>>", error);
             //     }
             // }
+			await redisClient.set("isFree", "true");
             console.log("Search Completed <<<<<<<<<");
         } else {
 			console.log("Redis not free <<<<<<<<<");
