@@ -107,13 +107,15 @@ export const cronFunc = async () => {
 				console.error("searchLinkedInFn error =>>", error);
 			}
 
-            try {
-                console.log("Profile Scrapping Started >>>>>>>>>");
-                noUsersLeft = await linkedInProfileScrapping(redisClient);
-                console.log("Profile Scrapping Completed <<<<<<<<<");
-                // console.log("noUsersLeft", noUsersLeft);
-            } catch (error) {
-                console.error("linkedInProfileScrapping error =>>", error);
+            if (noCampaignsLeft) {
+                try {
+                    console.log("Profile Scrapping Started >>>>>>>>>");
+                    noUsersLeft = await linkedInProfileScrapping(redisClient);
+                    console.log("Profile Scrapping Completed <<<<<<<<<");
+                    // console.log("noUsersLeft", noUsersLeft);
+                } catch (error) {
+                    console.error("linkedInProfileScrapping error =>>", error);
+                }
             }
 
             // if (noUsersLeft) {
