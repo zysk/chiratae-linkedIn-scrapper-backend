@@ -69,7 +69,7 @@ app.use("/customemail", customemailRouter);
 
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 */2 * * *", function () {
-	console.log(`Executing every 2 hours, specifically at the start of the hour (e.g., at 00:00, 02:00, 04:00, and so on) every day, every month, and every day of the week. Ran at ${new Date().toLocaleString()}`);
+	console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-US`, {timeZone: `Asia/Kolkata`})}`);
     cronFunc();
 
     /**
