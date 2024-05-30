@@ -764,6 +764,10 @@ export const searchLinkedInFn = async (redisClientParam) => {
 					// console.log(`dataToStore 111===>>> ${JSON.stringify(dataToStore)}`);
 					// await new Promise((resolve) => setTimeout(resolve, 10000));
 					// console.log(`dataToStore 222===>>> ${JSON.stringify(dataToStore)}`);
+					let updatedData = await Campaign.findById(campaignId).exec();
+					if (!updatedData?.totalResults || updatedData?.totalResults == "") {
+						Object.assign(dataToStore, { totalResults: "0 results" });
+                    }
 					await Campaign.findByIdAndUpdate(campaignId, dataToStore).exec();
 					// console.log(`completed ===>>> ${JSON.stringify(dataToStore)}`);
 					// console.log(`campaignUpdatedObj ===>>> ${campaignUpdatedObj}`);
