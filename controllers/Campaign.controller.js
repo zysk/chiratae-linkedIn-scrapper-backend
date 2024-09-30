@@ -304,13 +304,13 @@ export const linkedInLogin = async (req, res, next) => {
                             }
                         }
                     } catch (error) {
-                        let otpCheck = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`), 5000);
+                        let otpCheck = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]`), 5000);
                         if (otpCheck) {
                             try {
-                                let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/h2`)), 5000);
+                                let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]`)), 5000);
                                 if (otpForm) {
                                     otpRequired = true;
-                                    otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`)).getText();
+                                    otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/p`)).getText();
                                 }
                             } catch (error) {
                                 console.error(error);
@@ -426,13 +426,13 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                     }
                 }
             } catch (error) {
-                let otpCheck = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`), 5000);
+                let otpCheck = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]`), 5000);
                 if (otpCheck) {
                     try {
-                        let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]/h2`)), 5000);
+                        let otpForm = await driver.wait(until.elementLocated(By.xpath(`//form[@id="email-pin-challenge"]`)), 5000);
                         if (otpForm) {
                             otpRequired = true;
-                            otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/h2`)).getText();
+                            otpMessage = await driver.findElement(By.xpath(`//form[@id="email-pin-challenge"]/p`)).getText();
                         }
                     } catch (error) {
                         console.error(error);

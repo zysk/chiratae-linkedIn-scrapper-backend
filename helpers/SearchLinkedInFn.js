@@ -44,12 +44,11 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
                 let page = await driver.get("https://www.linkedin.com");
 
-                let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input"]`)));
+                let searchInput = await driver.wait(until.elementLocated(By.xpath(`//input[@class="search-global-typeahead__input "]`)));
 
                 if (searchInput) {
                     // ! searching for search input on linkedin and entering the query sent by user and submiting the input
-
-                    await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input"]`)).sendKeys(`${campaignObj.searchQuery}`, Key.ENTER);
+                    await driver.findElement(By.xpath(`//input[@class="search-global-typeahead__input "]`)).sendKeys(`${campaignObj.searchQuery}`, Key.ENTER);
 
                     // ? search input filled , now looking for people filter on linkedin
 
