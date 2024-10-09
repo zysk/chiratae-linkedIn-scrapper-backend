@@ -183,8 +183,12 @@ export const linkedInLogin = async (req, res, next) => {
 
         let driver = await maindriver;
 
-		let otpRequired = false;
+        let otpRequired = false;
         let otpMessage = "";
+
+        let phoneIntractionRequired = false
+        let phoneMessage = ''
+        let phoneSubMessage = ''
 
         // let driver = await new Builder()
         //     .forBrowser("chrome")
@@ -246,11 +250,11 @@ export const linkedInLogin = async (req, res, next) => {
                 // let session = await driver.getSession()
                 // let capabilities = await driver.getCapabilities()
                 // await new SeleniumSessionModel({ sessiong_data: session, capabilities: capabilities }).save()
-                if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
+                if (url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")) {
                     console.log("inside wrong password block>>>>");
                     try {
                         let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
-                        if(wrongPasswordError){
+                        if (wrongPasswordError) {
                             console.log({ error: wrongPasswordError });
                             return res.json({ error: wrongPasswordError });
                         }
@@ -259,7 +263,26 @@ export const linkedInLogin = async (req, res, next) => {
                     }
                 }
 
-                if (url.includes("checkpoint")) {
+                if (url.includes("checkpoint") && url.includes("challengesV2")) {
+                    phoneIntractionRequired = true
+                    console.log("Currently the screen is in Check your linkedin app")
+                    let isLandedOnCheckYourLinkedInApp = await driver.findElement(By.xpath(`//div[@id="card-container"]`), 5000)
+                    try {
+                        if (isLandedOnCheckYourLinkedInApp) {
+                            console.log("Found the card, which means we are on correct screen")
+                            phoneMessage = await driver.findElement(By.xpath(`//div[@class="header__content "]/h1`)).getText();
+                            phoneSubMessage = await driver.findElement(By.xpath(`//div[@class="header__content "]/p`)).getText();
+                            return res.json({ phoneIntractionRequired, phoneMessage, phoneSubMessage });
+                        }
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }
+                //div[@class="header__content "]/h1
+                // //div[@class="header__content "]/p
+                // //button[@id="reset-password-submit-button"]
+
+                if (url.includes("checkpoint") && !url.includes("challengesV2")) {
                     try {
                         let captchaCheck = await driver.findElement(By.id("captcha-internal"), 5000);
                         if (captchaCheck) {
@@ -323,6 +346,7 @@ export const linkedInLogin = async (req, res, next) => {
             console.error(error);
         }
         // await driver.quit()
+        console.log({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
         res.json({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
     } catch (error) {
         console.error(error);
@@ -397,11 +421,11 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         let otpRequired = false;
         let otpMessage = "";
 
-        if(url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")){
+        if (url.includes("login-challenge-submit") || url.includes("login-submit") || url.includes("verify")) {
             console.log("inside wrong password block>>>>");
             try {
                 let wrongPasswordError = await driver.findElement(By.xpath(`//div[@id="error-for-password"]`)).getText();
-                if(wrongPasswordError){
+                if (wrongPasswordError) {
                     console.log({ error: wrongPasswordError });
                     return res.json({ error: wrongPasswordError });
                 }
@@ -415,7 +439,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
                 let captchaCheck = await driver.findElement(By.xpath(`// div[@id="game_challengeItem"]//img`), 5000);
                 if (captchaCheck) {
                     //captcha
-                    console.log("Inside if condition......");
+                    console.log("Currently the screen is in Captcha screen");
                     isCaptcha = true;
                     try {
                         let img = await driver.wait(until.elementLocated(By.xpath(`// div[@id="game_challengeItem"]//img`)));
@@ -489,7 +513,6 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         //     .setChromeOptions(options).build()
 
         // console.log(await driver.getCurrentUrl());
-
         res.json({ message: "testing", isCaptcha, imgUrl, otpRequired, otpMessage });
     } catch (error) {
         console.error(error);
@@ -534,6 +557,26 @@ export const verifyOtp = async (req, res, next) => {
     }
 };
 
+export const resendPhoneCheck = async (req, res, next) => {
+    try {
+        let phoneIntractionRequired = true
+        let driver = await maindriver
+        await driver.sleep(4000);
+
+        let resendButton = await driver.wait(until.elementsLocated(By.xpath(`//button[@id="reset-password-submit-button"]`)));
+
+        if (resendButton) {
+            await driver.findElement(By.xpath(`//button[@id="reset-password-submit-button"]`)).click();
+            phoneIntractionRequired = false
+        }
+        console.log("Check your phone again, link sent successfully")
+        res.json({ message: "Please check your phone, link sent successfully", otpRequired });
+    } catch (error) {
+        console.error(error)
+        next(error)
+    }
+}
+
 export const linkedInSearch = async (req, res, next) => {
     try {
         let totalResults = "";
@@ -562,11 +605,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
     await redisClientParam.set("isFree", "false");
     let loggedIn = await checkLinkedInLoginFunc();
     if (!loggedIn) {
-		let allEmails = await LinkedInAccountsModel.find().exec();
-		let emails = allEmails.map(element => element.name);
+        let allEmails = await LinkedInAccountsModel.find().exec();
+        let emails = allEmails.map(element => element.name);
         await sendMail(emails);
         await redisClientParam.set("isFree", "true");
-		return false;
+        return false;
     }
 
     let userArr = await User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean().exec();
@@ -721,8 +764,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 schoolDetail = await driver
                                     .findElement(
                                         By.xpath(
-                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[${
-                                                l + 1
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1
                                             }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                         )
                                     )
@@ -782,8 +824,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             try {
                                 let checkElementHasAnchorTag = await driver.findElement(
                                     By.xpath(
-                                        `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                            k + 1
+                                        `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                         }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a`
                                     )
                                 );
@@ -795,8 +836,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                         commonCompanyValue = await driver
                                             .findElement(
                                                 By.xpath(
-                                                    `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                        k + 1
+                                                    `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                                     }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a/div[@class="display-flex flex-wrap align-items-center full-height"]/div/div/div/span[@aria-hidden="true"]`
                                                 )
                                             )
@@ -807,8 +847,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
 
                                     let checkInnerElementOfAnchorTag = await driver.findElements(
                                         By.xpath(
-                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                k + 1
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                             }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li`
                                         )
                                     );
@@ -821,10 +860,8 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                                 value = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                                k + 1
-                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li[${
-                                                                a + 1
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
+                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li[${a + 1
                                                             }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/div/div/div/div/span[@aria-hidden="true"]`
                                                         )
                                                     )
@@ -837,10 +874,8 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                                 year = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                                k + 1
-                                                            }]/div/div/div/div[2]/ul/li/div[@class="pvs-list__container"]/div/div/ul/li[${
-                                                                a + 1
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
+                                                            }]/div/div/div/div[2]/ul/li/div[@class="pvs-list__container"]/div/div/ul/li[${a + 1
                                                             }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@class="pvs-entity__caption-wrapper"]`
                                                         )
                                                     )
@@ -858,8 +893,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     companyvalue = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                    k + 1
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                                 }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                             )
                                         )
@@ -872,8 +906,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     value = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                    k + 1
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                                 }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/div/div/div/div//span[@aria-hidden="true"]`
                                             )
                                         )
@@ -885,8 +918,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     year = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${
-                                                    k + 1
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
                                                 }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span/span[@class="pvs-entity__caption-wrapper"]`
                                             )
                                         )
@@ -1358,8 +1390,7 @@ export const searchLinkedin = async (req, res, next) => {
                             let value = await driver
                                 .findElement(
                                     By.xpath(
-                                        `(//section[@class="artdeco-card ember-view relative break-words pb3 mt2 "]//*[contains(text(),"Education")]//ancestor::section[@class="artdeco-card ember-view relative break-words pb3 mt2 "]//ul//li//div//a//span[@class="mr1 hoverable-link-text t-bold"])[${
-                                            k + 1
+                                        `(//section[@class="artdeco-card ember-view relative break-words pb3 mt2 "]//*[contains(text(),"Education")]//ancestor::section[@class="artdeco-card ember-view relative break-words pb3 mt2 "]//ul//li//div//a//span[@class="mr1 hoverable-link-text t-bold"])[${k + 1
                                         }]//span[@aria-hidden="true"]`
                                     )
                                 )
@@ -1507,7 +1538,7 @@ export const getPastCampaignById = async (req, res, next) => {
             let clientArr = await User.find({ _id: { $in: [...SearchResultObj?.resultsArr.map((el) => el.clientId)] } })
                 .lean()
                 .exec();
-			// console.log(`clientArr ==>> ${clientArr}`);
+            // console.log(`clientArr ==>> ${clientArr}`);
             SearchResultObj.resultsArr = clientArr;
         }
         res.status(200).json({ message: "Search Result object", data: SearchResultObj, success: true });
