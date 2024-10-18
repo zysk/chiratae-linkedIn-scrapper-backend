@@ -347,7 +347,7 @@ export const linkedInLogin = async (req, res, next) => {
         }
         // await driver.quit()
         console.log({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
-        res.json({ captcha, isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
+        res.json({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
     } catch (error) {
         console.error(error);
         next(error);
