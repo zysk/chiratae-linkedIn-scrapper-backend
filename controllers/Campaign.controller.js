@@ -272,7 +272,7 @@ export const linkedInLogin = async (req, res, next) => {
                             console.log("Found the card, which means we are on correct screen")
                             phoneMessage = await driver.findElement(By.xpath(`//div[@class="header__content "]/h1`)).getText();
                             phoneSubMessage = await driver.findElement(By.xpath(`//div[@class="header__content "]/p`)).getText();
-                            return res.json({ phoneIntractionRequired, phoneMessage, phoneSubMessage });
+                            return res.json({ phoneIntractionRequired:true, phoneMessage, phoneSubMessage });
                         }
                     } catch (error) {
                         console.error(error)
@@ -347,7 +347,7 @@ export const linkedInLogin = async (req, res, next) => {
         }
         // await driver.quit()
         console.log({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
-        res.json({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
+        res.json({ captcha:false, isCaptcha, imgUrl, captchaMessage, otpRequired:false, otpMessage, phoneIntractionRequired:true, phoneMessage:"check the phone" });
     } catch (error) {
         console.error(error);
         next(error);
