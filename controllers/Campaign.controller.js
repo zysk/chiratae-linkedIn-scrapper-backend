@@ -570,7 +570,7 @@ export const resendPhoneCheck = async (req, res, next) => {
             phoneIntractionRequired = false
         }
         console.log("Check your phone again, link sent successfully")
-        res.json({ message: "Please check your phone, link sent successfully", otpRequired });
+        res.json({ message: "Please check your phone, link sent successfully", phoneIntractionRequired });
     } catch (error) {
         console.error(error)
         next(error)
