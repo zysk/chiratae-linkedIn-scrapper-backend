@@ -119,7 +119,7 @@ export const checkLinkedInLoginFunc = async () => {
     // // console.log("url:", url);
     // console.timeEnd("label1")
     if (url.includes("feed") || url.includes("/in/") || url.includes("/search/") || url.includes("/results/")) {
-        isLogin = false; // TODO: need to make it true
+        isLogin = true;
     }
     return isLogin;
 };
@@ -347,7 +347,7 @@ export const linkedInLogin = async (req, res, next) => {
         }
         // await driver.quit()
         console.log({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
-        res.json({ captcha: false, imgUrl, captchaMessage, otpRequired:false, otpMessage, phoneIntractionRequired:true, phoneMessage, phoneSubMessage });
+        res.json({ captcha: isCaptcha, imgUrl, captchaMessage, otpRequired, otpMessage });
     } catch (error) {
         console.error(error);
         next(error);
