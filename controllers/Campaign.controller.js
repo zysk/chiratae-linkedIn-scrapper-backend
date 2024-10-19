@@ -119,7 +119,7 @@ export const checkLinkedInLoginFunc = async () => {
     // // console.log("url:", url);
     // console.timeEnd("label1")
     if (url.includes("feed") || url.includes("/in/") || url.includes("/search/") || url.includes("/results/")) {
-        isLogin = true;
+        isLogin = false; // TODO: need to make it true
     }
     return isLogin;
 };
