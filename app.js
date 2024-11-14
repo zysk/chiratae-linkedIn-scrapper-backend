@@ -29,7 +29,7 @@ const redis = require("redis");
 const schedule = require("node-schedule");
 
 const app = express();
-app.use(cors());
+app.use("*",cors());
 // app.use(logger("dev"));
 
 mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
@@ -67,6 +67,10 @@ app.use("/leadlogs", leadlogsRouter);
 app.use("/leadComments", leadCommentRouter);
 app.use("/emailSettings", emailSettingsRouter);
 app.use("/customemail", customemailRouter);
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 0 * * *", function () {
