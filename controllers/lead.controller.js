@@ -25,7 +25,6 @@ export const getLeads = async (req, res, next) => {
                 query = { ...query, leadAssignedToId: `${req.query.userId}` };
             }
         }
-        // // console.log(req.query, "skip")
         if (req.query.skip) {
             query = { ...query, skip: parseInt(req.query.skip) };
         }
@@ -44,36 +43,29 @@ export const getLeads = async (req, res, next) => {
         if (req.query.company) {
             query = { ...query, company: req.query.company };
         }
-        // // console.log(leadsList(query), "leadsList(query)")
         let LeadStatusArr = await Lead.aggregate([leadsList(query)]).exec();
         let totalLeads = 0;
         if (req.query.userId) {
             totalLeads = await Lead.find({ leadAssignedToId: `${req.query.userId}` }).count();
         } else {
             if (req.query.filter == "assigned") {
-                // // console.log("assigned")
                 totalLeads = await Lead.find({ leadAssignedToId: { $exists: true } }).count();
             } else if (req.query.filter == "un-assigned") {
-                // // console.log("un-assigned")
                 totalLeads = await Lead.find({ leadAssignedToId: { $exists: false } }).count();
             } else if (req.query.searchQueryValue && req.query.searchQueryValue != "") {
-                // // console.log("req.query.searchQueryValue")
                 totalLeads = LeadStatusArr.length;
-
-                // // console.log(totalLeads, "!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@######################EE$$$$$$$$$$$")
             } else {
-                // // console.log("else")
                 totalLeads = await Lead.find().count();
             }
         }
-        // // console.log(totalLeads, "totalLeads")
-        // // console.log(LeadStatusArr.length, "LeadStatusArr")
+
         res.status(200).json({ message: "Lead found", data: LeadStatusArr, totalLeads: totalLeads, success: true });
     } catch (error) {
         console.error(error);
         next(error);
     }
 };
+
 export const getLeadById = async (req, res, next) => {
     try {
         let query = {};
@@ -118,6 +110,7 @@ export const assignLeadToUser = async (req, res, next) => {
         next(error);
     }
 };
+
 export const automaticallyAssignLeadsToUser = async (req, res, next) => {
     try {
         let totalUsersArr = await User.find({ isActive: true }).find();
@@ -126,14 +119,45 @@ export const automaticallyAssignLeadsToUser = async (req, res, next) => {
             throw new Error("No active sub users found to allot leads to .");
         }
 
-        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } })
-            .lean()
-            .exec();
+        // let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } })
+        //     .lean()
+        //     .exec();
 
-        if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
+        let totalLeadsArr = await Lead.aggregate([
+            {
+                $match: { leadAssignedToId: { $exists: false } }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "clientId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $match: { "user.searchCompleted": true }
+            },
+            {
+                $project: {
+                    user: 0
+                }
+            }
+        ]).exec();
+
+        // if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
+        //     throw new Error("No leads left to allot.");
+        // }
+
+        if ((totalLeadsArr && totalLeadsArr.length == 0) || !totalLeadsArr) {
             throw new Error("No leads left to allot.");
         }
-        let finalLeadsPool = toatalLeadsArr;
+
+        // let finalLeadsPool = toatalLeadsArr;
+        let finalLeadsPool = totalLeadsArr;
 
         console.time();
 
@@ -171,14 +195,35 @@ export const automaticallyAssignLeadsToSelectedUsers = async (req, res, next) =>
             throw new Error("No active sub users found to allot leads to .");
         }
 
-        let toatalLeadsArr = await Lead.find({ leadAssignedToId: { $exists: false } })
-            .lean()
-            .exec();
+        let totalLeadsArr = await Lead.aggregate([
+            {
+                $match: { leadAssignedToId: { $exists: false } }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "clientId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $match: { "user.searchCompleted": true }
+            },
+            {
+                $project: {
+                    user: 0 // Optional: exclude the user data if it's not needed in the result
+                }
+            }
+        ]).exec();
 
-        if ((toatalLeadsArr && toatalLeadsArr.length == 0) || !toatalLeadsArr) {
+        if ((totalLeadsArr && totalLeadsArr.length == 0) || !totalLeadsArr) {
             throw new Error("No leads left to allot.");
         }
-        let finalLeadsPool = toatalLeadsArr;
+        let finalLeadsPool = totalLeadsArr;
 
         console.time();
 

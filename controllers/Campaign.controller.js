@@ -754,7 +754,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             try {
                                 schoolName = await driver
                                     .findElement(
-                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/div/div/div/div/span[@aria-hidden="true"]`)
+                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[2]/div/a/div/div/div/div/span[@aria-hidden="true"]`)
                                     )
                                     .getText();
                             } catch (err) {
@@ -764,8 +764,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 schoolDetail = await driver
                                     .findElement(
                                         By.xpath(
-                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1
-                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[2]/div/a/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
                                         )
                                     )
                                     .getText();
@@ -775,7 +774,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             try {
                                 year = await driver
                                     .findElement(
-                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div/a/span[2]/span[@aria-hidden="true"]`)
+                                        By.xpath(`//div[@class="scaffold-finite-scroll__content"]/ul/li[${l + 1}]/div/div/div[2]/div/a/span[2]/span[@aria-hidden="true"]`)
                                     )
                                     .getText();
                             } catch (err) {
