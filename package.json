@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "npx babel-node ./bin/www",
-        "dev": "nodemon --exec babel-node ./bin/www --signal SIGINT"
+        "dev": "nodemon --exitcrash --exec babel-node ./bin/www --signal SIGINT"
     },
     "dependencies": {
         "babel-node": "^0.0.1-security",
