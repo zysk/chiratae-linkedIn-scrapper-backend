@@ -135,6 +135,8 @@ export const UserListWithCampaigns = (payload) => {
 
 export const leadsList = (payload) => {
     let pipeline = [];
+    
+    // Basic matching and lookups as in the initial code
     let matchCondition = [
         {
             $sort: {
@@ -171,8 +173,7 @@ export const leadsList = (payload) => {
         },
     ];
 
-    let sortCondition = {};
-
+    // Filtering based on leadAssignedToId and user lookups
     if (payload.leadAssignedToId) {
         matchCondition.push({
             $match: {
@@ -210,131 +211,120 @@ export const leadsList = (payload) => {
         });
     }
 
+    // Applying filter for assigned or unassigned
     if (payload.filter == "assigned") {
         matchCondition.push({
             $match: {
-                leadAssignedToId: {
-                    $exists: true,
-                },
+                leadAssignedToId: { $exists: true },
             },
         });
     } else if (payload.filter == "un-assigned") {
         matchCondition.push({
             $match: {
-                leadAssignedToId: {
-                    $exists: false,
-                },
+                leadAssignedToId: { $exists: false },
             },
         });
     }
 
+    // School filter
     if (payload.school && payload.school != "") {
         let schoolArr = payload.school.split(",");
         matchCondition.push({
             $match: {
                 $or: [
                     {
-                        "clientObj.educationArr.schoolName": {
-                            $regex: `${schoolArr[0].trim()}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolName": { $regex: `${schoolArr[0].trim()}`, $options: "i" },
                     },
                     {
-                        "clientObj.educationArr.schoolDetail": {
-                            $regex: `${schoolArr[0].trim()}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolDetail": { $regex: `${schoolArr[0].trim()}`, $options: "i" },
                     },
                     {
-                        "clientObj.educationArr.schoolName": {
-                            $regex: `${schoolArr && schoolArr.length > 0 ? schoolArr[1].trim() : ""}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolName": { $regex: `${schoolArr[1]?.trim()}`, $options: "i" },
                     },
                     {
-                        "clientObj.educationArr.schoolDetail": {
-                            $regex: `${schoolArr && schoolArr.length > 0 ? schoolArr[1].trim() : ""}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolDetail": { $regex: `${schoolArr[1]?.trim()}`, $options: "i" },
                     },
                 ],
             },
         });
     }
+
+    // Company filter
     if (payload.company && payload.company != "") {
         matchCondition.push({
             $match: {
                 $or: [
                     {
-                        "clientObj.experienceArr.company": {
-                            $regex: `${payload.company}`,
-                            $options: "i",
-                        },
+                        "clientObj.experienceArr.company": { $regex: `${payload.company}`, $options: "i" },
                     },
                     {
-                        "clientObj.experienceArr.companyDetail": {
-                            $regex: `${payload.company}`,
-                            $options: "i",
-                        },
+                        "clientObj.experienceArr.companyDetail": { $regex: `${payload.company}`, $options: "i" },
                     },
                 ],
             },
         });
     }
 
+    // General search query filter
     if (payload.searchQueryValue && payload.searchQueryValue != "") {
         matchCondition.push({
             $match: {
                 $or: [
                     {
-                        "clientObj.name": {
-                            $regex: `${payload.searchQueryValue}`,
-                            $options: "i",
-                        },
+                        "clientObj.name": { $regex: `${payload.searchQueryValue}`, $options: "i" },
                     },
                     {
-                        "clientObj.educationArr.schoolName": {
-                            $regex: `${payload.searchQueryValue}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolName": { $regex: `${payload.searchQueryValue}`, $options: "i" },
                     },
                     {
-                        "clientObj.educationArr.schoolDetail": {
-                            $regex: `${payload.searchQueryValue}`,
-                            $options: "i",
-                        },
+                        "clientObj.educationArr.schoolDetail": { $regex: `${payload.searchQueryValue}`, $options: "i" },
                     },
                     {
-                        "clientObj.experienceArr.company": {
-                            $regex: `${payload.searchQueryValue}`,
-                            $options: "i",
-                        },
+                        "clientObj.experienceArr.company": { $regex: `${payload.searchQueryValue}`, $options: "i" },
                     },
                     {
-                        "clientObj.experienceArr.companyDetail": {
-                            $regex: `${payload.searchQueryValue}`,
-                            $options: "i",
-                        },
+                        "clientObj.experienceArr.companyDetail": { $regex: `${payload.searchQueryValue}`, $options: "i" },
                     },
                 ],
             },
         });
     }
 
+    // Combine filtering and add sorting based on details presence
     pipeline.push(
         ...matchCondition,
-        { $addFields: { checked: false } },
+        {
+            $addFields: {
+                hasDetails: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                { $gt: [{ $size: "$clientObj.educationArr" }, 0] },
+                                { $gt: [{ $size: "$clientObj.experienceArr" }, 0] },
+                                { $gt: [{ $size: "$clientObj.contactInfoArr" }, 0] },
+                            ],
+                        },
+                        then: 1,
+                        else: 0,
+                    },
+                },
+            },
+        },
+        {
+            $sort: { hasDetails: -1, createdAt: -1 }, // Sort by 'hasDetails' first, then 'createdAt'
+        },
         {
             $skip: payload.skip,
         },
         {
             $limit: payload.limit,
-        }
-        // { $sort: sortCondition }
+        },
+        { $addFields: { checked: false } }
     );
 
     return pipeline;
 };
+
 
 export const leadsDetails = (payload) => {
     // // console.log(payload);
