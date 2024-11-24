@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { rolesObj } from "../helpers/Constants";
+import { rolesObj } from "../helpers/utils/Constants";
 
 let userlogs = mongoose.Schema(
     {

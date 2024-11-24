@@ -10,6 +10,8 @@
     },
     "rules": {
         "no-unused-vars": "warn",
-        "no-unsafe-optional-chaining": "false"
+        "no-unsafe-optional-chaining": "off",
+        "no-console": "warn",
+        "camelcase": "warn"
     }
 }

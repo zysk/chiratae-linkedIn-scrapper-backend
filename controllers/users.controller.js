@@ -1,10 +1,10 @@
 import { UserList, UserListWithCampaigns } from "../Builders/user.builder";
-import { comparePassword, encryptPassword } from "../helpers/Bcrypt";
-import { CalculateRating } from "../helpers/CalculateRating";
-import { ErrorMessages, rolesObj } from "../helpers/Constants";
-import { generateAccessJwt } from "../helpers/Jwt";
+import { comparePassword, encryptPassword } from "../helpers/auth/Bcrypt";
+import { CalculateRating } from "../helpers/linkedin/CalculateRating";
+import { ErrorMessages, rolesObj } from "../helpers/utils/Constants";
+import { generateAccessJwt } from "../helpers/auth/Jwt";
 
-import { ValidateEmail } from "../helpers/Validators";
+import { ValidateEmail } from "../helpers/auth/Validators";
 import Users from "../models/user.model";
 import Lead from "../models/leads.model";
 // import { upload } from "../helpers/fileUpload";
@@ -175,25 +175,13 @@ export const loginAdmin = async (req, res, next) => {
 export const setUserRating = async (req, res, next) => {
     try {
         const usersArr = await Users.find({ role: "CLIENT" }).exec();
-        // // console.log(usersArr.length)
-        let count = 0;
         for (let j = 0; j <= usersArr.length - 1; j++) {
-            // // // console.log("j", j, usersArr[j])
             let rating = await CalculateRating(usersArr[j]);
             await Users.findByIdAndUpdate(usersArr[j]._id, { rating }).exec();
             await Lead.updateMany({ clientId: `${usersArr[j]._id}` }, { rating }).exec();
-            // if (rating != "LOW") {
-            //     // // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            //     count += 1
-            //     //     // // console.log(usersArr[j].name, JSON.stringify(usersArr[j].educationArr, null, 2), JSON.stringify(usersArr[j].experienceArr, null, 2), rating, "user name and rating")
-            //     // // console.log(count, rating, usersArr[j]._id, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
-            // }
         }
-
         res.status(200).json({ message: "as", success: true });
     } catch (err) {
-        // // console.log(err);
         next(err);
     }
 };

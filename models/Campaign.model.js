@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { generalModelStatuses, rolesObj } from "../helpers/Constants";
+import { generalModelStatuses, rolesObj } from "../helpers/utils/Constants";
 
 let Campaign = mongoose.Schema(
     {
