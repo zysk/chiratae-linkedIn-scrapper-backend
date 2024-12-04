@@ -12,7 +12,7 @@ export const setupMiddleware = (app) => {
     }
 
     // Logging
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV != "prod") {
         app.use(logger("dev"));
     }
 
