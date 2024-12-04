@@ -217,17 +217,13 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     seleniumErrorHandler();
                                 }
 
-                                // console.log("SCROLL TO BOTTOM THE FIRST");
                                 // ? locating next button
                                 try {
                                     let nextbutton = await driver.wait(until.elementsLocated(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)), 5000);
-                                    // console.log("nextbutton")
                                     if (nextbutton) {
-                                        // ? finding if next button is enabled or not
                                         let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled();
                                         while (nextbuttonText) {
                                             try {
-                                                // console.log("FILTER 3")
                                                 let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)), 5000);
                                                 if (resultText) {
                                                     // ? getting value of total results
@@ -246,7 +242,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             // ? locating results div
                                             try {
                                                 let resultElement = await driver.wait(
-                                                    until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`)),
+                                                    until.elementsLocated(By.xpath(`//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]`)),
                                                     5000
                                                 );
                                                 if (resultElement) {
@@ -258,7 +254,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let name = await driver
                                                             .findElement(
                                                                 By.xpath(
-                                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                    `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
                                                                         i + 1
                                                                     }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
                                                                 )
@@ -271,7 +267,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let linkValue = await driver
                                                             .findElement(
                                                                 By.xpath(
-                                                                    `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                                    `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
                                                                         i + 1
                                                                     }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                                 )
@@ -281,8 +277,6 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                             obj.link = linkValue;
                                                         }
                                                         resultsArr.push(obj);
-														// console.log(`obj 11==>> ${obj}`);
-														// console.log(`resultsArr 11==>> ${resultsArr}`);
                                                     }
                                                 }
                                             } catch (err) {
@@ -337,7 +331,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     }
                                     // ? locating results div
                                     try {
-                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"]`)), 5000);
+                                        //ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]
+                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]`)), 5000);
                                         // console.log("runnnnn till herereeeeeeeeeeeeerererer");
                                         if (resultElement) {
                                             // console.log(">>>>>>>>>>>>>>>>> resultElement", resultElement.length);
@@ -348,7 +343,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let name = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                            `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
                                                         )
@@ -361,7 +356,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let linkValue = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="reusable-search__entity-result-list list-style-none"]/li[@class="reusable-search__result-container"][${
+                                                            `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                         )
@@ -371,24 +366,24 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                     obj.link = linkValue;
                                                 }
                                                 resultsArr.push(obj);
-												// console.log(`obj 22==>> ${obj}`);
-                                                // console.log(`resultsArr 22==>> ${resultsArr}`);
                                             }
                                         }
                                     } catch (err) {
+                                        console.log('err: 1', err);
                                         seleniumErrorHandler();
                                     }
                                 }
                             }
                         } catch (err) {
+                            console.log('err: 2', err);
                             seleniumErrorHandler();
                         }
                     }
                 }
-
+                // console.log('resultsArr',resultsArr);
                 // // console.log(JSON.stringify(resultsArr, null, 2), resultsArr, "resultsArr",)
                 let lengthOfArray = resultsArr.filter((el) => el.link && el.link != "").length;
-				console.log(`resultsArr 33====>>>> ${resultsArr.length} -- ${lengthOfArray}`);
+				// console.log(`resultsArr 33====>>>> ${resultsArr.length} -- ${lengthOfArray}`);
 				// console.log(`lengthOfArray 1111====>>>> ${lengthOfArray}`);
 
                 // /////not for now
