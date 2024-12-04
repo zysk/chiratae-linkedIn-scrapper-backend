@@ -75,10 +75,10 @@ app.get("*", (req, res) => {
 app.use(errorHandler);
 const job = schedule.scheduleJob("0 0 * * *", function () {
 	if (process.env.ENABLE_CRON == "true") {
-        console.log(`Executing every 2 hours. Last ran at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
+        console.log(`Executing every midnight. Last ran at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
         cronFunc();
     } else {
-        console.log(`Cron is disabled. Checking every 2 hours. Last checked at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
+        console.log(`Cron is disabled. Checking every midnight. Last checked at ${new Date().toLocaleString(`en-IN`, { timeZone: process.env.TZ, timeZoneName: `short`, hour12: true })}`);
     }
 
     /**
