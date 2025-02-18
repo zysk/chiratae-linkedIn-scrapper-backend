@@ -36,7 +36,7 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
     if (err) {
         console.log(err);
     } else {
-        console.log("Connected to db at " + CONFIG.MONGOURI);
+        console.log(`DB connected`);
     }
 });
 // mongoose.set("debug", true)
