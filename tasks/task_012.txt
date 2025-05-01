@@ -1,0 +1,11 @@
+# Task ID: 12
+# Title: Lead Annotation System
+# Status: pending
+# Dependencies: 11
+# Priority: low
+# Description: Implement lead comments, logs, and activity tracking
+# Details:
+Develop the lead annotation system including comments, activity logs, and event tracking for leads.
+
+# Test Strategy:
+Test comment creation, retrieval, updating, and log entry generation.

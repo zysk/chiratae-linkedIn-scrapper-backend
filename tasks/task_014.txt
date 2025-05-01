@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Scheduled Tasks and Automation
+# Status: pending
+# Dependencies: 9, 10, 13
+# Priority: medium
+# Description: Implement cron jobs for scheduled campaign execution
+# Details:
+Develop the scheduled task system that automatically executes campaigns based on schedules, using Redis for coordination.
+
+# Test Strategy:
+Test schedule creation, task execution, and error handling in scheduled jobs.
