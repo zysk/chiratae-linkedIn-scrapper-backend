@@ -1,55 +1,49 @@
 import express, { Router } from 'express';
 import { authorizeJwt } from '../middlewares/auth.middleware';
+import {
+    addLeadComment,
+    getLeadComments,
+    getCommentById,
+    updateLeadComment,
+    deleteLeadComment
+} from '../controllers/leadComment.controller';
 
 // Create router
 const router: Router = express.Router();
 
-// TODO: Implement lead comment controllers once created
-// import * as leadCommentController from '../controllers/leadComment.controller';
-
 /**
  * @route   GET /leadComments/lead/:leadId
- * @desc    Get all comments for a lead
- * @access  Private
+ * @desc    Get all comments for a lead (paginated)
+ * @access  Private (scoped to user's leads)
  */
-router.get('/lead/:leadId', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get lead comments - To be implemented' });
-});
+router.get('/lead/:leadId', authorizeJwt, getLeadComments);
 
 /**
  * @route   GET /leadComments/:id
  * @desc    Get comment by ID
- * @access  Private
+ * @access  Private (scoped to user's leads)
  */
-router.get('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get comment by ID - To be implemented' });
-});
+router.get('/:id', authorizeJwt, getCommentById);
 
 /**
  * @route   POST /leadComments
- * @desc    Create a new comment
- * @access  Private
+ * @desc    Add a comment to a lead
+ * @access  Private (scoped to user's leads)
  */
-router.post('/', authorizeJwt, (req, res) => {
-  res.status(201).json({ message: 'Create comment - To be implemented' });
-});
+router.post('/', authorizeJwt, addLeadComment);
 
 /**
  * @route   PUT /leadComments/:id
- * @desc    Update comment
+ * @desc    Update a comment (user must own comment)
  * @access  Private
  */
-router.put('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Update comment - To be implemented' });
-});
+router.put('/:id', authorizeJwt, updateLeadComment);
 
 /**
  * @route   DELETE /leadComments/:id
- * @desc    Delete comment
+ * @desc    Delete a comment (user must own comment)
  * @access  Private
  */
-router.delete('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Delete comment - To be implemented' });
-});
+router.delete('/:id', authorizeJwt, deleteLeadComment);
 
 export default router;

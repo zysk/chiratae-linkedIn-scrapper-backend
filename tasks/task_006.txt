@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Campaign Management Implementation
-# Status: pending
+# Status: done
 # Dependencies: 5
 # Priority: medium
 # Description: Implement campaign creation, updating, listing, and management

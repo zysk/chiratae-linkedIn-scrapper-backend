@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Authentication and User Management
-# Status: pending
+# Status: done
 # Dependencies: 3
 # Priority: high
 # Description: Implement user management, JWT authentication, and role-based authorization

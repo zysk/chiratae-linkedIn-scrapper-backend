@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Resource Management APIs
-# Status: pending
+# Status: done
 # Dependencies: 4
 # Priority: medium
 # Description: Implement LinkedIn account and proxy management endpoints

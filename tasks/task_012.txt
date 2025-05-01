@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Lead Annotation System
-# Status: pending
+# Status: in-progress
 # Dependencies: 11
 # Priority: low
 # Description: Implement lead comments, logs, and activity tracking

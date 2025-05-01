@@ -1,56 +1,50 @@
 import express, { Router } from 'express';
 import { authorizeJwt } from '../middlewares/auth.middleware';
+import {
+    getLeads,
+    getLeadById,
+    createManualLead,
+    updateLead,
+    deleteLead
+} from '../controllers/lead.controller';
 
 // Create router
 const router: Router = express.Router();
 
-// TODO: Implement lead controllers once created
-// import * as leadController from '../controllers/lead.controller';
-
 /**
  * @route   GET /lead
- * @desc    Get all leads with optional filtering
- * @access  Private
+ * @desc    Get all leads with optional filtering (campaign, assignedTo, status, rating, search)
+ * @access  Private (scoped to user's campaigns)
  */
-router.get('/', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get all leads - To be implemented' });
-});
+router.get('/', authorizeJwt, getLeads);
 
 /**
  * @route   GET /lead/:id
  * @desc    Get lead by ID
- * @access  Private
+ * @access  Private (scoped to user's campaigns)
  */
-router.get('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get lead by ID - To be implemented' });
-});
+router.get('/:id', authorizeJwt, getLeadById);
 
 /**
  * @route   POST /lead
  * @desc    Create a new lead manually
- * @access  Private
+ * @access  Private (scoped to user's campaigns)
  */
-router.post('/', authorizeJwt, (req, res) => {
-  res.status(201).json({ message: 'Create lead - To be implemented' });
-});
+router.post('/', authorizeJwt, createManualLead);
 
 /**
  * @route   PUT /lead/:id
- * @desc    Update lead
- * @access  Private
+ * @desc    Update lead status, assignment, or rating
+ * @access  Private (scoped to user's campaigns)
  */
-router.put('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Update lead - To be implemented' });
-});
+router.put('/:id', authorizeJwt, updateLead);
 
 /**
  * @route   DELETE /lead/:id
- * @desc    Delete lead
- * @access  Private
+ * @desc    Delete a lead
+ * @access  Private (scoped to user's campaigns)
  */
-router.delete('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Delete lead - To be implemented' });
-});
+router.delete('/:id', authorizeJwt, deleteLead);
 
 /**
  * @route   PUT /lead/:id/status

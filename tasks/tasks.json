@@ -16,7 +16,7 @@
       "id": 2,
       "title": "Environment Configuration and Basic Types",
       "description": "Set up environment configuration management and define base types/interfaces",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         1
@@ -28,7 +28,7 @@
       "id": 3,
       "title": "Database Models Implementation",
       "description": "Implement all Mongoose models with TypeScript interfaces/types",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         2
@@ -40,7 +40,7 @@
       "id": 4,
       "title": "Authentication and User Management",
       "description": "Implement user management, JWT authentication, and role-based authorization",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         3
@@ -52,7 +52,7 @@
       "id": 5,
       "title": "Resource Management APIs",
       "description": "Implement LinkedIn account and proxy management endpoints",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [
         4
@@ -64,7 +64,7 @@
       "id": 6,
       "title": "Campaign Management Implementation",
       "description": "Implement campaign creation, updating, listing, and management",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [
         5
@@ -76,7 +76,7 @@
       "id": 7,
       "title": "Selenium WebDriver Integration",
       "description": "Set up Selenium WebDriver with TypeScript for browser automation",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         2
@@ -88,7 +88,7 @@
       "id": 8,
       "title": "LinkedIn Authentication Module",
       "description": "Implement LinkedIn login process with CAPTCHA/OTP handling",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         5,
@@ -101,7 +101,7 @@
       "id": 9,
       "title": "LinkedIn Search Automation",
       "description": "Implement automated LinkedIn search with filter application",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         6,
@@ -114,7 +114,7 @@
       "id": 10,
       "title": "Profile Scraping Implementation",
       "description": "Implement profile data extraction and storage",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [
         9
@@ -126,7 +126,7 @@
       "id": 11,
       "title": "Lead Management System",
       "description": "Implement lead tracking, status management, and organization",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [
         10
@@ -138,7 +138,7 @@
       "id": 12,
       "title": "Lead Annotation System",
       "description": "Implement lead comments, logs, and activity tracking",
-      "status": "pending",
+      "status": "in-progress",
       "priority": "low",
       "dependencies": [
         11
@@ -150,7 +150,7 @@
       "id": 13,
       "title": "Redis Integration for Distributed Locking",
       "description": "Implement Redis-based locking system for concurrency control",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [
         2

@@ -1,38 +1,26 @@
 import express, { Router } from 'express';
 import { authorizeJwt } from '../middlewares/auth.middleware';
+import {
+    getLeadLogs,
+    getLogById
+} from '../controllers/leadLog.controller';
 
 // Create router
 const router: Router = express.Router();
 
-// TODO: Implement lead logs controllers once created
-// import * as leadLogsController from '../controllers/leadLogs.controller';
-
 /**
  * @route   GET /leadLogs/lead/:leadId
- * @desc    Get all logs for a lead
- * @access  Private
+ * @desc    Get all logs for a lead (paginated)
+ * @access  Private (scoped to user's leads)
  */
-router.get('/lead/:leadId', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get lead logs - To be implemented' });
-});
+router.get('/lead/:leadId', authorizeJwt, getLeadLogs);
 
 /**
  * @route   GET /leadLogs/:id
  * @desc    Get log entry by ID
- * @access  Private
+ * @access  Private (scoped to user's leads)
  */
-router.get('/:id', authorizeJwt, (req, res) => {
-  res.status(200).json({ message: 'Get log entry by ID - To be implemented' });
-});
-
-/**
- * @route   POST /leadLogs
- * @desc    Create a new log entry
- * @access  Private
- */
-router.post('/', authorizeJwt, (req, res) => {
-  res.status(201).json({ message: 'Create log entry - To be implemented' });
-});
+router.get('/:id', authorizeJwt, getLogById);
 
 /**
  * @route   GET /leadLogs/activity
