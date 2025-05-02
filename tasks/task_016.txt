@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Implement Email Settings Management API
+# Status: pending
+# Dependencies: 3, 4
+# Priority: low
+# Description: Implement CRUD APIs for managing email notification settings.
+# Details:
+Create `emailSettings.controller.ts` and `emailSettings.routes.ts`. Implement secure endpoints (admin only) for creating, reading, updating, and deleting email configurations (SMTP server, port, auth, sender address) stored via the `EmailSettings` model.
+
+# Test Strategy:
+API integration tests for CRUD operations on email settings, checking admin authorization and validation.

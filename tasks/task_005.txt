@@ -5,7 +5,7 @@
 # Priority: medium
 # Description: Implement LinkedIn account and proxy management endpoints
 # Details:
-Develop the APIs for managing LinkedIn accounts and proxy servers, including CRUD operations and validation.
+Develop the APIs for managing LinkedIn accounts and proxy servers, including CRUD operations and validation. **Ensure LinkedIn passwords are encrypted before storing.**
 
 # Test Strategy:
 Test all CRUD operations for LinkedIn accounts and proxies, ensuring proper validation and error handling.

@@ -5,7 +5,7 @@
 # Priority: high
 # Description: Implement profile data extraction and storage
 # Details:
-Develop the profile scraping functionality that extracts detailed data from LinkedIn profiles and stores it in the database.
+Develop the profile scraping functionality that extracts detailed data from LinkedIn profiles and stores it in the database, specifically by updating the corresponding `Lead` model record.
 
 # Test Strategy:
 Test profile data extraction for different profile types and verify data storage.
