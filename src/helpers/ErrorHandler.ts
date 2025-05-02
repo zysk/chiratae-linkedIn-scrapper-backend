@@ -1,9 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from "express";
+import Logger from "./Logger";
+import { ApiError, normalizeError } from "./TypeUtils";
 
-export interface CustomError extends Error {
-  status?: number;
-  code?: number;
-}
+const logger = new Logger({ context: "error-handler" });
 
 /**
  * Global error handler middleware
@@ -11,98 +10,67 @@ export interface CustomError extends Error {
  * @param err - Error object
  * @param req - Express request object
  * @param res - Express response object
- * @param next - Express next function
  */
 export const errorHandler = (
-  err: CustomError,
+  err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
 ): void => {
-  // Log error details for debugging
-  console.error('Error:', err);
+  // Normalize error to consistent format
+  const normalizedError = normalizeError(err);
+
+  // Log error details with context
+  logger.error(`${req.method} ${req.path} - ${normalizedError.message}`, {
+    error: normalizedError,
+    stack: normalizedError.stack,
+    requestId: req.headers["x-request-id"] || "unknown",
+  });
 
   // Set status code
-  const statusCode = err.status || 500;
+  const statusCode = normalizedError.status || 500;
 
   // Send error response
   res.status(statusCode).json({
-    message: err.message || 'Internal Server Error',
     success: false,
-    // Include stack trace in development environment
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    status: "error",
+    message: normalizedError.message || "Internal Server Error",
+    code: normalizedError.code || statusCode,
   });
 };
 
-/**
- * Create a custom error with status code
- *
- * @param message - Error message
- * @param status - HTTP status code
- * @returns Custom error object
- */
-export const createError = (message: string, status: number): CustomError => {
-  const error: CustomError = new Error(message);
-  error.status = status;
+// Common HTTP errors
+export const badRequest = (message = "Bad Request"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 400;
   return error;
 };
 
-/**
- * Create a 400 Bad Request error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const badRequest = (message = 'Bad Request'): CustomError => {
-  return createError(message, 400);
+export const unauthorized = (message = "Unauthorized"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 401;
+  return error;
 };
 
-/**
- * Create a 401 Unauthorized error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const unauthorized = (message = 'Unauthorized'): CustomError => {
-  return createError(message, 401);
+export const forbidden = (message = "Forbidden"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 403;
+  return error;
 };
 
-/**
- * Create a 403 Forbidden error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const forbidden = (message = 'Forbidden'): CustomError => {
-  return createError(message, 403);
+export const notFound = (message = "Not Found"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 404;
+  return error;
 };
 
-/**
- * Create a 404 Not Found error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const notFound = (message = 'Not Found'): CustomError => {
-  return createError(message, 404);
+export const conflict = (message = "Conflict"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 409;
+  return error;
 };
 
-/**
- * Create a 409 Conflict error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const conflict = (message = 'Conflict'): CustomError => {
-  return createError(message, 409);
-};
-
-/**
- * Create a 500 Internal Server Error
- *
- * @param message - Error message
- * @returns Custom error object
- */
-export const serverError = (message = 'Internal Server Error'): CustomError => {
-  return createError(message, 500);
+export const serverError = (message = "Internal Server Error"): ApiError => {
+  const error = new Error(message) as ApiError;
+  error.status = 500;
+  return error;
 };

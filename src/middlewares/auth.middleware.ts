@@ -1,7 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyJwt, extractTokenFromHeader, TokenPayload } from '../helpers/Jwt';
-import { unauthorized, forbidden } from '../helpers/ErrorHandler';
-import { Role, rolesObj } from '../helpers/Constants';
+import { Request, Response, NextFunction } from "express";
+import {
+  verifyJwt,
+  extractTokenFromHeader,
+  TokenPayload,
+} from "../helpers/Jwt";
+import { unauthorized, forbidden } from "../helpers/ErrorHandler";
+import { Role, rolesObj } from "../helpers/Constants";
 
 // Extend Express Request interface to include user property
 declare global {
@@ -15,13 +19,17 @@ declare global {
 /**
  * Middleware to verify JWT token and attach user to request
  */
-export const authorizeJwt = (req: Request, res: Response, next: NextFunction): void => {
+export const authorizeJwt = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   try {
     // Extract token from Authorization header
     const token = extractTokenFromHeader(req.headers.authorization);
 
     if (!token) {
-      next(unauthorized('No token provided'));
+      next(unauthorized("No token provided"));
       return;
     }
 
@@ -29,7 +37,7 @@ export const authorizeJwt = (req: Request, res: Response, next: NextFunction): v
     const decodedToken = verifyJwt(token);
 
     if (!decodedToken) {
-      next(unauthorized('Invalid or expired token'));
+      next(unauthorized("Invalid or expired token"));
       return;
     }
 
@@ -37,22 +45,26 @@ export const authorizeJwt = (req: Request, res: Response, next: NextFunction): v
     req.user = decodedToken;
     next();
   } catch (error) {
-    next(unauthorized('Authentication failed'));
+    next(unauthorized("Authentication failed"));
   }
 };
 
 /**
  * Middleware to check if user has admin role
  */
-export const isAdmin = (req: Request, res: Response, next: NextFunction): void => {
+export const isAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   try {
     if (!req.user) {
-      next(unauthorized('Authentication required'));
+      next(unauthorized("Authentication required"));
       return;
     }
 
     if (req.user.role !== rolesObj.ADMIN) {
-      next(forbidden('Admin access required'));
+      next(forbidden("Admin access required"));
       return;
     }
 
@@ -69,12 +81,12 @@ export const hasRole = (allowedRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
-        next(unauthorized('Authentication required'));
+        next(unauthorized("Authentication required"));
         return;
       }
 
       if (!allowedRoles.includes(req.user.role)) {
-        next(forbidden('Insufficient permissions'));
+        next(forbidden("Insufficient permissions"));
         return;
       }
 
@@ -88,11 +100,11 @@ export const hasRole = (allowedRoles: Role[]) => {
 /**
  * Middleware to check if user is accessing their own resource or is an admin
  */
-export const isSelfOrAdmin = (paramIdField: string = 'id') => {
+export const isSelfOrAdmin = (paramIdField: string = "id") => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
-        next(unauthorized('Authentication required'));
+        next(unauthorized("Authentication required"));
         return;
       }
 
@@ -104,7 +116,7 @@ export const isSelfOrAdmin = (paramIdField: string = 'id') => {
         return;
       }
 
-      next(forbidden('Access denied'));
+      next(forbidden("Access denied"));
     } catch (error) {
       next(error);
     }

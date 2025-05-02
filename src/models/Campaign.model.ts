@@ -1,6 +1,6 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { ICampaign } from '../interfaces/Campaign.interface';
-import { campaignStatusObj } from '../helpers/Constants';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { ICampaign } from "../interfaces/Campaign.interface";
+import { campaignStatusObj } from "../helpers/Constants";
 
 // Interface for Campaign Document (includes Mongoose methods)
 export interface ICampaignDocument extends ICampaign, Document {}
@@ -13,22 +13,22 @@ const CampaignSchema = new Schema<ICampaignDocument, ICampaignModel>(
   {
     name: {
       type: String,
-      required: [true, 'Campaign name is required'],
+      required: [true, "Campaign name is required"],
       trim: true,
     },
     searchQuery: {
       type: String,
-      required: [true, 'Search query is required'],
+      required: [true, "Search query is required"],
       trim: true,
     },
     linkedInAccountId: {
       type: Schema.Types.ObjectId,
-      ref: 'LinkedInAccount',
-      required: [true, 'LinkedIn account is required'],
+      ref: "LinkedInAccount",
+      required: [true, "LinkedIn account is required"],
     },
     proxyId: {
       type: Schema.Types.ObjectId,
-      ref: 'Proxy',
+      ref: "Proxy",
     },
     status: {
       type: String,
@@ -50,7 +50,7 @@ const CampaignSchema = new Schema<ICampaignDocument, ICampaignModel>(
     resultsArr: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'Lead',
+        ref: "Lead",
       },
     ],
     runCount: {
@@ -85,17 +85,17 @@ const CampaignSchema = new Schema<ICampaignDocument, ICampaignModel>(
     // Audit
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 // Indexes
@@ -104,8 +104,8 @@ CampaignSchema.index({ createdBy: 1 });
 
 // Campaign Model
 const Campaign = mongoose.model<ICampaignDocument, ICampaignModel>(
-  'Campaign',
-  CampaignSchema
+  "Campaign",
+  CampaignSchema,
 );
 
 export default Campaign;

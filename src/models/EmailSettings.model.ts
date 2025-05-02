@@ -1,5 +1,5 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { IEmailSettings } from '../interfaces/EmailSettings.interface';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { IEmailSettings } from "../interfaces/EmailSettings.interface";
 // TODO: Implement encryption utility
 // import { encrypt, decrypt } from '../helpers/Encryption';
 
@@ -10,33 +10,39 @@ export interface IEmailSettingsDocument extends IEmailSettings, Document {}
 export interface IEmailSettingsModel extends Model<IEmailSettingsDocument> {
   // Ensure only one settings document exists
   findSingleton(): Promise<IEmailSettingsDocument | null>;
-  createOrUpdateSingleton(settings: Partial<IEmailSettings>, userId?: mongoose.Types.ObjectId): Promise<IEmailSettingsDocument | null>;
+  createOrUpdateSingleton(
+    settings: Partial<IEmailSettings>,
+    userId?: mongoose.Types.ObjectId,
+  ): Promise<IEmailSettingsDocument | null>;
 }
 
 // EmailSettings Schema
-const EmailSettingsSchema = new Schema<IEmailSettingsDocument, IEmailSettingsModel>(
+const EmailSettingsSchema = new Schema<
+  IEmailSettingsDocument,
+  IEmailSettingsModel
+>(
   {
     smtpHost: {
       type: String,
-      required: [true, 'SMTP host is required'],
+      required: [true, "SMTP host is required"],
       trim: true,
     },
     smtpPort: {
       type: Number,
-      required: [true, 'SMTP port is required'],
+      required: [true, "SMTP port is required"],
     },
     smtpUser: {
       type: String,
-      required: [true, 'SMTP user is required'],
+      required: [true, "SMTP user is required"],
       trim: true,
     },
     smtpPass: {
       type: String, // Will be stored encrypted
-      required: [true, 'SMTP password is required'],
+      required: [true, "SMTP password is required"],
     },
     smtpFrom: {
       type: String,
-      required: [true, 'SMTP From address is required'],
+      required: [true, "SMTP From address is required"],
       trim: true,
     },
     smtpSecure: {
@@ -46,21 +52,21 @@ const EmailSettingsSchema = new Schema<IEmailSettingsDocument, IEmailSettingsMod
     // Audit
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     lastUpdated: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   },
   {
     timestamps: { createdAt: false, updatedAt: true }, // Only track updates
     versionKey: false,
-  }
+  },
 );
 
 // Pre-update hook to update lastUpdated timestamp
-EmailSettingsSchema.pre('findOneAndUpdate', function(this: any, next) {
+EmailSettingsSchema.pre("findOneAndUpdate", function (this: any, next) {
   this.set({ lastUpdated: new Date() });
   next();
 });
@@ -90,27 +96,32 @@ EmailSettingsSchema.pre('findOneAndUpdate', async function(this: any, next) {
 */
 
 // Static method to find the single settings document
-EmailSettingsSchema.statics.findSingleton = function(
-  this: IEmailSettingsModel
+EmailSettingsSchema.statics.findSingleton = function (
+  this: IEmailSettingsModel,
 ): Promise<IEmailSettingsDocument | null> {
   return this.findOne().exec();
 };
 
 // Static method to create or update the single settings document
-EmailSettingsSchema.statics.createOrUpdateSingleton = async function(
+EmailSettingsSchema.statics.createOrUpdateSingleton = async function (
   this: IEmailSettingsModel,
   settings: Partial<IEmailSettings>,
-  userId?: mongoose.Types.ObjectId
+  userId?: mongoose.Types.ObjectId,
 ): Promise<IEmailSettingsDocument | null> {
-  const options = { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true };
+  const options = {
+    new: true,
+    upsert: true,
+    runValidators: true,
+    setDefaultsOnInsert: true,
+  };
   const updateData = { ...settings, updatedBy: userId };
   return this.findOneAndUpdate({}, updateData, options).exec();
 };
 
 // EmailSettings Model
-const EmailSettings = mongoose.model<IEmailSettingsDocument, IEmailSettingsModel>(
-  'EmailSettings',
-  EmailSettingsSchema
-);
+const EmailSettings = mongoose.model<
+  IEmailSettingsDocument,
+  IEmailSettingsModel
+>("EmailSettings", EmailSettingsSchema);
 
 export default EmailSettings;

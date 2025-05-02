@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { CampaignStatus } from '../helpers/Constants';
+import mongoose from "mongoose";
+import { CampaignStatus } from "../helpers/Constants";
 
 export interface ICampaign {
   name: string;

@@ -1,11 +1,11 @@
 # Task ID: 5
-# Title: Resource Management APIs
+# Title: Implement Resource Management APIs (LinkedIn Accounts, Proxies)
 # Status: done
-# Dependencies: 4
+# Dependencies: 1, 3, 4
 # Priority: medium
-# Description: Implement LinkedIn account and proxy management endpoints
+# Description: Implement CRUD APIs for managing LinkedIn accounts and proxies, with secure password handling for LinkedIn accounts.
 # Details:
-Develop the APIs for managing LinkedIn accounts and proxy servers, including CRUD operations and validation. **Ensure LinkedIn passwords are encrypted before storing.**
+Create controllers and routes (`linkedInAccount.*`, `proxy.*`). Implement CRUD operations. **Implement the TODOs for password encryption in the LinkedIn Account controller** using the Encryption helper. Include placeholders for validation/verification logic (e.g., checking proxy validity). Ensure only admins or owners can manage.
 
 # Test Strategy:
-Test all CRUD operations for LinkedIn accounts and proxies, ensuring proper validation and error handling.
+API integration tests for CRUD operations on LinkedIn accounts and proxies, checking authorization. Verify LinkedIn account passwords are stored securely (encrypted).

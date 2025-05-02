@@ -1,6 +1,6 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import bcrypt from 'bcryptjs';
-import { Role, rolesObj, Rating, ratingObj } from '../helpers/Constants';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
+import { Role, rolesObj, Rating, ratingObj } from "../helpers/Constants";
 
 /**
  * User attributes interface
@@ -41,92 +41,98 @@ export interface IUserModel extends Model<IUserDocument> {
 /**
  * User schema
  */
-const UserSchema = new Schema<IUserDocument, IUserModel>({
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-    trim: true
+const UserSchema = new Schema<IUserDocument, IUserModel>(
+  {
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please provide a valid email address",
+      ],
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters long"],
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
+    company: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
+    profilePicture: {
+      type: String,
+    },
+    role: {
+      type: String,
+      enum: Object.values(rolesObj),
+      default: rolesObj.USER,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    lastLogin: {
+      type: Date,
+    },
+    leadRating: {
+      type: String,
+      enum: Object.values(ratingObj),
+      default: ratingObj.MEDIUM,
+    },
+    leadRatingScore: {
+      type: Number,
+      default: 0,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    updatedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true
+  {
+    timestamps: true,
+    versionKey: false,
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    trim: true,
-    lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters long']
-  },
-  phoneNumber: {
-    type: String,
-    trim: true
-  },
-  company: {
-    type: String,
-    trim: true
-  },
-  location: {
-    type: String,
-    trim: true
-  },
-  profilePicture: {
-    type: String
-  },
-  role: {
-    type: String,
-    enum: Object.values(rolesObj),
-    default: rolesObj.USER
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  lastLogin: {
-    type: Date
-  },
-  leadRating: {
-    type: String,
-    enum: Object.values(ratingObj),
-    default: ratingObj.MEDIUM
-  },
-  leadRatingScore: {
-    type: Number,
-    default: 0
-  },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  updatedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  }
-}, {
-  timestamps: true,
-  versionKey: false
-});
+);
 
 /**
  * Virtual for user's full name
  */
-UserSchema.virtual('fullName').get(function(this: IUserDocument) {
+UserSchema.virtual("fullName").get(function (this: IUserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
 /**
  * Hash password before saving
  */
-UserSchema.pre('save', async function(this: IUserDocument, next) {
+UserSchema.pre("save", async function (this: IUserDocument, next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) return next();
+  if (!this.isModified("password")) return next();
 
   try {
     // Generate a salt
@@ -143,9 +149,9 @@ UserSchema.pre('save', async function(this: IUserDocument, next) {
 /**
  * Compare password method
  */
-UserSchema.methods.comparePassword = async function(
+UserSchema.methods.comparePassword = async function (
   this: IUserDocument,
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -157,9 +163,9 @@ UserSchema.methods.comparePassword = async function(
 /**
  * Find user by email static method
  */
-UserSchema.statics.findByEmail = function(
+UserSchema.statics.findByEmail = function (
   this: IUserModel,
-  email: string
+  email: string,
 ): Promise<IUserDocument | null> {
   return this.findOne({ email }).exec();
 };
@@ -167,16 +173,16 @@ UserSchema.statics.findByEmail = function(
 /**
  * Set JSON transform to remove sensitive information
  */
-UserSchema.set('toJSON', {
-  transform: function(_: any, ret: any) {
+UserSchema.set("toJSON", {
+  transform: function (_: any, ret: any) {
     delete ret.password;
     return ret;
-  }
+  },
 });
 
 /**
  * User model
  */
-const User = mongoose.model<IUserDocument, IUserModel>('User', UserSchema);
+const User = mongoose.model<IUserDocument, IUserModel>("User", UserSchema);
 
 export default User;

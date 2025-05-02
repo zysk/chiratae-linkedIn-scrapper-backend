@@ -1,16 +1,30 @@
-import { WebDriver, By, until, WebElement, NoSuchElementError, TimeoutError } from 'selenium-webdriver';
+import {
+  WebDriver,
+  By,
+  until,
+  WebElement,
+  NoSuchElementError,
+  TimeoutError,
+} from "selenium-webdriver";
+import Logger from "./Logger";
+
+// Create a dedicated logger for selenium utils
+const logger = new Logger({ context: "selenium" });
 
 /**
  * Safely navigates to a URL.
  * @param driver - WebDriver instance.
  * @param url - URL to navigate to.
  */
-export const navigateTo = async (driver: WebDriver, url: string): Promise<void> => {
+export const navigateTo = async (
+  driver: WebDriver,
+  url: string,
+): Promise<void> => {
   try {
     await driver.get(url);
-    console.log(`Navigated to: ${url}`);
+    logger.info(`Navigated to: ${url}`);
   } catch (error) {
-    console.error(`Error navigating to ${url}:`, error);
+    logger.error(`Error navigating to ${url}:`, error);
     throw error; // Re-throw for higher-level handling
   }
 };
@@ -27,7 +41,7 @@ export const navigateTo = async (driver: WebDriver, url: string): Promise<void> 
 export const findElementWait = async (
   driver: WebDriver,
   locator: By,
-  timeout = 10000
+  timeout = 10000,
 ): Promise<WebElement> => {
   try {
     const element = await driver.wait(until.elementLocated(locator), timeout);
@@ -36,11 +50,11 @@ export const findElementWait = async (
     return element;
   } catch (error) {
     if (error instanceof TimeoutError) {
-      console.error(`Timeout waiting for element: ${locator.toString()}`);
+      logger.error(`Timeout waiting for element: ${locator.toString()}`);
     } else if (error instanceof NoSuchElementError) {
-       console.error(`Element not found: ${locator.toString()}`);
+      logger.error(`Element not found: ${locator.toString()}`);
     }
-    console.error(`Error finding element ${locator.toString()}:`, error);
+    logger.error(`Error finding element ${locator.toString()}:`, error);
     throw error;
   }
 };
@@ -55,7 +69,7 @@ export const findElementWait = async (
 export const findElementSafe = async (
   driver: WebDriver,
   locator: By,
-  timeout = 5000
+  timeout = 5000,
 ): Promise<WebElement | null> => {
   try {
     return await findElementWait(driver, locator, timeout);
@@ -65,7 +79,10 @@ export const findElementSafe = async (
       return null;
     }
     // Log unexpected errors
-    console.error(`Unexpected error finding element safely ${locator.toString()}:`, error);
+    logger.error(
+      `Unexpected error finding element safely ${locator.toString()}:`,
+      error,
+    );
     return null;
   }
 };
@@ -80,7 +97,7 @@ export const findElementSafe = async (
 export const clickElementSafe = async (
   driver: WebDriver,
   locator: By,
-  timeout = 10000
+  timeout = 10000,
 ): Promise<boolean> => {
   try {
     const element = await findElementWait(driver, locator, timeout);
@@ -89,7 +106,7 @@ export const clickElementSafe = async (
     await element.click();
     return true;
   } catch (error) {
-    console.error(`Error clicking element ${locator.toString()}:`, error);
+    logger.error(`Error clicking element ${locator.toString()}:`, error);
     return false;
   }
 };
@@ -106,14 +123,14 @@ export const sendKeysSafe = async (
   driver: WebDriver,
   locator: By,
   keys: string | Promise<string>,
-  timeout = 10000
+  timeout = 10000,
 ): Promise<boolean> => {
   try {
     const element = await findElementWait(driver, locator, timeout);
     await element.sendKeys(keys);
     return true;
   } catch (error) {
-    console.error(`Error sending keys to element ${locator.toString()}:`, error);
+    logger.error(`Error sending keys to element ${locator.toString()}:`, error);
     return false;
   }
 };
@@ -128,16 +145,19 @@ export const sendKeysSafe = async (
 export const getTextSafe = async (
   driver: WebDriver,
   locator: By,
-  timeout = 5000
+  timeout = 5000,
 ): Promise<string | null> => {
   try {
     const element = await findElementWait(driver, locator, timeout);
     return await element.getText();
   } catch (error) {
-     if (error instanceof NoSuchElementError || error instanceof TimeoutError) {
+    if (error instanceof NoSuchElementError || error instanceof TimeoutError) {
       return null; // Element not found is not an unexpected error here
     }
-    console.error(`Error getting text from element ${locator.toString()}:`, error);
+    logger.error(
+      `Error getting text from element ${locator.toString()}:`,
+      error,
+    );
     return null;
   }
 };
@@ -147,10 +167,13 @@ export const getTextSafe = async (
  * @param minMs - Minimum delay in milliseconds.
  * @param maxMs - Maximum delay in milliseconds.
  */
-export const randomDelay = async (minMs: number, maxMs: number): Promise<void> => {
+export const randomDelay = async (
+  minMs: number,
+  maxMs: number,
+): Promise<void> => {
   const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
-  console.log(`Waiting for ${delay} ms...`);
-  await new Promise(resolve => setTimeout(resolve, delay));
+  logger.debug(`Waiting for ${delay} ms...`);
+  await new Promise((resolve) => setTimeout(resolve, delay));
 };
 
 /**
@@ -159,18 +182,55 @@ export const randomDelay = async (minMs: number, maxMs: number): Promise<void> =
  * @param steps - Number of steps to scroll down.
  * @param delayMs - Delay between steps in milliseconds.
  */
-export const scrollDownGradually = async (driver: WebDriver, steps = 5, delayMs = 500): Promise<void> => {
+export const scrollDownGradually = async (
+  driver: WebDriver,
+  steps = 5,
+  delayMs = 500,
+): Promise<void> => {
   try {
-    let lastHeight = await driver.executeScript('return document.body.scrollHeight') as number;
+    let lastHeight = (await driver.executeScript(
+      "return document.body.scrollHeight",
+    )) as number;
     for (let i = 0; i < steps; i++) {
       await driver.executeScript(`window.scrollBy(0, ${lastHeight / steps});`);
       await randomDelay(delayMs, delayMs + 200);
-      let newHeight = await driver.executeScript('return document.body.scrollHeight') as number;
+      let newHeight = (await driver.executeScript(
+        "return document.body.scrollHeight",
+      )) as number;
       // Optional: Break if height stops changing significantly
       // if (newHeight <= lastHeight + 10) break;
       lastHeight = newHeight;
     }
   } catch (error) {
-    console.error('Error scrolling down:', error);
+    logger.error("Error during scrolling:", error);
   }
+};
+
+/**
+ * Gets the current URL from the driver.
+ * @param driver - WebDriver instance.
+ * @returns The current URL or null if an error occurs.
+ */
+export const getCurrentUrlSafe = async (
+  driver: WebDriver,
+): Promise<string | null> => {
+  try {
+    return await driver.getCurrentUrl();
+  } catch (error) {
+    logger.error("Error getting current URL:", error);
+    return null;
+  }
+};
+
+// Export all utility functions
+export default {
+  navigateTo,
+  findElementWait,
+  findElementSafe,
+  clickElementSafe,
+  sendKeysSafe,
+  getTextSafe,
+  randomDelay,
+  scrollDownGradually,
+  getCurrentUrlSafe,
 };

@@ -1,15 +1,22 @@
-import nodemailer, { Transporter } from 'nodemailer';
-import { IEmailSettings } from '../interfaces/EmailSettings.interface';
-import EmailSettings from '../models/EmailSettings.model';
-import User from '../models/User.model';
-import mongoose from 'mongoose';
-import Lead from '../models/Lead.model';
-import Campaign from '../models/Campaign.model';
-import { LeadComment } from '../models/LeadComment.model';
-import config from '../config/config';
+import nodemailer, { Transporter } from "nodemailer";
+import { IEmailSettings } from "../interfaces/EmailSettings.interface";
+import EmailSettings from "../models/EmailSettings.model";
+import User from "../models/User.model";
+import mongoose from "mongoose";
+import Lead from "../models/Lead.model";
+import Campaign from "../models/Campaign.model";
+import { LeadComment } from "../models/LeadComment.model";
+import config from "../config/config";
+import Logger from "../helpers/Logger";
+
+// Create a dedicated logger for email service
+const logger = new Logger({ context: "email-service" });
 
 // Cache transporter instances by userId to avoid recreating them frequently
-const transporterCache: Map<string, { transporter: Transporter, timestamp: number }> = new Map();
+const transporterCache: Map<
+  string,
+  { transporter: Transporter; timestamp: number }
+> = new Map();
 // Transporter cache TTL - 1 hour
 const TRANSPORTER_CACHE_TTL = 60 * 60 * 1000;
 
@@ -18,7 +25,9 @@ const TRANSPORTER_CACHE_TTL = 60 * 60 * 1000;
  * @param userId - The user ID to get email settings for
  * @returns Transporter instance or null if settings not found
  */
-export const createTransporter = async (userId: string | mongoose.Types.ObjectId): Promise<Transporter | null> => {
+export const createTransporter = async (
+  userId: string | mongoose.Types.ObjectId,
+): Promise<Transporter | null> => {
   const id = userId.toString();
 
   // Check cache first
@@ -31,23 +40,23 @@ export const createTransporter = async (userId: string | mongoose.Types.ObjectId
     // Get user's email settings
     const settings = await EmailSettings.findOne({ userId: id });
     if (!settings) {
-      console.warn(`No email settings found for user ${id}`);
+      logger.warn(`No email settings found for user ${id}`);
       return null;
     }
 
     // Create transporter based on email service
     let transporter: Transporter;
 
-    if (settings.emailService === 'gmail') {
+    if (settings.emailService === "gmail") {
       // Gmail OAuth2 (recommended for Gmail)
       transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
           user: settings.username,
           pass: settings.password, // Should be an app password, not the account password
         },
       });
-    } else if (settings.emailService === 'smtp') {
+    } else if (settings.emailService === "smtp") {
       // Generic SMTP
       transporter = nodemailer.createTransport({
         host: settings.host,
@@ -59,19 +68,19 @@ export const createTransporter = async (userId: string | mongoose.Types.ObjectId
         },
       });
     } else {
-      console.warn(`Unsupported email service: ${settings.emailService}`);
+      logger.warn(`Unsupported email service: ${settings.emailService}`);
       return null;
     }
 
     // Cache the transporter
     transporterCache.set(id, {
       transporter,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return transporter;
   } catch (error) {
-    console.error('Error creating email transporter:', error);
+    logger.error("Error creating email transporter:", error);
     return null;
   }
 };
@@ -88,7 +97,7 @@ export const sendEmail = async (
   userId: string | mongoose.Types.ObjectId,
   to: string,
   subject: string,
-  html: string
+  html: string,
 ): Promise<boolean> => {
   try {
     const transporter = await createTransporter(userId);
@@ -103,16 +112,16 @@ export const sendEmail = async (
     }
 
     const info = await transporter.sendMail({
-      from: `"${settings.fromName || 'LinkedIn Scraper'}" <${settings.fromEmail}>`,
+      from: `"${settings.fromName || "LinkedIn Scraper"}" <${settings.fromEmail}>`,
       to,
       subject,
       html,
     });
 
-    console.log(`Email sent: ${info.messageId}`);
+    logger.info(`Email sent: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error("Error sending email:", error);
     return false;
   }
 };
@@ -124,7 +133,7 @@ export const sendEmail = async (
  */
 export const sendCampaignCompletionEmail = async (
   campaignId: string | mongoose.Types.ObjectId,
-  leadsCount: number
+  leadsCount: number,
 ): Promise<boolean> => {
   try {
     // Get campaign and owner
@@ -156,10 +165,10 @@ export const sendCampaignCompletionEmail = async (
       userId,
       user.email,
       `Campaign Complete: ${campaign.name}`,
-      html
+      html,
     );
   } catch (error) {
-    console.error('Error sending campaign completion email:', error);
+    logger.error("Error sending campaign completion email:", error);
     return false;
   }
 };
@@ -173,11 +182,11 @@ export const sendCampaignCompletionEmail = async (
 export const sendLeadStatusChangeEmail = async (
   leadId: string | mongoose.Types.ObjectId,
   oldStatus: string,
-  newStatus: string
+  newStatus: string,
 ): Promise<boolean> => {
   try {
     // Get lead, campaign, and owner
-    const lead = await Lead.findById(leadId).populate('campaignId');
+    const lead = await Lead.findById(leadId).populate("campaignId");
     if (!lead || !lead.campaignId) return false;
 
     const campaign = lead.campaignId as any; // Cast to access createdBy
@@ -209,10 +218,10 @@ export const sendLeadStatusChangeEmail = async (
       userId,
       user.email,
       `Lead Status Changed: ${leadName}`,
-      html
+      html,
     );
   } catch (error) {
-    console.error('Error sending lead status change email:', error);
+    logger.error("Error sending lead status change email:", error);
     return false;
   }
 };
@@ -222,16 +231,16 @@ export const sendLeadStatusChangeEmail = async (
  * @param commentId - The comment ID
  */
 export const sendNewCommentEmail = async (
-  commentId: string | mongoose.Types.ObjectId
+  commentId: string | mongoose.Types.ObjectId,
 ): Promise<boolean> => {
   try {
     // Get comment, lead, and other related data
     const comment = await LeadComment.findById(commentId)
       .populate({
-        path: 'leadId',
-        populate: { path: 'campaignId' }
+        path: "leadId",
+        populate: { path: "campaignId" },
       })
-      .populate('userId', 'firstName lastName email');
+      .populate("userId", "firstName lastName email");
 
     if (!comment || !comment.leadId) return false;
 
@@ -253,7 +262,10 @@ export const sendNewCommentEmail = async (
     if (!campaignOwner || !campaignOwner.email) return false;
 
     // If the comment was made by the campaign owner, don't send notification
-    if (comment.userId && comment.userId._id.toString() === campaignOwnerId.toString()) {
+    if (
+      comment.userId &&
+      comment.userId._id.toString() === campaignOwnerId.toString()
+    ) {
       return false;
     }
 
@@ -264,7 +276,7 @@ export const sendNewCommentEmail = async (
       <h2>New Comment on Lead</h2>
       <p>A new comment has been added to a lead in your campaign "${campaign.name}".</p>
       <p><strong>Lead:</strong> ${leadName}</p>
-      <p><strong>Commenter:</strong> ${commenter?.firstName || ''} ${commenter?.lastName || ''}</p>
+      <p><strong>Commenter:</strong> ${commenter?.firstName || ""} ${commenter?.lastName || ""}</p>
       <p><strong>Comment:</strong> "${comment.comment}"</p>
       <p>You can view and respond to this comment in your dashboard.</p>
     `;
@@ -273,10 +285,10 @@ export const sendNewCommentEmail = async (
       campaignOwnerId,
       campaignOwner.email,
       `New Comment on Lead: ${leadName}`,
-      html
+      html,
     );
   } catch (error) {
-    console.error('Error sending new comment email:', error);
+    logger.error("Error sending new comment email:", error);
     return false;
   }
 };
@@ -290,7 +302,7 @@ export const sendNewCommentEmail = async (
 export const sendErrorEmail = async (
   userId: string | mongoose.Types.ObjectId,
   errorTitle: string,
-  errorDetails: string
+  errorDetails: string,
 ): Promise<boolean> => {
   try {
     // Check if user has notifications enabled
@@ -315,10 +327,19 @@ export const sendErrorEmail = async (
       userId,
       user.email,
       `Error Alert: ${errorTitle}`,
-      html
+      html,
     );
   } catch (error) {
-    console.error('Error sending error notification email:', error);
+    logger.error("Error sending error notification email:", error);
     return false;
   }
+};
+
+export default {
+  createTransporter,
+  sendEmail,
+  sendCampaignCompletionEmail,
+  sendLeadStatusChangeEmail,
+  sendNewCommentEmail,
+  sendErrorEmail,
 };

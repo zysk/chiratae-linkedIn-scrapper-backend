@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { LeadStatus, Rating } from '../helpers/Constants';
+import mongoose from "mongoose";
+import { LeadStatus, Rating } from "../helpers/Constants";
 
 export interface ILead {
   clientId: string; // LinkedIn profile ID/URL
@@ -15,7 +15,12 @@ export interface ILead {
     location?: string;
     profilePicture?: string;
     about?: string;
-    experience?: Array<{ company?: string; title?: string; duration?: string; description?: string }>;
+    experience?: Array<{
+      company?: string;
+      title?: string;
+      duration?: string;
+      description?: string;
+    }>;
     education?: Array<{ school?: string; degree?: string; dates?: string }>;
     skills?: string[];
     contactInfo?: any; // Structure can vary

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export interface IProxy {
   value: string; // e.g., http://user:pass@host:port or host:port

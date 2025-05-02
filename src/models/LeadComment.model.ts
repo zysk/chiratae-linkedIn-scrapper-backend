@@ -1,5 +1,5 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { ILeadComment } from '../interfaces/LeadComment.interface';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { ILeadComment } from "../interfaces/LeadComment.interface";
 
 // Interface for LeadComment Document
 export interface ILeadCommentDocument extends ILeadComment, Document {}
@@ -12,34 +12,34 @@ const LeadCommentSchema = new Schema<ILeadCommentDocument, ILeadCommentModel>(
   {
     leadId: {
       type: Schema.Types.ObjectId,
-      ref: 'Lead',
+      ref: "Lead",
       required: true,
       index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     comment: {
       type: String,
-      required: [true, 'Comment text is required'],
+      required: [true, "Comment text is required"],
       trim: true,
     },
     // Audit
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 // Indexes
@@ -47,8 +47,8 @@ LeadCommentSchema.index({ leadId: 1, createdAt: -1 });
 
 // LeadComment Model
 const LeadComment = mongoose.model<ILeadCommentDocument, ILeadCommentModel>(
-  'LeadComment',
-  LeadCommentSchema
+  "LeadComment",
+  LeadCommentSchema,
 );
 
 export default LeadComment;

@@ -1,5 +1,5 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { IProxy } from '../interfaces/Proxy.interface';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { IProxy } from "../interfaces/Proxy.interface";
 
 // Interface for Proxy Document
 export interface IProxyDocument extends IProxy, Document {}
@@ -12,7 +12,7 @@ const ProxySchema = new Schema<IProxyDocument, IProxyModel>(
   {
     value: {
       type: String,
-      required: [true, 'Proxy value (address) is required'],
+      required: [true, "Proxy value (address) is required"],
       unique: true,
       trim: true,
     },
@@ -30,17 +30,17 @@ const ProxySchema = new Schema<IProxyDocument, IProxyModel>(
     // Audit
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 // Indexes
@@ -48,6 +48,6 @@ ProxySchema.index({ value: 1 });
 ProxySchema.index({ isValid: 1 });
 
 // Proxy Model
-const Proxy = mongoose.model<IProxyDocument, IProxyModel>('Proxy', ProxySchema);
+const Proxy = mongoose.model<IProxyDocument, IProxyModel>("Proxy", ProxySchema);
 
 export default Proxy;

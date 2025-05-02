@@ -1,5 +1,8 @@
-import { createClient, RedisClientType } from 'redis';
-import { config } from '../config/config';
+import { createClient, RedisClientType } from "redis";
+import { config } from "../config/config";
+import Logger from "../helpers/Logger";
+
+const logger = new Logger({ context: "redis" });
 
 // --- Redis Client Initialization ---
 
@@ -8,88 +11,105 @@ import { config } from '../config/config';
 
 let redisClientInstance: RedisClientType | null = null;
 
+/**
+ * Gets a Redis client instance (creates one if it doesn't exist)
+ */
 export const getRedisClient = async (): Promise<RedisClientType> => {
-    if (redisClientInstance && redisClientInstance.isOpen) {
-        return redisClientInstance;
-    }
+  if (redisClientInstance && redisClientInstance.isOpen) {
+    return redisClientInstance;
+  }
 
-    console.log('Initializing Redis client...');
-    const client = createClient({
-        url: `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`
-    });
+  logger.info("Initializing Redis client...");
+  const client = createClient({
+    url: `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`,
+  });
 
-    client.on('error', (err) => console.error('Redis Client Error:', err));
+  client.on("error", (err) => logger.error("Redis Client Error:", err));
 
-    try {
-        await client.connect();
-        redisClientInstance = client as RedisClientType;
-        console.log('Redis connected successfully.');
-        return redisClientInstance;
-    } catch (err) {
-        console.error('Failed to connect to Redis:', err);
-        throw err; // Re-throw connection error
-    }
+  try {
+    await client.connect();
+    redisClientInstance = client as RedisClientType;
+    logger.info("Redis connected successfully.");
+    return redisClientInstance;
+  } catch (err) {
+    logger.error("Failed to connect to Redis:", err);
+    throw err; // Re-throw connection error
+  }
 };
 
 // --- Distributed Locking Functions ---
 
 /**
- * Attempts to acquire a distributed lock.
+ * Acquire a distributed lock using Redis
  *
- * @param client Redis client instance.
- * @param lockKey The key to use for the lock.
- * @param lockValue A unique value for this lock instance (e.g., process ID + timestamp).
- * @param expirySeconds Time in seconds until the lock automatically expires.
- * @returns True if the lock was acquired, false otherwise.
+ * @param client Redis client
+ * @param lockKey Key to use for the lock
+ * @param ttlSeconds Time-to-live in seconds for the lock
+ * @returns True if lock acquired, false otherwise
  */
 export const acquireLock = async (
-    client: RedisClientType,
-    lockKey: string,
-    lockValue: string,
-    expirySeconds: number = 3600 // Default 1 hour expiry
+  client: RedisClientType,
+  lockKey: string,
+  ttlSeconds = 60, // Default 1 minute lock
 ): Promise<boolean> => {
-    try {
-        const result = await client.set(lockKey, lockValue, {
-            NX: true,      // Only set if the key does not exist
-            EX: expirySeconds // Set expiry time in seconds
-        });
-        return result === 'OK'; // SET returns 'OK' on success with NX
-    } catch (error) {
-        console.error(`Error acquiring lock for key ${lockKey}:`, error);
-        return false;
-    }
+  try {
+    // Use SET with NX to only set if key doesn't exist
+    // EX sets expiration in seconds
+    const result = await client.set(lockKey, "1", {
+      NX: true,
+      EX: ttlSeconds,
+    });
+
+    // Result will be "OK" string if lock was acquired, null otherwise
+    return result === "OK"; // SET returns 'OK' on success with NX
+  } catch (error) {
+    logger.error(`Error acquiring lock for key ${lockKey}:`, error);
+    return false;
+  }
 };
 
 /**
- * Releases a distributed lock, ensuring it's released only by the owner.
- * Uses a Lua script for atomicity.
+ * Check if a lock exists
  *
- * @param client Redis client instance.
- * @param lockKey The key of the lock to release.
- * @param lockValue The unique value that was used to acquire the lock.
- * @returns True if the lock was released, false otherwise (e.g., lock expired or held by someone else).
+ * @param client Redis client
+ * @param lockKey Key used for the lock
+ * @returns True if lock exists, false otherwise
+ */
+export const checkLock = async (
+  client: RedisClientType,
+  lockKey: string,
+): Promise<boolean> => {
+  try {
+    // Get the value of the lock key
+    const result = await client.get(lockKey);
+    // If the key exists, the lock is still held
+    return result !== null;
+  } catch (error) {
+    logger.error(`Error checking lock for key ${lockKey}:`, error);
+    return false; // On error, assume lock doesn't exist to avoid deadlock
+  }
+};
+
+/**
+ * Release a distributed lock
+ *
+ * @param client Redis client
+ * @param lockKey Key used for the lock
+ * @returns True if lock released, false otherwise
  */
 export const releaseLock = async (
-    client: RedisClientType,
-    lockKey: string,
-    lockValue: string
+  client: RedisClientType,
+  lockKey: string,
 ): Promise<boolean> => {
-    // Lua script: Delete the key only if its current value matches the expected value.
-    const script = `
-        if redis.call("get", KEYS[1]) == ARGV[1] then
-            return redis.call("del", KEYS[1])
-        else
-            return 0
-        end
-    `;
-    try {
-        // EVAL takes script, number of keys, key(s)..., arg(s)...
-        const result = await client.eval(script, { keys: [lockKey], arguments: [lockValue] });
-        return result === 1; // DEL returns 1 if the key was deleted, 0 otherwise
-    } catch (error) {
-        console.error(`Error releasing lock for key ${lockKey}:`, error);
-        return false;
-    }
+  try {
+    // Simply delete the key to release the lock
+    const result = await client.del(lockKey);
+    // Result will be 1 if key was deleted, 0 if key didn't exist
+    return result === 1; // DEL returns 1 if the key was deleted, 0 otherwise
+  } catch (error) {
+    logger.error(`Error releasing lock for key ${lockKey}:`, error);
+    return false;
+  }
 };
 
 // --- Example Usage (Conceptual) ---
@@ -118,3 +138,10 @@ async function exampleTask() {
     }
 }
 */
+
+export default {
+  getRedisClient,
+  acquireLock,
+  checkLock,
+  releaseLock,
+};

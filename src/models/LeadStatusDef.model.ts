@@ -1,5 +1,5 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { ILeadStatusDef } from '../interfaces/LeadStatusDef.interface';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { ILeadStatusDef } from "../interfaces/LeadStatusDef.interface";
 
 // Interface for LeadStatusDef Document
 export interface ILeadStatusDefDocument extends ILeadStatusDef, Document {}
@@ -8,11 +8,14 @@ export interface ILeadStatusDefDocument extends ILeadStatusDef, Document {}
 export interface ILeadStatusDefModel extends Model<ILeadStatusDefDocument> {}
 
 // LeadStatusDef Schema
-const LeadStatusDefSchema = new Schema<ILeadStatusDefDocument, ILeadStatusDefModel>(
+const LeadStatusDefSchema = new Schema<
+  ILeadStatusDefDocument,
+  ILeadStatusDefModel
+>(
   {
     name: {
       type: String,
-      required: [true, 'Status name is required'],
+      required: [true, "Status name is required"],
       unique: true,
       trim: true,
     },
@@ -31,26 +34,26 @@ const LeadStatusDefSchema = new Schema<ILeadStatusDefDocument, ILeadStatusDefMod
     // Audit
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 // Indexes
 LeadStatusDefSchema.index({ name: 1 });
 
 // LeadStatusDef Model
-const LeadStatusDef = mongoose.model<ILeadStatusDefDocument, ILeadStatusDefModel>(
-  'LeadStatusDef',
-  LeadStatusDefSchema
-);
+const LeadStatusDef = mongoose.model<
+  ILeadStatusDefDocument,
+  ILeadStatusDefModel
+>("LeadStatusDef", LeadStatusDefSchema);
 
 export default LeadStatusDef;

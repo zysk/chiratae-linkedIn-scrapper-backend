@@ -1,0 +1,12 @@
+# Task ID: 18
+# Title: Fix Linting Issues and Configure ChromeDriver Path
+# Status: pending
+# Dependencies: 1, 7
+# Priority: medium
+# Description: Fix TypeScript linting warnings and configure ChromeDriver to use the correct executables based on the operating system.
+# Details:
+1. Fix TypeScript linting warnings including: usage of `any` type throughout the codebase, unnecessary console statements, unused variables, self-assignment issues, and ES2015 namespaces.
+2. Configure Selenium WebDriver to detect operating system and use the appropriate ChromeDriver executable: use chromedriver/chromedriver-win64/chromedriver.exe for Windows development and chromedriver/chromedriver-linux64/chromedriver for Linux production. Update the `createWebDriver` function in app.ts to set the service builder path dynamically based on the OS.
+
+# Test Strategy:
+Run `npm run lint:fix` to verify linting fixes. Test Selenium WebDriver initialization on both Windows and Linux environments to ensure the correct ChromeDriver is used.

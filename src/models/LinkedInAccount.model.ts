@@ -1,27 +1,42 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import { ILinkedInAccount } from '../interfaces/LinkedInAccount.interface';
-// TODO: Implement encryption utility
-// import { encrypt, decrypt } from '../helpers/Encryption';
+import mongoose, { Document, Model, Schema } from "mongoose";
+import { ILinkedInAccount } from "../interfaces/LinkedInAccount.interface";
+import {
+  encryptPassword,
+  decryptPassword,
+  isEncrypted,
+} from "../helpers/Encryption";
+import Logger from "../helpers/Logger";
+
+const logger = new Logger({ context: "linkedin-account-model" });
 
 // Interface for LinkedInAccount Document
-export interface ILinkedInAccountDocument extends ILinkedInAccount, Document {}
+export interface ILinkedInAccountDocument extends ILinkedInAccount, Document {
+  // Add method for decrypting password
+  getDecryptedPassword(): Promise<string | null>;
+}
 
 // Interface for LinkedInAccount Model
-export interface ILinkedInAccountModel extends Model<ILinkedInAccountDocument> {}
+export interface ILinkedInAccountModel extends Model<ILinkedInAccountDocument> {
+  // Add static methods if needed
+}
 
 // LinkedInAccount Schema
-const LinkedInAccountSchema = new Schema<ILinkedInAccountDocument, ILinkedInAccountModel>(
+const LinkedInAccountSchema = new Schema<
+  ILinkedInAccountDocument,
+  ILinkedInAccountModel
+>(
   {
-    name: { // LinkedIn email/username
+    name: {
+      // LinkedIn email/username
       type: String,
-      required: [true, 'LinkedIn account name/email is required'],
+      required: [true, "LinkedIn account name/email is required"],
       unique: true,
       trim: true,
       lowercase: true,
     },
     password: {
       type: String, // Will be stored encrypted
-      required: [true, 'LinkedIn password is required'],
+      required: [true, "LinkedIn password is required"],
     },
     isValid: {
       type: Boolean,
@@ -41,43 +56,67 @@ const LinkedInAccountSchema = new Schema<ILinkedInAccountDocument, ILinkedInAcco
     // Audit
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
-// TODO: Add pre-save hook for password encryption
-/*
-LinkedInAccountSchema.pre('save', async function(this: ILinkedInAccountDocument, next) {
-  if (!this.isModified('password') || !this.password) return next();
+// Pre-save hook for password encryption
+LinkedInAccountSchema.pre("save", async function (next) {
+  // Skip encryption if password hasn't been modified or is already encrypted
+  if (!this.isModified("password") || isEncrypted(this.password)) {
+    return next();
+  }
+
   try {
-    this.password = await encrypt(this.password);
+    // Encrypt the password
+    this.password = await encryptPassword(this.password);
     next();
-  } catch (error: any) {
-    next(error);
+  } catch (error) {
+    logger.error("Error encrypting LinkedIn account password:", error);
+    next(
+      error instanceof Error ? error : new Error("Password encryption failed"),
+    );
   }
 });
-*/
 
-// TODO: Consider adding a virtual or method to decrypt password temporarily for use
-// NEVER return decrypted password in API responses
+// Method to get decrypted password - use only when needed for authentication
+LinkedInAccountSchema.methods.getDecryptedPassword = async function (): Promise<
+  string | null
+> {
+  try {
+    return await decryptPassword(this.password);
+  } catch (error) {
+    logger.error("Error decrypting LinkedIn account password:", error);
+    return null;
+  }
+};
+
+// Hide sensitive information in JSON responses
+LinkedInAccountSchema.set("toJSON", {
+  transform: function (_doc, ret) {
+    // Never return the password, even in its encrypted form
+    delete ret.password;
+    return ret;
+  },
+});
 
 // Indexes
 LinkedInAccountSchema.index({ name: 1 });
 LinkedInAccountSchema.index({ isValid: 1, isBlocked: 1 });
 
 // LinkedInAccount Model
-const LinkedInAccount = mongoose.model<ILinkedInAccountDocument, ILinkedInAccountModel>(
-  'LinkedInAccount',
-  LinkedInAccountSchema
-);
+const LinkedInAccount = mongoose.model<
+  ILinkedInAccountDocument,
+  ILinkedInAccountModel
+>("LinkedInAccount", LinkedInAccountSchema);
 
 export default LinkedInAccount;

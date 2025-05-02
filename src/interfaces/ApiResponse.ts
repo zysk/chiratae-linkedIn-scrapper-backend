@@ -45,7 +45,7 @@ export interface ApiPaginatedResponse<T> extends ApiDataResponse<T[]> {
 export const successResponse = (message: string): ApiResponse => {
   return {
     success: true,
-    message
+    message,
   };
 };
 
@@ -56,11 +56,14 @@ export const successResponse = (message: string): ApiResponse => {
  * @param data - Response data
  * @returns API data response
  */
-export const dataResponse = <T>(message: string, data: T): ApiDataResponse<T> => {
+export const dataResponse = <T>(
+  message: string,
+  data: T,
+): ApiDataResponse<T> => {
   return {
     success: true,
     message,
-    data
+    data,
   };
 };
 
@@ -77,12 +80,12 @@ export const errorResponse = (
     code?: number;
     details?: string;
     stack?: string;
-  }
+  },
 ): ApiErrorResponse => {
   return {
     success: false,
     message,
-    ...(errorDetails && { error: errorDetails })
+    ...(errorDetails && { error: errorDetails }),
   };
 };
 
@@ -102,12 +105,12 @@ export const paginatedResponse = <T>(
     page: number;
     limit: number;
     pages: number;
-  }
+  },
 ): ApiPaginatedResponse<T> => {
   return {
     success: true,
     message,
     data,
-    pagination
+    pagination,
   };
 };

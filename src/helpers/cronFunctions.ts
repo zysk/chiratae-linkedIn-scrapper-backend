@@ -1,10 +1,14 @@
-import { WebDriver } from 'selenium-webdriver';
-import { RedisClientType } from 'redis';
-import Campaign from '../models/Campaign.model';
-import { performSearch } from '../services/linkedInSearch.service';
-import { campaignStatusObj } from '../helpers/Constants';
-import { checkLinkedInLoginStatus } from '../services/linkedInAuth.service';
-import { acquireLock, releaseLock } from '../services/redis.service';
+import { WebDriver } from "selenium-webdriver";
+import { RedisClientType } from "redis";
+import Campaign from "../models/Campaign.model";
+import { performSearch } from "../services/linkedInSearch.service";
+import { campaignStatusObj } from "../helpers/Constants";
+import { checkLinkedInLoginStatus } from "../services/linkedInAuth.service";
+import { acquireLock, releaseLock } from "../services/redis.service";
+import Logger from "./Logger";
+
+// Create a dedicated logger for cron operations
+const logger = new Logger({ context: "cron" });
 
 /**
  * Main cron function that handles automated campaign execution
@@ -14,31 +18,33 @@ import { acquireLock, releaseLock } from '../services/redis.service';
  */
 export const cronFunc = async (
   driver: WebDriver | null,
-  redisClient: RedisClientType | null // Allow null if connection failed
+  redisClient: RedisClientType | null, // Allow null if connection failed
 ): Promise<void> => {
   if (!driver || !redisClient) {
-    console.error('Cron Error: WebDriver or Redis client is not available.');
+    logger.error("Cron Error: WebDriver or Redis client is not available.");
     return;
   }
 
   // Acquire lock using the service function
-  const lockKey = 'cron:linkedin-search';
+  const lockKey = "cron:linkedin-search";
   // Use a more robust unique value, e.g., include hostname if multiple servers run cron
   const lockValue = `cron-worker-${process.pid}-${Date.now()}`;
   const lockAcquired = await acquireLock(redisClient, lockKey, lockValue, 3600); // 1 hour expiry
 
   if (!lockAcquired) {
-    console.log('Cron job lock busy or failed to acquire. Skipping this run.');
+    logger.info("Cron job lock busy or failed to acquire. Skipping this run.");
     return;
   }
 
-  console.log('Cron lock acquired.');
+  logger.info("Cron lock acquired.");
 
   try {
     // 1. Check if logged into LinkedIn
     const isLoggedIn = await checkLinkedInLoginStatus(driver);
     if (!isLoggedIn) {
-      console.error('Cron Error: Not logged into LinkedIn. Manual login required.');
+      logger.error(
+        "Cron Error: Not logged into LinkedIn. Manual login required.",
+      );
       // TODO: Add notification mechanism here (e.g., email admin)
       return; // Stop processing if not logged in
     }
@@ -54,37 +60,43 @@ export const cronFunc = async (
     }).limit(5); // Limit number of campaigns per cron run to avoid overwhelming system
 
     if (campaignsToRun.length === 0) {
-      console.log('No scheduled campaigns found to run at this time.');
+      logger.info("No scheduled campaigns found to run at this time.");
       return;
     }
 
-    console.log(`Found ${campaignsToRun.length} campaigns to run.`);
+    logger.info(`Found ${campaignsToRun.length} campaigns to run.`);
 
     // 3. Process each campaign sequentially
     for (const campaign of campaignsToRun) {
-      console.log(`Processing campaign ${campaign.name} (ID: ${campaign._id}) via cron.`);
+      logger.info(
+        `Processing campaign ${campaign.name} (ID: ${campaign._id}) via cron.`,
+      );
       try {
-          // TODO: Need to handle driver/proxy assignment per campaign if needed
-          // If campaigns need specific proxies, the driver might need to be recreated
-          // For now, use the shared driver
-          await performSearch(driver, campaign);
+        // TODO: Need to handle driver/proxy assignment per campaign if needed
+        // If campaigns need specific proxies, the driver might need to be recreated
+        // For now, use the shared driver
+        await performSearch(driver, campaign);
       } catch (campaignError) {
-          console.error(`Error during cron execution for campaign ${campaign._id}:`, campaignError);
-          // Error is logged within performSearch, which also sets status to FAILED
+        logger.error(
+          `Error during cron execution for campaign ${campaign._id}:`,
+          campaignError,
+        );
+        // Error is logged within performSearch, which also sets status to FAILED
       }
     }
 
-    console.log('Finished processing campaigns for this cron run.');
-
+    logger.info("Finished processing campaigns for this cron run.");
   } catch (error) {
-    console.error('Unhandled error in main cron function:', error);
+    logger.error("Unhandled error in main cron function:", error);
   } finally {
     // Release lock using the service function
     const released = await releaseLock(redisClient, lockKey, lockValue);
     if (released) {
-      console.log('Cron lock released.');
+      logger.info("Cron lock released.");
     } else {
-      console.warn('Cron lock could not be released (maybe expired or value changed).');
+      logger.warn(
+        "Cron lock could not be released (maybe expired or value changed).",
+      );
     }
   }
 };

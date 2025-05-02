@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 // Interface for user-related logs
 export interface IUserLog {
@@ -16,7 +16,7 @@ const UserLogSchema = new Schema<IUserLogDocument, IUserLogModel>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       index: true,
     },
     eventType: {
@@ -40,9 +40,12 @@ const UserLogSchema = new Schema<IUserLogDocument, IUserLogModel>(
   {
     timestamps: false, // Use specific timestamp field
     versionKey: false,
-  }
+  },
 );
 
-const UserLog = mongoose.model<IUserLogDocument, IUserLogModel>('UserLog', UserLogSchema);
+const UserLog = mongoose.model<IUserLogDocument, IUserLogModel>(
+  "UserLog",
+  UserLogSchema,
+);
 
 export default UserLog;

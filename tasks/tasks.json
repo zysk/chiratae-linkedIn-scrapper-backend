@@ -49,7 +49,7 @@
   {
     "id": 5,
     "title": "Implement Resource Management APIs (LinkedIn Accounts, Proxies)",
-    "description": "Implement CRUD APIs for managing LinkedIn accounts and proxies.",
+    "description": "Implement CRUD APIs for managing LinkedIn accounts and proxies, with secure password handling for LinkedIn accounts.",
     "status": "done",
     "dependencies": [
       1,
@@ -57,8 +57,8 @@
       4
     ],
     "priority": "medium",
-    "details": "Create controllers and routes (`linkedInAccount.*`, `proxy.*`). Implement CRUD operations. Include placeholders for validation/verification logic (e.g., checking proxy validity). **Ensure LinkedIn passwords are encrypted before storing.** Ensure only admins or owners can manage.",
-    "testStrategy": "API integration tests for CRUD operations on LinkedIn accounts and proxies, checking authorization."
+    "details": "Create controllers and routes (`linkedInAccount.*`, `proxy.*`). Implement CRUD operations. **Implement the TODOs for password encryption in the LinkedIn Account controller** using the Encryption helper. Include placeholders for validation/verification logic (e.g., checking proxy validity). Ensure only admins or owners can manage.",
+    "testStrategy": "API integration tests for CRUD operations on LinkedIn accounts and proxies, checking authorization. Verify LinkedIn account passwords are stored securely (encrypted)."
   },
   {
     "id": 6,
@@ -199,7 +199,7 @@
     "id": 16,
     "title": "Implement Email Settings Management API",
     "description": "Implement CRUD APIs for managing email notification settings.",
-    "status": "pending",
+    "status": "done",
     "dependencies": [
       3,
       4
@@ -212,7 +212,7 @@
     "id": 17,
     "title": "Implement Lead Status Definition Management API",
     "description": "Implement CRUD APIs for managing the available lead statuses.",
-    "status": "pending",
+    "status": "done",
     "dependencies": [
       3,
       4
@@ -220,5 +220,18 @@
     "priority": "low",
     "details": "Create `leadStatusDef.controller.ts` and `leadStatusDef.routes.ts`. Implement secure endpoints (admin only) for creating, reading, updating, and deleting lead status definitions stored via the `LeadStatusDef` model. Ensure deletion prevents removal of statuses currently in use by leads.",
     "testStrategy": "API integration tests for CRUD operations on lead status definitions, checking admin authorization, validation, and deletion constraints."
+  },
+  {
+    "id": 18,
+    "title": "Fix Linting Issues and Configure ChromeDriver Path",
+    "description": "Fix TypeScript linting warnings and configure ChromeDriver to use the correct executables based on the operating system.",
+    "status": "pending",
+    "dependencies": [
+      1,
+      7
+    ],
+    "priority": "medium",
+    "details": "1. Fix TypeScript linting warnings including: usage of `any` type throughout the codebase, unnecessary console statements, unused variables, self-assignment issues, and ES2015 namespaces. 2. Configure Selenium WebDriver to detect operating system and use the appropriate ChromeDriver executable: use chromedriver/chromedriver-win64/chromedriver.exe for Windows development and chromedriver/chromedriver-linux64/chromedriver for Linux production. Update the `createWebDriver` function in app.ts to set the service builder path dynamically based on the OS.",
+    "testStrategy": "Run `npm run lint:fix` to verify linting fixes. Test Selenium WebDriver initialization on both Windows and Linux environments to ensure the correct ChromeDriver is used."
   }
 ]

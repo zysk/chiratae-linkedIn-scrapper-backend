@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 // Interface for identifying previously scraped leads
 export interface IPreviousLead {
@@ -10,7 +10,10 @@ export interface IPreviousLead {
 export interface IPreviousLeadDocument extends IPreviousLead, Document {}
 export interface IPreviousLeadModel extends Model<IPreviousLeadDocument> {}
 
-const PreviousLeadSchema = new Schema<IPreviousLeadDocument, IPreviousLeadModel>(
+const PreviousLeadSchema = new Schema<
+  IPreviousLeadDocument,
+  IPreviousLeadModel
+>(
   {
     profileId: {
       type: String,
@@ -21,7 +24,7 @@ const PreviousLeadSchema = new Schema<IPreviousLeadDocument, IPreviousLeadModel>
     campaignId: {
       // Optional: Record which campaign first found this lead
       type: Schema.Types.ObjectId,
-      ref: 'Campaign',
+      ref: "Campaign",
     },
     timestamp: {
       type: Date,
@@ -32,12 +35,12 @@ const PreviousLeadSchema = new Schema<IPreviousLeadDocument, IPreviousLeadModel>
   {
     timestamps: false, // Use specific timestamp field
     versionKey: false,
-  }
+  },
 );
 
 const PreviousLead = mongoose.model<IPreviousLeadDocument, IPreviousLeadModel>(
-  'PreviousLead',
-  PreviousLeadSchema
+  "PreviousLead",
+  PreviousLeadSchema,
 );
 
 export default PreviousLead;
