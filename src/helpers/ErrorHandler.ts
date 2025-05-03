@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import Logger from "./Logger";
+import { Request, Response, NextFunction } from "express";
 import { ApiError, normalizeError } from "./TypeUtils";
+import { Logger } from "../services/logger.service";
 
-const logger = new Logger({ context: "error-handler" });
+const logger = new Logger("ErrorHandler");
 
 /**
  * Global error handler middleware
@@ -10,11 +10,13 @@ const logger = new Logger({ context: "error-handler" });
  * @param err - Error object
  * @param req - Express request object
  * @param res - Express response object
+ * @param next - Express next function
  */
 export const errorHandler = (
   err: unknown,
   req: Request,
   res: Response,
+  next: NextFunction,
 ): void => {
   // Normalize error to consistent format
   const normalizedError = normalizeError(err);
@@ -24,6 +26,14 @@ export const errorHandler = (
     error: normalizedError,
     stack: normalizedError.stack,
     requestId: req.headers["x-request-id"] || "unknown",
+    url: req.originalUrl,
+    query: req.query,
+    body: req.body
+      ? typeof req.body === "object"
+        ? JSON.stringify(req.body)
+        : req.body
+      : undefined,
+    ip: req.ip,
   });
 
   // Set status code
@@ -74,3 +84,29 @@ export const serverError = (message = "Internal Server Error"): ApiError => {
   error.status = 500;
   return error;
 };
+
+// Create specific error class for Selenium-related errors
+export class SeleniumError extends Error implements ApiError {
+  status: number;
+  code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "SeleniumError";
+    this.status = 500;
+    this.code = code || "SELENIUM_ERROR";
+  }
+}
+
+// Create error for LinkedIn detection issues
+export class LinkedInDetectionError extends Error implements ApiError {
+  status: number;
+  code?: string;
+
+  constructor(message: string) {
+    super(message || "LinkedIn has detected the automation");
+    this.name = "LinkedInDetectionError";
+    this.status = 503; // Service Unavailable
+    this.code = "LINKEDIN_DETECTION";
+  }
+}

@@ -1,11 +1,11 @@
 # Task ID: 8
-# Title: LinkedIn Authentication Module
-# Status: done
-# Dependencies: 5, 7
-# Priority: high
-# Description: Implement LinkedIn login process with CAPTCHA/OTP handling
+# Title: Lead Management and Annotation System
+# Status: pending
+# Dependencies: 7
+# Priority: medium
+# Description: Implement lead creation, status tracking, assignment, and annotation functionality.
 # Details:
-Develop the LinkedIn authentication module that handles login, CAPTCHA challenges, and OTP verification using Selenium.
+Create Lead model with fields for scraped profile data, status, assignment, and relationship to campaigns. Implement Lead Status model for custom status definitions. Develop CRUD operations for leads with validation. Build lead assignment functionality to users for follow-up. Create lead filtering and sorting capabilities based on various criteria. Implement Lead Comments model and functionality for adding notes to leads. Develop activity logging for lead interactions and status changes. Build endpoints for retrieving lead history and annotations.
 
 # Test Strategy:
-Test the login flow, CAPTCHA detection and handling, and OTP verification process.
+Test lead creation from scraped profile data. Verify status tracking and transitions. Test lead assignment functionality. Validate comment system and activity logging. Test filtering and sorting capabilities for leads.

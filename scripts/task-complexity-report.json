@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-02T16:41:00.929Z",
+    "tasksAnalyzed": 10,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Project Foundation Setup",
+      "complexityScore": 4,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Identify the key components of the project foundation setup and break them down into individual subtasks that can be completed independently.",
+      "reasoning": "The task involves setting up the initial project structure, which is a common and well-understood process. The complexity is relatively low, as it primarily involves configuration and setup tasks. Dividing the work into 5 subtasks should provide a good balance between granularity and manageability."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Authentication System Implementation",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the authentication system implementation into subtasks that cover user model, password hashing, JWT token management, role-based authorization, and user profile management.",
+      "reasoning": "Implementing a robust authentication system with role-based access control is a complex task that requires careful design and implementation. The task involves several interrelated components, such as user model, password hashing, token management, and authorization logic. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "LinkedIn Account and Proxy Management",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Identify the key aspects of LinkedIn account and proxy management, such as credential storage, CRUD operations, usage tracking, and proxy rotation, and break them down into individual subtasks.",
+      "reasoning": "The task of managing LinkedIn accounts and proxies involves several components, including secure credential storage, CRUD operations, usage tracking, and proxy rotation. While not as complex as the authentication system, it still requires careful design and implementation. Dividing the work into 5 subtasks should provide a good balance between granularity and manageability."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Campaign Management System",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the campaign management system implementation into subtasks that cover the campaign model, CRUD operations, status tracking, result monitoring, relationship management, and filtering/pagination.",
+      "reasoning": "The campaign management system involves several interrelated components, such as the campaign model, CRUD operations, status tracking, result monitoring, relationship management, and filtering/pagination. While not as complex as the authentication system, it still requires careful design and implementation. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Selenium Integration and LinkedIn Authentication",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Identify the key aspects of Selenium integration and LinkedIn authentication, such as WebDriver setup, proxy integration, session management, authentication flow, and anti-detection measures, and break them down into individual subtasks.",
+      "reasoning": "Integrating Selenium WebDriver and implementing a robust LinkedIn authentication system is a complex task that requires careful design and implementation. It involves several interrelated components, such as WebDriver setup, proxy integration, session management, authentication flow, and anti-detection measures. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "LinkedIn Search Automation",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the LinkedIn search automation implementation into subtasks that cover search execution, navigation, result extraction, anti-detection measures, and progress/result tracking.",
+      "reasoning": "Implementing automated LinkedIn search functionality with intelligent navigation and result extraction is a complex task that requires careful design and implementation. It involves several interrelated components, such as search execution, navigation, result extraction, anti-detection measures, and progress/result tracking. Dividing the work into 5 subtasks should provide a good balance between granularity and manageability."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Profile Data Scraping and Processing",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Identify the key aspects of profile data scraping and processing, such as data extraction, normalization, de-duplication, structured storage, error handling, and progress/result tracking, and break them down into individual subtasks.",
+      "reasoning": "Developing profile data extraction, normalization, and storage functionality with de-duplication is a complex task that requires careful design and implementation. It involves several interrelated components, such as data extraction, normalization, de-duplication, structured storage, error handling, and progress/result tracking. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Lead Management and Annotation System",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the lead management and annotation system implementation into subtasks that cover the lead model, CRUD operations, status tracking, assignment, filtering/sorting, and comments/annotations.",
+      "reasoning": "Implementing a lead management and annotation system involves several components, such as the lead model, CRUD operations, status tracking, assignment, filtering/sorting, and comments/annotations. While not as complex as the authentication or scraping systems, it still requires careful design and implementation. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Scheduling System with Redis Integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Identify the key aspects of the scheduling system with Redis integration, such as Redis setup, job scheduling, concurrency control, queue management, error recovery, and monitoring, and break them down into individual subtasks.",
+      "reasoning": "Implementing a scheduling system with Redis integration for distributed locking and concurrent execution control is a complex task that requires careful design and implementation. It involves several interrelated components, such as Redis setup, job scheduling, concurrency control, queue management, error recovery, and monitoring. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Email Integration and System Optimization",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the email integration and system optimization implementation into subtasks that cover email settings, email templates, notification alerts, campaign data export, database optimization, caching, rate limiting, and API documentation.",
+      "reasoning": "Implementing an email notification system and optimizing the overall system performance involves several components, such as email settings, email templates, notification alerts, campaign data export, database optimization, caching, rate limiting, and API documentation. While not as complex as the previous tasks, it still requires careful design and implementation. Dividing the work into 6 subtasks should provide a good level of granularity to manage the complexity effectively."
+    }
+  ]
+}

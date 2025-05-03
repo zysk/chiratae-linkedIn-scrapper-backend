@@ -153,3 +153,8 @@ out/
 
 # Cursor
 .cursor/mcp.json
+
+# Added by Claude Task Master
+dev-debug.log
+# Environment variables
+.vscode

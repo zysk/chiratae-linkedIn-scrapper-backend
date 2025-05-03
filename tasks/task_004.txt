@@ -1,11 +1,11 @@
 # Task ID: 4
-# Title: Authentication and User Management
-# Status: done
+# Title: Campaign Management System
+# Status: pending
 # Dependencies: 3
 # Priority: high
-# Description: Implement user management, JWT authentication, and role-based authorization
+# Description: Develop campaign creation, configuration, and management functionality with search parameters and filters.
 # Details:
-Develop the user authentication system including JWT token generation/verification, password hashing, and user management operations.
+Create Campaign model with fields for search parameters, filters (company, school, past company), execution status, and results. Implement CRUD operations for campaigns with validation. Build endpoints for campaign status tracking and result monitoring. Develop relationship management between campaigns, LinkedIn accounts, and leads. Create a campaign configuration service that validates and processes search parameters. Implement filtering and pagination for campaign listing.
 
 # Test Strategy:
-Test user registration, login process, JWT token generation and validation, and role-based access control.
+Test campaign creation with various search parameters and filters. Verify validation of campaign configuration. Test relationship management between campaigns and other entities. Ensure proper filtering and pagination of campaign listings.

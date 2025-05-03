@@ -10,7 +10,7 @@ import mongoose from "mongoose";
  */
 export interface ApiError extends Error {
   status?: number;
-  code?: number;
+  code?: number | string;
 }
 
 /**
@@ -118,8 +118,10 @@ export const normalizeError = (error: unknown): ApiError => {
     if ("status" in error && typeof error.status === "number") {
       apiError.status = error.status;
     }
-    if ("code" in error && typeof error.code === "number") {
-      apiError.code = error.code;
+    if ("code" in error) {
+      if (typeof error.code === "number" || typeof error.code === "string") {
+        apiError.code = error.code;
+      }
     }
     return apiError;
   }

@@ -4,13 +4,14 @@
  * Module dependencies.
  */
 import http from "http";
-import debug from "debug";
 import { AddressInfo } from "net";
 import { app } from "../app";
 import { initializeScheduledCampaigns } from "../services/scheduler.service";
 import config from "../config/config";
+import { Logger } from "../services/logger.service";
+import { closeDatabase } from "../utils/db.util";
 
-const debugLog = debug("modernmart-backend:server");
+const logger = new Logger("Server");
 
 /**
  * Normalize a port into a number, string, or false.
@@ -55,11 +56,11 @@ function onError(error: NodeJS.ErrnoException): void {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case "EACCES":
-      console.error(bind + " requires elevated privileges");
+      logger.error(`${bind} requires elevated privileges`);
       process.exit(1);
       break;
     case "EADDRINUSE":
-      console.error(bind + " is already in use");
+      logger.error(`${bind} is already in use`);
       process.exit(1);
       break;
     default:
@@ -73,8 +74,7 @@ function onError(error: NodeJS.ErrnoException): void {
 function onListening(): void {
   const addr = server.address() as AddressInfo;
   const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  debugLog("Listening on " + bind);
-  console.log(`Server listening on ${bind}`);
+  logger.info(`Server listening on ${bind}`);
 }
 
 /**
@@ -88,22 +88,42 @@ server.on("listening", onListening);
  * Initialize scheduled campaigns
  */
 initializeScheduledCampaigns().catch((err) => {
-  console.error("Failed to initialize scheduled campaigns:", err);
+  logger.error("Failed to initialize scheduled campaigns:", err);
 });
 
 /**
  * Handle process termination - cleanup resources.
  */
 async function cleanup(): Promise<void> {
-  console.log("Cleaning up resources...");
+  logger.info("Cleaning up resources...");
 
-  // Close server
-  server.close(() => {
-    console.log("HTTP server closed");
-    process.exit(0);
-  });
+  try {
+    // Close database connections
+    await closeDatabase();
+
+    // Close server
+    server.close(() => {
+      logger.info("HTTP server closed");
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error("Error during cleanup:", error);
+    process.exit(1);
+  }
 }
 
 // Handle termination signals
 process.on("SIGINT", cleanup);
 process.on("SIGTERM", cleanup);
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  logger.error("Uncaught exception:", error);
+  cleanup().catch(() => process.exit(1));
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled Rejection:", reason);
+  // Don't exit, just log
+});

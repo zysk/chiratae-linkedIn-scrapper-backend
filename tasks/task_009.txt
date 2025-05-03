@@ -1,11 +1,11 @@
 # Task ID: 9
-# Title: LinkedIn Search Automation
-# Status: done
-# Dependencies: 6, 8
-# Priority: high
-# Description: Implement automated LinkedIn search with filter application
+# Title: Scheduling System with Redis Integration
+# Status: pending
+# Dependencies: 6, 7
+# Priority: medium
+# Description: Implement campaign scheduling with distributed locking using Redis for concurrent execution control.
 # Details:
-Develop the automated LinkedIn search functionality that applies search queries and filters, and collects profile URLs from search results.
+Set up Redis integration for distributed locking. Implement node-schedule for cron-based execution of campaigns. Create a job scheduler service that manages campaign execution. Develop concurrency control to prevent multiple instances of the same campaign from running simultaneously. Build a queue system for campaign execution. Implement error recovery for failed jobs. Create monitoring endpoints for scheduled jobs. Develop campaign execution automation with configurable parameters.
 
 # Test Strategy:
-Test search execution, filter application, pagination through results, and profile URL extraction.
+Test distributed locking with Redis under concurrent scenarios. Verify scheduled job execution with various timing configurations. Test error recovery mechanisms for failed jobs. Validate concurrency control for multiple campaigns.

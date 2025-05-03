@@ -1,11 +1,59 @@
 # Task ID: 5
-# Title: Implement Resource Management APIs (LinkedIn Accounts, Proxies)
-# Status: done
-# Dependencies: 1, 3, 4
-# Priority: medium
-# Description: Implement CRUD APIs for managing LinkedIn accounts and proxies, with secure password handling for LinkedIn accounts.
+# Title: Selenium Integration and LinkedIn Authentication
+# Status: pending
+# Dependencies: 3
+# Priority: high
+# Description: Integrate Selenium WebDriver with proxy support and implement LinkedIn authentication handling.
 # Details:
-Create controllers and routes (`linkedInAccount.*`, `proxy.*`). Implement CRUD operations. **Implement the TODOs for password encryption in the LinkedIn Account controller** using the Encryption helper. Include placeholders for validation/verification logic (e.g., checking proxy validity). Ensure only admins or owners can manage.
+Set up Selenium WebDriver with TypeScript bindings. Implement WebDriver factory with proxy integration. Create a browser session manager for handling cookies and state. Develop LinkedIn authentication service that handles login flow, CAPTCHA challenges, and OTP verification. Implement session management for maintaining authenticated state. Build anti-detection measures including random delays and browser fingerprint masking. Create recovery mechanisms for handling authentication failures.
 
 # Test Strategy:
-API integration tests for CRUD operations on LinkedIn accounts and proxies, checking authorization. Verify LinkedIn account passwords are stored securely (encrypted).
+Test WebDriver initialization with different proxy configurations. Verify LinkedIn authentication process with error handling. Test CAPTCHA and OTP handling mechanisms. Validate session management and cookie handling.
+
+# Subtasks:
+## 1. Set up Selenium WebDriver with TypeScript bindings [pending]
+### Dependencies: None
+### Description: Install and configure Selenium WebDriver with TypeScript support. Ensure the necessary dependencies are added to the project.
+### Details:
+1. Install Selenium WebDriver and TypeScript packages using npm or yarn.
+2. Create a new TypeScript file for the WebDriver setup and configuration.
+3. Initialize the WebDriver instance using the appropriate browser-specific driver (e.g., ChromeDriver, GeckoDriver).
+4. Ensure the WebDriver instance can be imported and used throughout the codebase.
+
+## 2. Implement WebDriver factory with proxy integration [pending]
+### Dependencies: 5.1
+### Description: Create a WebDriver factory that can handle proxy configurations and return a new WebDriver instance with the specified proxy settings.
+### Details:
+1. Create a WebDriverFactory class that encapsulates the WebDriver initialization logic.
+2. Add support for proxy configuration, allowing the factory to create WebDriver instances with the specified proxy settings.
+3. Implement methods to set proxy host, port, username, and password.
+4. Ensure the factory can handle both Windows and Linux environments by using the appropriate chromedriver binaries.
+
+## 3. Develop LinkedIn authentication service [pending]
+### Dependencies: 5.2
+### Description: Implement a LinkedIn authentication service that handles the login flow, CAPTCHA challenges, and OTP verification.
+### Details:
+1. Create a LinkedInAuthService class that encapsulates the authentication logic.
+2. Implement methods to handle the login flow, including username and password input, and submission of the login form.
+3. Detect and handle CAPTCHA challenges, either by providing a manual solution or integrating with a CAPTCHA solving service.
+4. Implement OTP verification, allowing the user to input the one-time password and complete the authentication process.
+5. Ensure the service can handle various authentication scenarios, including failed logins and account lockouts.
+
+## 4. Implement session management for maintaining authenticated state [pending]
+### Dependencies: 5.3
+### Description: Create a session manager to handle the storage and retrieval of authenticated user sessions, including cookies and other session-related data.
+### Details:
+1. Develop a SessionManager class to encapsulate session-related functionality.
+2. Implement methods to save the current browser session, including cookies, localStorage, and other relevant data.
+3. Provide a way to load a previously saved session, allowing the user to resume an authenticated state.
+4. Ensure the session manager can handle session expiration and provide mechanisms for refreshing the session when necessary.
+
+## 5. Implement anti-detection measures and recovery mechanisms [pending]
+### Dependencies: 5.4
+### Description: Add anti-detection measures, including random delays and browser fingerprint masking, and create recovery mechanisms for handling authentication failures.
+### Details:
+1. Implement random delays between actions to mimic human-like behavior and avoid detection by LinkedIn's anti-bot measures.
+2. Develop a browser fingerprint masking system to obfuscate the WebDriver's unique characteristics and make it appear more like a regular browser.
+3. Create recovery mechanisms to handle authentication failures, such as retrying the login process, adjusting proxy settings, or providing alternative authentication methods.
+4. Ensure the anti-detection and recovery mechanisms are integrated throughout the codebase, including the WebDriver factory, authentication service, and session manager.
+

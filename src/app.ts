@@ -11,6 +11,17 @@ import { scheduleJob } from "node-schedule";
 import { config } from "./config/config";
 import { errorHandler } from "./helpers/ErrorHandler";
 import { getRedisClient } from "./services/redis.service"; // Import the Redis service function
+import { Logger } from "./services/logger.service";
+import { ChromeDriverService } from "./services/chromedriver.service";
+import { ensureLogsDirectory } from "./utils/ensure-dir";
+import { errorMiddleware, notFoundMiddleware } from './middlewares/error.middleware';
+import { connectDatabase } from './utils/db.util';
+import { validateEnvironment } from './utils/env-validator.util';
+import { defaultConfig } from './config/config';
+
+// Initialize logger
+ensureLogsDirectory();
+const appLogger = new Logger("App");
 
 // Import routes
 import userRoutes from "./routes/users.routes";
@@ -32,10 +43,19 @@ import emailSettingsRoutes from "./routes/emailSettings.routes";
  * @returns A promise resolving to the WebDriver instance.
  */
 const createWebDriver = async (proxy?: string): Promise<WebDriver> => {
+  const logger = new Logger("WebDriverFactory");
+  const chromeDriverService = ChromeDriverService.getInstance();
+  const chromeDriverPath = await chromeDriverService.getDriverPath();
+
+  logger.info(`Using ChromeDriver at: ${chromeDriverPath}`);
+
   const chromeOptions = new chrome.Options();
+  // Set chromedriver path using the platform-specific path
+  chromeOptions.setChromeBinaryPath(chromeDriverPath);
 
   if (config.ENABLE_HEADLESS === "true") {
     chromeOptions.addArguments("--headless=new", "--disable-gpu");
+    logger.info("Running Chrome in headless mode");
   }
 
   chromeOptions.addArguments(
@@ -60,18 +80,23 @@ const createWebDriver = async (proxy?: string): Promise<WebDriver> => {
       // socksVersion: 5, // Specify SOCKS version if using SOCKS proxy
     };
     capabilities.setProxy(proxyConfig);
-    console.log(`WebDriver configured to use proxy: ${proxy}`);
+    logger.info(`WebDriver configured to use proxy: ${proxy}`);
   }
 
   try {
+    // Create service with the correct path
+    const service = new chrome.ServiceBuilder(chromeDriverPath);
+
     const driver = await new Builder()
       .forBrowser("chrome")
       .withCapabilities(capabilities)
+      .setChromeService(service)
       .build();
-    console.log("Selenium WebDriver initialized successfully");
+
+    logger.info("Selenium WebDriver initialized successfully");
     return driver;
   } catch (error) {
-    console.error("Selenium WebDriver initialization error:", error);
+    logger.error("Selenium WebDriver initialization error:", error);
     throw error; // Re-throw to be handled by the caller
   }
 };
@@ -80,9 +105,15 @@ class App {
   public app: Express;
   public driver: WebDriver | null = null;
   public redisClient: RedisClientType | null = null; // Add property to hold client
+  private logger: Logger;
 
   constructor() {
     this.app = express();
+    this.logger = new Logger("App");
+
+    // Validate environment before proceeding
+    validateEnvironment(defaultConfig as Record<string, string>, false);
+
     this.connectToDatabases()
       .then(() => {
         this.configureMiddlewares();
@@ -91,7 +122,7 @@ class App {
         this.setupCronJobs();
       })
       .catch((err) => {
-        console.error("Failed to initialize application:", err);
+        this.logger.error("Failed to initialize application:", err);
         process.exit(1);
       });
   }
@@ -124,21 +155,30 @@ class App {
       res.sendFile(path.join(__dirname, "../public/index.html"));
     });
 
+    // 404 handler for unmatched routes
+    this.app.use(notFoundMiddleware);
+
     // Error handler middleware
-    this.app.use(errorHandler);
+    this.app.use(errorMiddleware);
   }
 
   private async connectToDatabases(): Promise<void> {
-    // MongoDB connection
-    await mongoose.connect(config.MONGOURI);
-    console.log("MongoDB connected successfully");
+    // MongoDB connection using the new utility
+    try {
+      await connectDatabase();
+      this.logger.info("MongoDB connected successfully");
+    } catch (mongoError) {
+      this.logger.error("MongoDB connection failed:", mongoError);
+      throw mongoError; // Re-throw to trigger app failure
+    }
 
     // Redis connection using the service
     try {
       this.redisClient = await getRedisClient();
       await this.redisClient.set("isFree", "true"); // Initialize lock state (if needed globally)
+      this.logger.info("Redis connected successfully");
     } catch (redisError) {
-      console.error(
+      this.logger.error(
         "Failed to connect to Redis during app initialization:",
         redisError,
       );
@@ -151,8 +191,9 @@ class App {
     try {
       // Create default driver without proxy on startup
       this.driver = await createWebDriver();
+      this.logger.info("Initial Selenium WebDriver setup completed");
     } catch (error) {
-      console.error(
+      this.logger.error(
         "Initial Selenium setup failed. Scraping features might be unavailable.",
         error,
       );
@@ -164,28 +205,30 @@ class App {
   private setupCronJobs(): void {
     // Skip cron setup if disabled
     if (config.ENABLE_CRON !== "true") {
-      console.log("Cron jobs are disabled");
+      this.logger.info("Cron jobs are disabled");
       return;
     }
 
     // Schedule cron job to run at midnight
     scheduleJob("0 0 * * *", async () => {
       if (!this.driver || !this.redisClient) {
-        console.error("Cron job skipped: WebDriver or Redis not initialized.");
+        this.logger.error(
+          "Cron job skipped: WebDriver or Redis not initialized.",
+        );
         return;
       }
       try {
-        console.log(`Cron job started at ${new Date().toISOString()}`);
+        this.logger.info(`Cron job started at ${new Date().toISOString()}`);
         // Import here to avoid circular dependencies
         const { cronFunc } = await import("./helpers/cronFunctions");
         await cronFunc(this.driver, this.redisClient);
-        console.log(`Cron job completed at ${new Date().toISOString()}`);
+        this.logger.info(`Cron job completed at ${new Date().toISOString()}`);
       } catch (error) {
-        console.error("Cron job error:", error);
+        this.logger.error("Cron job error:", error);
       }
     });
 
-    console.log("Cron jobs scheduled successfully");
+    this.logger.info("Cron jobs scheduled successfully");
   }
 }
 

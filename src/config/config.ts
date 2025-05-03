@@ -22,10 +22,12 @@ interface Config {
   SMTP_PASS: string;
   SMTP_FROM: string;
   ENCRYPTION_KEY: string;
+  LOG_LEVEL: string;
+  CHROMEDRIVER_PATH?: string; // Optional: Used for custom ChromeDriver path
 }
 
 // Default config values
-const defaultConfig: Config = {
+export const defaultConfig: Config = {
   PORT: "3000",
   NODE_ENV: "development",
   TZ: "UTC",
@@ -42,6 +44,8 @@ const defaultConfig: Config = {
   SMTP_PASS: "password",
   SMTP_FROM: "noreply@example.com",
   ENCRYPTION_KEY: "default_encryption_key_32_characters",
+  LOG_LEVEL: "info", // Default log level
+  // CHROMEDRIVER_PATH is undefined by default, will use auto-detected path
 };
 
 // Load config values from environment variables or use defaults
@@ -64,6 +68,8 @@ export const config: Config = {
   SMTP_PASS: process.env.SMTP_PASS || defaultConfig.SMTP_PASS,
   SMTP_FROM: process.env.SMTP_FROM || defaultConfig.SMTP_FROM,
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || defaultConfig.ENCRYPTION_KEY,
+  LOG_LEVEL: process.env.LOG_LEVEL || defaultConfig.LOG_LEVEL,
+  CHROMEDRIVER_PATH: process.env.CHROMEDRIVER_PATH,
 };
 
 // Validate required configuration
@@ -88,3 +94,4 @@ if (missingEnvVars.length > 0) {
 
 // Export configuration
 export default config;
+export { Config };
