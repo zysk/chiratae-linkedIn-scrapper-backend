@@ -112,14 +112,17 @@ class App {
     this.logger = new Logger("App");
 
     // Validate environment before proceeding
-    validateEnvironment(defaultConfig as Record<string, string>, false);
+    validateEnvironment(defaultConfig as unknown as Record<string, string>, false);
 
     this.connectToDatabases()
       .then(() => {
-        this.configureMiddlewares();
-        this.configureRoutes();
-        this.setupSelenium(); // Setup initial driver
-        this.setupCronJobs();
+        // Execute setup functions in parallel
+        return Promise.all([
+          this.configureMiddlewares(),
+          this.configureRoutes(),
+          this.setupSelenium(),
+          this.setupCronJobs()
+        ]);
       })
       .catch((err) => {
         this.logger.error("Failed to initialize application:", err);
@@ -127,7 +130,7 @@ class App {
       });
   }
 
-  private configureMiddlewares(): void {
+  private configureMiddlewares(): Promise<void> {
     this.app.use(cors());
     if (config.NODE_ENV === "development") {
       this.app.use(logger("dev"));
@@ -136,9 +139,11 @@ class App {
     this.app.use(express.urlencoded({ extended: false, limit: "100mb" }));
     this.app.use(cookieParser());
     this.app.use(express.static(path.join(__dirname, "../public")));
+
+    return Promise.resolve();
   }
 
-  private configureRoutes(): void {
+  private configureRoutes(): Promise<void> {
     // API routes
     this.app.use("/users", userRoutes);
     this.app.use("/campaign", campaignRoutes);
@@ -160,6 +165,8 @@ class App {
 
     // Error handler middleware
     this.app.use(errorMiddleware);
+
+    return Promise.resolve();
   }
 
   private async connectToDatabases(): Promise<void> {
@@ -202,11 +209,11 @@ class App {
     }
   }
 
-  private setupCronJobs(): void {
+  private setupCronJobs(): Promise<void> {
     // Skip cron setup if disabled
     if (config.ENABLE_CRON !== "true") {
       this.logger.info("Cron jobs are disabled");
-      return;
+      return Promise.resolve();
     }
 
     // Schedule cron job to run at midnight
@@ -229,6 +236,7 @@ class App {
     });
 
     this.logger.info("Cron jobs scheduled successfully");
+    return Promise.resolve();
   }
 }
 

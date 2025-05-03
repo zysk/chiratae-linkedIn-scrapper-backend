@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Authentication System Implementation
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Develop a JWT-based authentication system with role-based access control for admin, standard user, and client roles.

@@ -17,6 +17,7 @@ export interface IUser {
   role: Role;
   isActive: boolean;
   lastLogin?: Date;
+  tokenVersion: number;
   leadRating?: Rating;
   leadRatingScore?: number;
   createdBy?: mongoose.Types.ObjectId | string;
@@ -95,6 +96,10 @@ const UserSchema = new Schema<IUserDocument, IUserModel>(
     },
     lastLogin: {
       type: Date,
+    },
+    tokenVersion: {
+      type: Number,
+      default: 0,
     },
     leadRating: {
       type: String,

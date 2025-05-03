@@ -15,6 +15,11 @@ import {
   loginAdmin,
   getUserDetailsWithCampaigns,
   setUserRating,
+  refreshToken,
+  revokeUserTokens,
+  updateUserProfile,
+  changePassword,
+  getCurrentUser
 } from "../controllers/users.controller";
 
 // Create router
@@ -99,5 +104,40 @@ router.get(
  * @access  Private/Admin
  */
 router.put("/rating/calculate", authorizeJwt, isAdmin, setUserRating);
+
+/**
+ * @route   POST /users/refresh-token
+ * @desc    Refresh user access token
+ * @access  Public
+ */
+router.post("/refresh-token", refreshToken);
+
+/**
+ * @route   POST /users/:id/revoke-tokens
+ * @desc    Revoke all refresh tokens for a user
+ * @access  Private (self or admin)
+ */
+router.post("/:id/revoke-tokens", authorizeJwt, isSelfOrAdmin("id"), revokeUserTokens);
+
+/**
+ * @route   GET /users/profile
+ * @desc    Get current user profile
+ * @access  Private
+ */
+router.get("/profile", authorizeJwt, getCurrentUser);
+
+/**
+ * @route   PUT /users/profile
+ * @desc    Update current user profile
+ * @access  Private
+ */
+router.put("/profile", authorizeJwt, updateUserProfile);
+
+/**
+ * @route   PUT /users/change-password
+ * @desc    Change current user password
+ * @access  Private
+ */
+router.put("/change-password", authorizeJwt, changePassword);
 
 export default router;

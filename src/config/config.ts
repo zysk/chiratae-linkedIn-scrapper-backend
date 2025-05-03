@@ -12,6 +12,8 @@ interface Config {
   MONGOURI: string;
   ACCESS_TOKEN_SECRET: string;
   ACCESS_TOKEN_LIFE: string;
+  REFRESH_TOKEN_SECRET: string;
+  REFRESH_TOKEN_LIFE: string;
   REDIS_HOST: string;
   REDIS_PORT: string;
   ENABLE_HEADLESS: string;
@@ -34,6 +36,8 @@ export const defaultConfig: Config = {
   MONGOURI: "mongodb://localhost:27017/linkedin-scraper",
   ACCESS_TOKEN_SECRET: "access_token_default_secret",
   ACCESS_TOKEN_LIFE: "7d",
+  REFRESH_TOKEN_SECRET: "refresh_token_default_secret",
+  REFRESH_TOKEN_LIFE: "7d",
   REDIS_HOST: "localhost",
   REDIS_PORT: "6379",
   ENABLE_HEADLESS: "true",
@@ -58,6 +62,10 @@ export const config: Config = {
     process.env.ACCESS_TOKEN_SECRET || defaultConfig.ACCESS_TOKEN_SECRET,
   ACCESS_TOKEN_LIFE:
     process.env.ACCESS_TOKEN_LIFE || defaultConfig.ACCESS_TOKEN_LIFE,
+  REFRESH_TOKEN_SECRET:
+    process.env.REFRESH_TOKEN_SECRET || defaultConfig.REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_LIFE:
+    process.env.REFRESH_TOKEN_LIFE || defaultConfig.REFRESH_TOKEN_LIFE,
   REDIS_HOST: process.env.REDIS_HOST || defaultConfig.REDIS_HOST,
   REDIS_PORT: process.env.REDIS_PORT || defaultConfig.REDIS_PORT,
   ENABLE_HEADLESS: process.env.ENABLE_HEADLESS || defaultConfig.ENABLE_HEADLESS,

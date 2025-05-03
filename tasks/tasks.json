@@ -15,7 +15,7 @@
       "id": 2,
       "title": "Authentication System Implementation",
       "description": "Develop a JWT-based authentication system with role-based access control for admin, standard user, and client roles.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
