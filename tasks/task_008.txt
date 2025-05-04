@@ -3,9 +3,74 @@
 # Status: pending
 # Dependencies: 7
 # Priority: medium
-# Description: Implement lead creation, status tracking, assignment, and annotation functionality.
+# Description: Implement a comprehensive lead management system with support for custom statuses, assignment, filtering, annotation, activity logging, bulk operations, prioritization, and export/merge capabilities.
 # Details:
-Create Lead model with fields for scraped profile data, status, assignment, and relationship to campaigns. Implement Lead Status model for custom status definitions. Develop CRUD operations for leads with validation. Build lead assignment functionality to users for follow-up. Create lead filtering and sorting capabilities based on various criteria. Implement Lead Comments model and functionality for adding notes to leads. Develop activity logging for lead interactions and status changes. Build endpoints for retrieving lead history and annotations.
+1. Create Lead model with fields for scraped profile data, custom status, assignment, and relationship to campaigns.
+2. Implement Lead Status model for defining and managing custom status definitions aligned with sales workflows.
+3. Develop CRUD operations for leads with validation, including support for bulk lead creation, update, and deletion.
+4. Build lead assignment functionality to assign leads to users for follow-up actions.
+5. Create lead filtering and sorting capabilities based on various criteria such as status, assigned user, campaign, and custom fields.
+6. Implement Lead Comments model and functionality for adding notes and annotations to leads.
+7. Develop activity logging to track all interactions and status changes for each lead.
+8. Implement lead prioritization mechanisms based on configurable criteria such as lead score, engagement, or custom business rules.
+9. Build lead export functionality to allow users to export lead data in various formats (CSV, Excel, etc.).
+10. Implement lead merging capabilities to handle duplicate lead entries.
 
 # Test Strategy:
-Test lead creation from scraped profile data. Verify status tracking and transitions. Test lead assignment functionality. Validate comment system and activity logging. Test filtering and sorting capabilities for leads.
+1. Test lead creation from scraped profile data and bulk lead management operations.
+2. Verify custom status tracking and transitions aligned with sales workflows.
+3. Test lead assignment functionality and ensure proper follow-up actions.
+4. Validate lead filtering, sorting, and prioritization capabilities.
+5. Test the lead annotation system and activity logging for all interactions.
+6. Ensure lead export functionality works as expected in various formats.
+7. Test lead merging capabilities to handle duplicate entries.
+
+# Subtasks:
+## 1. Implement Lead Model and CRUD Operations [pending]
+### Dependencies: None
+### Description: Create a comprehensive Lead model and implement CRUD operations with validation.
+### Details:
+1. Design the Lead model schema with fields for scraped profile data, status, assignment, and relationship to campaigns.\n2. Implement validation for required fields and data types.\n3. Create REST API endpoints for lead creation, retrieval, update, and deletion.\n4. Add middleware for request validation and error handling.\n5. Implement unit and integration tests for the Lead model and CRUD operations.
+
+## 2. Develop Custom Lead Status Management [pending]
+### Dependencies: 8.1
+### Description: Implement Lead Status model and management functionality to support custom status definitions aligned with sales workflows.
+### Details:
+1. Create a LeadStatus model to define custom lead statuses with names, descriptions, and ordering.\n2. Implement CRUD operations for lead status management.\n3. Build a status workflow engine to define valid status transitions.\n4. Create API endpoints for managing lead statuses and transitions.\n5. Implement status validation to ensure leads only transition to valid statuses.
+
+## 3. Implement Lead Assignment Functionality [pending]
+### Dependencies: 8.1
+### Description: Build lead assignment functionality that allows leads to be assigned to users for follow-up actions.
+### Details:
+1. Update the Lead model to include assignment information (assigned user, assignment date, etc.).\n2. Create API endpoints for assigning leads to users and for users to claim leads.\n3. Implement automatic assignment features based on configurable rules (round-robin, skill-based, etc.).\n4. Add notification mechanisms for users when leads are assigned to them.\n5. Implement reporting on lead assignment statistics (assignments per user, response times, etc.).
+
+## 4. Create Lead Filtering and Sorting Capabilities [pending]
+### Dependencies: 8.1
+### Description: Implement comprehensive filtering and sorting capabilities for leads based on various criteria.
+### Details:
+1. Design and implement a query builder for complex lead filtering based on multiple criteria.\n2. Create API endpoints that support filtering leads by status, assignment, campaign, date ranges, and profile attributes.\n3. Implement sorting functionality by various fields (name, date added, status, priority, etc.).\n4. Add pagination support for large result sets.\n5. Create a saved filter feature allowing users to save and reuse common filters.
+
+## 5. Develop Lead Annotation System [pending]
+### Dependencies: 8.1
+### Description: Implement a robust annotation system for adding notes and comments to leads.
+### Details:
+1. Create a LeadComment model for storing notes and comments associated with leads.\n2. Implement CRUD operations for lead comments with proper validation.\n3. Add support for rich text formatting in comments.\n4. Implement comment threading to allow for organized discussions about leads.\n5. Create API endpoints for managing lead comments and retrieving comment history.
+
+## 6. Implement Activity Logging [pending]
+### Dependencies: 8.1, 8.2, 8.3
+### Description: Develop activity logging functionality to track all interactions and changes to leads.
+### Details:
+1. Create a LeadActivityLog model for tracking all actions and changes related to leads.\n2. Implement hooks or middleware to automatically log activities when leads are created, updated, or have status changes.\n3. Record user information, timestamp, and detailed change information for each activity.\n4. Create API endpoints for retrieving lead activity history with filtering options.\n5. Implement a dashboard for viewing recent lead activities across the system.
+
+## 7. Build Bulk Lead Management Operations [pending]
+### Dependencies: 8.1, 8.2, 8.3
+### Description: Implement functionality for performing operations on multiple leads simultaneously.
+### Details:
+1. Create API endpoints for bulk operations such as status updates, assignments, and deletion.\n2. Implement a selection mechanism for users to choose multiple leads for bulk operations.\n3. Add validation to ensure bulk operations are only performed on valid leads and with appropriate user permissions.\n4. Implement progress tracking for long-running bulk operations.\n5. Create a transaction system to ensure bulk operations are atomic (all succeed or all fail).
+
+## 8. Implement Lead Export and Merging [pending]
+### Dependencies: 8.1, 8.4
+### Description: Develop functionality for exporting leads in various formats and merging duplicate lead entries.
+### Details:
+1. Create export functionality for leads in various formats (CSV, Excel, JSON, etc.).\n2. Implement customizable export templates to control which fields are included in exports.\n3. Add scheduling capabilities for automated exports.\n4. Develop duplicate detection logic to identify potential duplicate leads based on configurable criteria.\n5. Implement lead merging functionality that combines data from duplicate leads while preserving history and relationships.
+

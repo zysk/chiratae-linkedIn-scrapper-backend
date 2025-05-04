@@ -1,195 +1,211 @@
 # LinkedIn Scraper - Product Requirements Document
 
 ## Overview
-LinkedIn Scraper is an automated lead generation tool designed for sales and marketing teams. It enables businesses to discover potential leads by automating LinkedIn searches, profile data scraping, and lead management. The system helps streamline the prospecting process for B2B sales teams by eliminating manual searches and data entry, allowing them to focus on qualifying and converting leads into customers.
+LinkedIn Scraper is an automated **backend system** for lead generation designed for sales and marketing teams. It enables businesses to discover potential leads by automating LinkedIn searches, profile data scraping, and lead management via a **RESTful API**. The system helps streamline the prospecting process for B2B sales teams by eliminating manual searches and data entry, allowing them to focus on qualifying and converting leads into customers using a separate frontend application.
 
 ## Core Features
 
 ### 1. User Management & Authentication
-- Role-based authentication system supporting admin, standard user, and client roles
-- JWT-based security with proper password hashing
-- User profile management and access control
-- Rating system for users based on lead quality metrics
+- Role-based authentication system supporting admin and standard user roles via a secure API.
+- JWT-based security with bcrypt password hashing.
+- API endpoints for user profile management and access control.
+- Internal logic for rating scraped profiles (represented as 'Client' users) based on quality metrics.
 
 ### 2. LinkedIn Account Management
-- Secure storage and management of LinkedIn credentials used for scraping
-- CRUD operations for managing multiple LinkedIn accounts
-- Utilization of accounts in campaigns with proper rotation
+- **Secure API endpoints** for managing LinkedIn credentials used for scraping.
+- CRUD operations for multiple LinkedIn accounts.
+- **Critical Security Note:** Requires implementation of encryption-at-rest for stored passwords.
+- Utilization of accounts in campaigns with proper rotation.
 
 ### 3. Proxy Management
-- Storage and rotation of proxy servers to avoid IP blocking/detection
-- Support for authenticated and non-authenticated proxies
-- Integration with Selenium browser instances
+- API endpoints for managing proxy server addresses.
+- Support for authenticated and non-authenticated proxies.
+- Integration with Selenium browser instances for IP rotation.
 
 ### 4. Campaign Management
-- Creation and management of search campaigns with customizable parameters
-- Support for search queries with filters (company, school, past company)
-- Scheduling capabilities for automated execution
-- Status tracking and result monitoring
+- API endpoints for creating and managing search campaigns with customizable parameters.
+- Support for search queries with filters (company, school, past company).
+- Scheduling capabilities for automated execution via backend cron job.
+- API endpoints for status tracking and result monitoring.
 
 ### 5. Automated LinkedIn Search
-- Headless browser automation using Selenium WebDriver
-- Intelligent navigation through LinkedIn search results
-- Implementation of anti-detection measures (random delays, proxy rotation)
-- Handling of login challenges (CAPTCHA, OTP verification)
+- Headless browser automation using Selenium WebDriver (platform-specific chromedriver).
+- Intelligent navigation through LinkedIn search results via backend process.
+- Implementation of anti-detection measures (random delays, proxy rotation).
+- API-driven handling of login challenges (CAPTCHA, OTP verification) requiring user interaction via the consuming application.
 
 ### 6. Profile Data Scraping
-- Extraction of detailed profile information (name, title, experience, education, etc.)
-- De-duplication to prevent re-scraping profiles
-- Structured storage of profile data for future reference
+- Backend process for extracting detailed profile information (name, title, experience, education, etc.).
+- De-duplication logic using a dedicated collection (`PreviousLeads`).
+- Structured storage of profile data within the `User` model (role: CLIENT).
 
 ### 7. Lead Management
-- Organization of scraped profiles as leads
-- Assignment of leads to users for follow-up
-- Status tracking and filtering capabilities
-- Custom statuses for lead qualification workflow
+- API endpoints for organizing and managing scraped profiles (linked via `Lead` model).
+- API endpoints for assigning leads to users for follow-up.
+- API endpoints for status tracking and filtering capabilities.
+- Management of custom statuses for lead qualification workflow.
 
 ### 8. Lead Annotations
-- Comment system for adding notes to leads
-- Activity logging for lead interactions
-- Tracking of lead status changes
+- API endpoints for adding/managing comments on leads.
+- Automated activity logging for lead interactions and scraping events.
+- API endpoints for retrieving lead comments and logs.
 
 ### 9. Email Integration
-- Configuration of email settings for notifications
-- Automated alerts for system events (login failures, campaign completion)
-- Optional campaign data export via email
+- API endpoints for configuring email settings (SMTP).
+- Automated alerts for critical system events (e.g., login failures).
+- Optional API endpoint for triggering campaign data export via email.
 
 ## User Experience
 
+**Note:** The User Experience described below pertains to the **consuming application (separate project)** that interacts with this backend API.
+
 ### User Personas
 
-1. **Admin User**
-   - Manages system settings, users, LinkedIn accounts, and proxies
-   - Monitors overall system performance and usage
-   - Controls access and permissions
+1.  **Admin User (via Frontend)**
+    *   Manages system settings, users, LinkedIn accounts, and proxies through the UI.
+    *   Monitors system performance via API data.
+    *   Controls access and permissions.
 
-2. **Standard User**
-   - Creates and manages campaigns
-   - Reviews and processes leads
-   - Assigns leads to team members
-   - Tracks lead status and outcomes
+2.  **Standard User (via Frontend)**
+    *   Creates and manages campaigns through the UI.
+    *   Reviews and processes leads displayed in the UI.
+    *   Assigns leads and tracks status via UI interactions calling the API.
 
-3. **Client User**
-   - Represents scraped LinkedIn profiles in the system
-   - Not an actual user of the system, but a data entity
+3.  **Client User (Data Entity)**
+    *   Represents scraped LinkedIn profiles stored in the backend database (`User` model, role: CLIENT).
+    *   Not an interactive user.
 
-### Key User Flows
+### Key User Flows (via Consuming Application)
 
-1. **Campaign Creation and Execution**
-   - User creates a new campaign with search criteria
-   - System executes search, discovers profiles, and creates leads
-   - User receives notification when campaign completes
-   - User reviews and processes leads
+1.  **Campaign Creation and Execution**
+    *   User defines campaign criteria in the frontend UI.
+    *   Frontend sends API request to create the campaign.
+    *   Backend executes search/scraping based on schedule or trigger.
+    *   Frontend polls API or receives notification (if implemented) on completion.
+    *   User reviews leads retrieved via API calls in the frontend UI.
 
-2. **Lead Management**
-   - User views leads from campaigns
-   - User updates lead statuses as they progress through sales funnel
-   - User adds comments and notes to leads
-   - User tracks history of interactions with leads
+2.  **Lead Management**
+    *   User views leads (fetched via API) in the frontend UI.
+    *   User updates status/assignment via UI actions triggering API calls.
+    *   User adds/views comments via API-driven UI components.
 
 ## Technical Architecture
 
 ### System Components
 
-1. **Backend API Server**
-   - Express.js framework migrated to TypeScript
-   - RESTful API endpoints for all features
-   - JWT-based authentication middleware
-   - Centralized error handling
+1.  **Backend API Server**
+    *   Node.js/Express.js framework (planned migration to TypeScript).
+    *   RESTful API endpoints for all features.
+    *   JWT-based authentication middleware.
+    *   Centralized error handling.
+    *   **Explicitly excludes UI components.**
 
-2. **Database Layer**
-   - MongoDB with Mongoose ODM (migrated to TypeScript)
-   - Structured data models for all entities
-   - Proper indexing for performance
-   - Schema validation
+2.  **Database Layer**
+    *   MongoDB with Mongoose ODM.
+    *   Utilizes Mongoose's built-in connection pooling.
+    *   Structured data models for all entities.
+    *   Schema validation.
 
-3. **Scraping Engine**
-   - Selenium WebDriver with TypeScript bindings
-   - Modular architecture for different scraping tasks
-   - Robust error handling and recovery
-   - Configurable behavior (headless/non-headless, proxy usage)
+3.  **Scraping Engine**
+    *   Selenium WebDriver with platform-specific `chromedriver`.
+    *   Modular architecture for search and profile scraping tasks.
+    *   Robust error handling and recovery mechanisms.
+    *   Configurable behavior (headless/non-headless, proxy usage).
 
-4. **Scheduling System**
-   - Cron-based execution of campaigns
-   - Redis for distributed locking to prevent concurrent scraping
-   - Configurable scheduling parameters
+4.  **Scheduling System**
+    *   `node-schedule` for cron-based execution of campaigns.
+    *   Redis for distributed locking (`isFree` key) to prevent concurrent scraping runs.
+    *   Configurable scheduling parameters (via environment variables).
 
 ### Data Models
 
-1. **User Model**
-   - Authentication details, role, profile information
-   - Activity metrics and rating
+1.  **User Model**
+    *   Distinguishes App Users (Admin/User) from Scraped Profiles (Client).
+    *   Stores authentication details (hashed passwords for App Users), role, profile info, scraped data (for Clients), activity metrics, rating.
 
-2. **LinkedIn Account Model**
-   - Credentials storage with proper security
-   - Usage statistics and status
+2.  **LinkedIn Account Model**
+    *   Stores credentials. **Requires encryption-at-rest for passwords.**
+    *   Usage statistics and status.
 
-3. **Proxy Model**
-   - Proxy server details and configuration
-   - Usage tracking
+3.  **Proxy Model**
+    *   Stores proxy server details (`value` field, including auth if needed).
+    *   Usage tracking.
 
-4. **Campaign Model**
-   - Search parameters and filters
-   - Execution status and results
-   - Relationship to leads and LinkedIn accounts
+4.  **Campaign Model**
+    *   Search parameters, filters, linked account/proxy IDs.
+    *   Execution status, flags (`isSearched`, `processing`), results (`totalResults`, `resultsArr` referencing `Lead` model).
+    *   **Avoid storing plain text passwords.**
 
-5. **Lead Model**
-   - Scraped profile data
-   - Status, assignment, and relationship to campaigns
-   - Comments and activity logs
+5.  **Lead Model**
+    *   Acts as a link: `campaignId` -> `clientId` (ref to scraped User profile) -> `leadAssignedToId` (ref to App User).
+    *   Tracks status, rating.
 
-6. **Supporting Models**
-   - Lead Status definitions
-   - Lead Comments
-   - Lead Logs
-   - Email Settings
+6.  **Supporting Models**
+    *   `PreviousLeads`: For de-duplication.
+    *   `LeadStatus`: Definitions.
+    *   `LeadComment`: User comments.
+    *   `LeadLogs`: Activity logs.
+    *   `EmailSettings`: SMTP configuration.
+    *   `UserLogs`: (Purpose needs clarification, potentially app user actions).
 
 ### APIs and Integrations
 
-1. **Authentication API**
-   - Login, registration, token management
+1.  **Authentication API**
+    *   `/users/login`, `/users/register`, `/users/loginAdmin`, `/users/registerAdmin`.
+    *   Token management implicitly handled via JWT responses.
 
-2. **User Management API**
-   - CRUD operations for users
-   - Rating calculation
+2.  **User Management API**
+    *   CRUD for users: `/users/getUsers`, `/users/getById/:id`, `/users/updateById/:id`, `/users/deleteById/:id`.
+    *   `/users/setUserRating` (internal trigger).
 
-3. **Campaign Management API**
-   - CRUD operations for campaigns
-   - Campaign execution and monitoring
+3.  **Campaign Management API**
+    *   CRUD: `/campaign/addCampaign`, `/campaign/getCampaigns`, `/campaign/getById/:id`, `/campaign/updateById/:id`, `/campaign/deleteById/:id`.
+    *   Execution/Control: `/campaign/addCampaignToQueue`, `/campaign/searchLinkedin`, `/campaign/linkedInProfileScrappingReq`, `/campaign/linkedInLogin`, `/campaign/checkLinkedInLogin`, `/campaign/getLinkedInCaptcha`, `/campaign/sendLinkedInCaptchaInput`, `/campaign/verifyOtp`, `/campaign/resendPhoneCheck`, `/campaign/forceCloseDriver`.
+    *   Reporting: `/campaign/getPastCampaign`, `/campaign/getPastCampaignById/:id`, `/campaign/sendCampaignToSevanta`.
+    *   Scheduling: `/campaign/addScheduledCampaign`.
 
-4. **Lead Management API**
-   - CRUD operations for leads
-   - Status updates and assignment
+4.  **Lead Management API**
+    *   CRUD: `/lead/getLeads`, `/lead/getById/:id`, `/lead/updateById/:id`, `/lead/deleteById/:id`.
+    *   Export: `/lead/exportLeadsToExcel`.
 
-5. **Configuration APIs**
-   - LinkedIn account management
-   - Proxy management
-   - Email settings
+5.  **Configuration APIs**
+    *   `/linkedInAccount/...` (CRUD)
+    *   `/proxies/...` (CRUD)
+    *   `/emailSettings/...` (CRUD)
+    *   `/leadStatus/...` (CRUD)
 
-6. **External Integrations**
-   - LinkedIn (via Selenium)
-   - Email services (via Nodemailer)
+6.  **Annotation APIs**
+    *   `/leadComments/...` (CRUD)
+    *   `/leadlogs/getLeadLogs` (Read)
+
+7.  **External Integrations**
+    *   LinkedIn.com (via Selenium)
+    *   Email Service Provider (via Nodemailer)
+    *   MongoDB Database
+    *   Redis Server
 
 ### Infrastructure Requirements
 
-1. **Runtime Environment**
-   - Node.js with TypeScript
-   - Redis for distributed locking
-   - MongoDB for data storage
+1.  **Runtime Environment**
+    *   Node.js (TypeScript planned)
+    *   Redis instance
+    *   MongoDB instance
 
-2. **Dependencies**
-   - Selenium WebDriver with Chrome
-   - Mongoose for MongoDB ODM
-   - Express for API framework
-   - JWT for authentication
-   - Node-schedule for job scheduling
-   - Additional utilities (bcrypt, nodemailer, etc.)
+2.  **Dependencies**
+    *   Selenium WebDriver + platform-specific `chromedriver`
+    *   `mongoose`
+    *   `express`
+    *   `jsonwebtoken`, `bcryptjs`
+    *   `node-schedule`
+    *   `redis` client
+    *   `nodemailer`
+    *   Other utilities...
 
-3. **Development Tools**
-   - TypeScript compiler
-   - ESLint for code quality
-   - Jest for testing
-   - Docker for containerization
+3.  **Development Tools**
+    *   `@babel/node` (current) / TypeScript compiler (future)
+    *   ESLint / Prettier
+    *   Testing framework (Jest recommended)
+    *   Docker (optional, for containerization)
 
 ## Development Roadmap
 
@@ -221,18 +237,18 @@ LinkedIn Scraper is an automated lead generation tool designed for sales and mar
 
 1. **LinkedIn Account Management**
    - Model implementation
-   - CRUD operations
-   - Secure credential storage
+   - API endpoints for CRUD
+   - **Implement secure credential storage (encryption)**
 
 2. **Proxy Management**
    - Model implementation
-   - CRUD operations
-   - Proxy validation
+   - API endpoints for CRUD
+   - Proxy validation (basic format check)
 
 3. **Email Configuration**
    - Email settings model
-   - Integration with Nodemailer
-   - Email template system
+   - API endpoints for CRUD
+   - Integration with Nodemailer helper
 
 ### Phase 3: Campaign and Scraping Core
 
@@ -272,19 +288,19 @@ LinkedIn Scraper is an automated lead generation tool designed for sales and mar
 ### Phase 5: Lead Management
 
 1. **Lead Model Implementation**
-   - Data structure design
-   - Storage optimization
-   - Relationship management
+   - Data structure design (as link table)
+   - API endpoints for CRUD
+   - Relationship management (population)
 
 2. **Lead Status System**
-   - Custom status definitions
-   - Status transitions
-   - Filtering and sorting
+   - API endpoints for custom status definitions
+   - Logic for status transitions via Lead API
+   - Filtering/sorting by status via Lead API
 
 3. **Lead Comments and Logs**
-   - Comment functionality
-   - Activity logging
-   - History tracking
+   - API endpoints for comment CRUD
+   - API endpoint for retrieving logs
+   - Automated log creation during key events
 
 ### Phase 6: Scheduling and Automation
 
@@ -374,22 +390,24 @@ The development should follow this logical progression:
 ### Security Concerns
 
 1. **Credential Storage**
-   - **Risk**: Storing LinkedIn credentials poses security risk
-   - **Mitigation**: Implement proper encryption, access controls, and secure storage practices
+   - **Risk**: Storing LinkedIn/Proxy/SMTP credentials insecurely (plain text identified).
+   - **Mitigation**: **Mandatory implementation of encryption-at-rest** for all sensitive credentials stored in the database. Enforce strict admin-only access controls on management APIs.
 
 2. **API Security**
-   - **Risk**: Unauthorized access to sensitive endpoints
-   - **Mitigation**: Implement role-based access control, rate limiting, and JWT best practices
+   - **Risk**: Unauthorized access to API endpoints.
+   - **Mitigation**: Implement robust role-based access control middleware verifying JWTs for all sensitive APIs. Implement rate limiting on public/auth endpoints.
+   - **Risk**: Input validation gaps.
+   - **Mitigation**: Implement thorough input validation on all API request bodies and parameters.
 
 ## Appendix
 
 ### Technology Stack
 
-- **Language**: TypeScript (Node.js runtime)
+- **Language**: Node.js (using Babel), **TypeScript migration planned**
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
 - **Caching/Locking**: Redis
-- **Automation**: Selenium WebDriver with Chrome
+- **Automation**: Selenium WebDriver with platform-specific Chrome Driver
 - **Authentication**: JWT, bcrypt
 - **Scheduling**: node-schedule
 - **Email**: Nodemailer
@@ -398,7 +416,7 @@ The development should follow this logical progression:
 
 ### LinkedIn Scraping Technical Specifications
 
-- WebDriver initialization with proxy support
+- WebDriver initialization with proxy support and platform detection.
 - Session handling and cookie management
 - XPath/CSS selectors for LinkedIn elements
 - Rate limiting and anti-detection measures

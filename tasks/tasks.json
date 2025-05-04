@@ -181,65 +181,65 @@
     {
       "id": 5,
       "title": "Selenium Integration and LinkedIn Authentication",
-      "description": "Integrate Selenium WebDriver with proxy support and implement LinkedIn authentication handling.",
+      "description": "Integrate Selenium WebDriver with proxy support, headless mode, and robust error handling to implement a comprehensive LinkedIn authentication solution with advanced security measures and multi-account management.",
       "status": "pending",
       "dependencies": [
         3
       ],
       "priority": "high",
-      "details": "Set up Selenium WebDriver with TypeScript bindings. Implement WebDriver factory with proxy integration. Create a browser session manager for handling cookies and state. Develop LinkedIn authentication service that handles login flow, CAPTCHA challenges, and OTP verification. Implement session management for maintaining authenticated state. Build anti-detection measures including random delays and browser fingerprint masking. Create recovery mechanisms for handling authentication failures.",
-      "testStrategy": "Test WebDriver initialization with different proxy configurations. Verify LinkedIn authentication process with error handling. Test CAPTCHA and OTP handling mechanisms. Validate session management and cookie handling.",
+      "details": "Set up Selenium WebDriver with TypeScript bindings, including support for headless mode operation. Implement a WebDriver factory with proxy integration and error handling for network issues and LinkedIn UI changes. Develop a LinkedIn authentication service that can handle login flow, CAPTCHA challenges, phone verification, and unusual login detection. Create a session management system for maintaining authenticated state across multiple LinkedIn accounts. Build anti-detection measures including random delays and browser fingerprint masking. Implement recovery mechanisms for handling authentication failures and monitoring account health to prevent account restrictions.",
+      "testStrategy": "Test WebDriver initialization with different proxy configurations and in headless mode. Verify LinkedIn authentication process with comprehensive error handling. Validate CAPTCHA, phone verification, and unusual login detection handling. Test session management and cookie handling for multiple accounts. Ensure anti-detection measures and recovery mechanisms work as expected.",
       "subtasks": [
         {
           "id": 1,
-          "title": "Set up Selenium WebDriver with TypeScript bindings",
-          "description": "Install and configure Selenium WebDriver with TypeScript support. Ensure the necessary dependencies are added to the project.",
+          "title": "Set up Selenium WebDriver with TypeScript support and headless mode",
+          "description": "Integrate Selenium WebDriver into the project, setting up the necessary TypeScript bindings and configuration to enable headless mode operation.",
           "dependencies": [],
-          "details": "1. Install Selenium WebDriver and TypeScript packages using npm or yarn.\n2. Create a new TypeScript file for the WebDriver setup and configuration.\n3. Initialize the WebDriver instance using the appropriate browser-specific driver (e.g., ChromeDriver, GeckoDriver).\n4. Ensure the WebDriver instance can be imported and used throughout the codebase.",
+          "details": "1. Install Selenium WebDriver and TypeScript dependencies in the project.\n2. Create a WebDriver configuration file that sets up the WebDriver instance with options for headless mode, browser selection, and other necessary settings.\n3. Implement a WebDriver factory function that returns a configured WebDriver instance based on the settings in the configuration file.\n4. Write unit tests to ensure the WebDriver factory is working as expected, including verifying headless mode operation.",
           "status": "pending",
           "parentTaskId": 5
         },
         {
           "id": 2,
-          "title": "Implement WebDriver factory with proxy integration",
-          "description": "Create a WebDriver factory that can handle proxy configurations and return a new WebDriver instance with the specified proxy settings.",
+          "title": "Implement a WebDriver factory with proxy integration and error handling",
+          "description": "Develop a WebDriver factory that can handle proxy configurations and robust error handling for network issues and LinkedIn UI changes.",
           "dependencies": [
             1
           ],
-          "details": "1. Create a WebDriverFactory class that encapsulates the WebDriver initialization logic.\n2. Add support for proxy configuration, allowing the factory to create WebDriver instances with the specified proxy settings.\n3. Implement methods to set proxy host, port, username, and password.\n4. Ensure the factory can handle both Windows and Linux environments by using the appropriate chromedriver binaries.",
+          "details": "1. Extend the WebDriver factory to accept proxy configuration options, such as host, port, and authentication credentials.\n2. Implement logic to configure the WebDriver instance with the provided proxy settings.\n3. Add error handling mechanisms to the WebDriver factory to gracefully handle network errors, such as connection timeouts and SSL/TLS issues.\n4. Implement a system to monitor LinkedIn UI changes and update the WebDriver factory accordingly to handle any breaking changes.\n5. Write integration tests to validate the WebDriver factory's proxy integration and error handling capabilities.",
           "status": "pending",
           "parentTaskId": 5
         },
         {
           "id": 3,
-          "title": "Develop LinkedIn authentication service",
-          "description": "Implement a LinkedIn authentication service that handles the login flow, CAPTCHA challenges, and OTP verification.",
+          "title": "Develop a LinkedIn authentication service",
+          "description": "Create a LinkedIn authentication service that can handle the login flow, CAPTCHA challenges, phone verification, and unusual login detection.",
           "dependencies": [
             2
           ],
-          "details": "1. Create a LinkedInAuthService class that encapsulates the authentication logic.\n2. Implement methods to handle the login flow, including username and password input, and submission of the login form.\n3. Detect and handle CAPTCHA challenges, either by providing a manual solution or integrating with a CAPTCHA solving service.\n4. Implement OTP verification, allowing the user to input the one-time password and complete the authentication process.\n5. Ensure the service can handle various authentication scenarios, including failed logins and account lockouts.",
+          "details": "1. Implement a LinkedIn authentication service that encapsulates the login flow, including username and password submission, CAPTCHA handling, and phone verification.\n2. Develop mechanisms to detect and handle unusual login attempts, such as IP address changes or suspicious activity, and trigger appropriate actions (e.g., account lockout, email notification).\n3. Integrate the authentication service with the WebDriver factory to leverage the configured WebDriver instance for performing login operations.\n4. Implement recovery mechanisms to handle authentication failures, such as retrying the login process or providing alternative authentication methods.\n5. Write integration tests to validate the LinkedIn authentication service's functionality, including successful logins, CAPTCHA handling, and unusual login detection.",
           "status": "pending",
           "parentTaskId": 5
         },
         {
           "id": 4,
-          "title": "Implement session management for maintaining authenticated state",
-          "description": "Create a session manager to handle the storage and retrieval of authenticated user sessions, including cookies and other session-related data.",
+          "title": "Implement a session management system for multi-account support",
+          "description": "Create a session management system that can maintain authenticated state across multiple LinkedIn accounts.",
           "dependencies": [
             3
           ],
-          "details": "1. Develop a SessionManager class to encapsulate session-related functionality.\n2. Implement methods to save the current browser session, including cookies, localStorage, and other relevant data.\n3. Provide a way to load a previously saved session, allowing the user to resume an authenticated state.\n4. Ensure the session manager can handle session expiration and provide mechanisms for refreshing the session when necessary.",
+          "details": "1. Design a session management system that can store and retrieve authenticated session data for multiple LinkedIn accounts.\n2. Implement mechanisms to securely store and retrieve session data, such as using encrypted storage or a secure database.\n3. Develop methods to initialize a new session, load an existing session, and invalidate a session when necessary.\n4. Integrate the session management system with the LinkedIn authentication service to seamlessly handle account switching and session restoration.\n5. Write integration tests to validate the session management system's functionality, including successful session creation, loading, and invalidation.",
           "status": "pending",
           "parentTaskId": 5
         },
         {
           "id": 5,
-          "title": "Implement anti-detection measures and recovery mechanisms",
-          "description": "Add anti-detection measures, including random delays and browser fingerprint masking, and create recovery mechanisms for handling authentication failures.",
+          "title": "Implement anti-detection measures and account health monitoring",
+          "description": "Develop anti-detection measures, including random delays and browser fingerprint masking, and implement account health monitoring to prevent account restrictions.",
           "dependencies": [
             4
           ],
-          "details": "1. Implement random delays between actions to mimic human-like behavior and avoid detection by LinkedIn's anti-bot measures.\n2. Develop a browser fingerprint masking system to obfuscate the WebDriver's unique characteristics and make it appear more like a regular browser.\n3. Create recovery mechanisms to handle authentication failures, such as retrying the login process, adjusting proxy settings, or providing alternative authentication methods.\n4. Ensure the anti-detection and recovery mechanisms are integrated throughout the codebase, including the WebDriver factory, authentication service, and session manager.",
+          "details": "1. Implement random delay mechanisms to introduce natural-looking pauses between actions, mimicking human-like behavior and reducing the risk of detection.\n2. Develop browser fingerprint masking techniques to obfuscate the WebDriver instance's unique characteristics, making it appear more like a regular browser.\n3. Implement an account health monitoring system that tracks key metrics, such as login success rate, CAPTCHA challenges, and unusual activity flags, to proactively detect and prevent account restrictions.\n4. Integrate the anti-detection measures and account health monitoring system with the overall LinkedIn authentication and session management components.\n5. Write integration tests to validate the effectiveness of the anti-detection measures and the account health monitoring system, ensuring they work as expected and do not interfere with the core functionality.",
           "status": "pending",
           "parentTaskId": 5
         }
@@ -248,65 +248,490 @@
     {
       "id": 6,
       "title": "LinkedIn Search Automation",
-      "description": "Implement automated LinkedIn search functionality with intelligent navigation and result extraction.",
+      "description": "Implement advanced LinkedIn search functionality with intelligent navigation, comprehensive filtering, and robust error handling.",
       "status": "pending",
       "dependencies": [
         4,
         5
       ],
       "priority": "medium",
-      "details": "Develop search execution service that applies campaign parameters to LinkedIn searches. Implement navigation through search results with pagination handling. Create selectors with fallbacks for LinkedIn UI elements to handle potential changes. Build profile URL extraction and storage. Implement intelligent waiting and retry mechanisms. Develop anti-detection measures specific to search operations. Create a service for tracking search progress and results.",
-      "testStrategy": "Test search execution with various parameters and filters. Verify pagination handling and result extraction. Test resilience against LinkedIn UI changes with selector fallbacks. Validate anti-detection measures during search operations."
+      "details": "1. Develop a search execution service that supports all required search filters, including company size, industry, job title, location, years of experience, and more, as specified in the PRD.\n2. Implement a feature to save search filters and create reusable search templates for efficient future use.\n3. Ensure the search automation can handle LinkedIn's search result limits and pagination properly, with seamless navigation through all available results.\n4. Incorporate error recovery mechanisms to gracefully handle interrupted searches, allowing users to resume from the last successful step.\n5. Implement a metrics tracking system to gather insights on search operations, such as success rates, time taken, and any errors encountered.\n6. Integrate the search automation with the multi-account system from Task 5 to enable cross-account search capabilities.",
+      "testStrategy": "1. Verify the search execution service supports all required filters and that search results accurately reflect the applied filters.\n2. Test the search filter saving and template creation functionality, ensuring users can easily reuse and modify their preferred search configurations.\n3. Validate the pagination handling by executing searches with varying result sizes and verifying that all results are properly retrieved.\n4. Simulate interrupted searches and ensure the error recovery mechanism allows users to resume from the last successful step.\n5. Monitor the metrics tracking system and validate the accuracy and completeness of the collected data.\n6. Integrate the search automation with the multi-account system and verify seamless cross-account search capabilities.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement comprehensive search parameter and filter handling",
+          "description": "Create a system to manage LinkedIn search parameters and filters including company size, industry, job title, location, years of experience and more.",
+          "details": "1. Design and implement a SearchParameters class that encapsulates all possible LinkedIn search filters and parameters.\\n2. Create mapping functions to translate API parameters to LinkedIn URL search parameters.\\n3. Implement validation for search parameters to ensure they conform to LinkedIn's requirements.\\n4. Create unit tests to verify parameter mapping and validation functionality.\\n5. Document the available search parameters and their expected format for API users.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 6
+        },
+        {
+          "id": 2,
+          "title": "Develop search execution service with pagination handling",
+          "description": "Implement a service that executes LinkedIn searches, handles pagination, and manages search result limits.",
+          "details": "1. Create a SearchExecutionService that performs searches based on provided parameters.\\n2. Implement pagination logic to navigate through search results beyond the first page.\\n3. Handle LinkedIn's search result limits by tracking remaining searches and implementing appropriate waiting periods.\\n4. Add intelligent waiting between actions to mimic human behavior and avoid detection.\\n5. Implement error handling for various search-related failures like network issues or LinkedIn UI changes.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 6
+        },
+        {
+          "id": 3,
+          "title": "Build result extraction and profile URL storage system",
+          "description": "Create a system to extract profile information from search results and store profile URLs for later processing.",
+          "details": "1. Implement selectors with fallbacks for extracting profile information from LinkedIn search results.\\n2. Create a ProfileUrlExtractor class that extracts profile URLs from search results.\\n3. Implement a storage mechanism for saving extracted profile URLs with their associated campaign.\\n4. Add deduplication logic to avoid extracting previously processed profiles.\\n5. Create a queue system for scheduling profile URL processing based on priority and campaign settings.",
+          "status": "pending",
+          "dependencies": [
+            2
+          ],
+          "parentTaskId": 6
+        },
+        {
+          "id": 4,
+          "title": "Implement error recovery for interrupted searches",
+          "description": "Develop mechanisms to handle and recover from interrupted LinkedIn searches, including session expiration and network issues.",
+          "details": "1. Create a search state persistence system that regularly saves the current search state.\\n2. Implement recovery mechanisms to resume searches from the last known state after interruptions.\\n3. Add logic to detect session expiration and automatically re-authenticate when needed.\\n4. Develop retry mechanisms with exponential backoff for handling transient network errors.\\n5. Implement logging for search interruptions to facilitate debugging and monitoring.",
+          "status": "pending",
+          "dependencies": [
+            3
+          ],
+          "parentTaskId": 6
+        },
+        {
+          "id": 5,
+          "title": "Create search templates and reusable filters",
+          "description": "Build functionality to save search filters as templates and create reusable search configurations.",
+          "details": "1. Design and implement a SearchTemplate model to store reusable search configurations.\\n2. Create CRUD operations for managing search templates.\\n3. Implement a template selection mechanism in the search execution service.\\n4. Add UI endpoints for template management and selection.\\n5. Develop template inheritance or composition to allow building new templates from existing ones.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 6
+        },
+        {
+          "id": 6,
+          "title": "Implement search metrics and tracking",
+          "description": "Create a system to track and report on search operations, including performance, results, and rate limits.",
+          "details": "1. Design and implement a SearchMetrics model to store information about search operations.\\n2. Track key metrics including search duration, results count, success rate, and rate limit usage.\\n3. Create aggregation functions to generate reports on search performance by campaign, account, or time period.\\n4. Implement real-time monitoring for search operations to detect issues early.\\n5. Add endpoints for retrieving search metrics and generating reports.",
+          "status": "pending",
+          "dependencies": [
+            2
+          ],
+          "parentTaskId": 6
+        },
+        {
+          "id": 7,
+          "title": "Build multi-account search coordination",
+          "description": "Develop functionality to coordinate searches across multiple LinkedIn accounts to maximize efficiency and respect account limits.",
+          "details": "1. Integrate with the multi-account system from Task 5 to access and manage multiple LinkedIn accounts.\\n2. Implement an account selection algorithm that chooses the optimal account for each search based on usage, health, and other factors.\\n3. Create a load balancing system to distribute search operations across available accounts.\\n4. Develop rate limiting mechanisms to ensure each account stays within LinkedIn's usage limits.\\n5. Implement fallback logic to handle scenarios where an account becomes unavailable during a search operation.",
+          "status": "pending",
+          "dependencies": [
+            6,
+            4
+          ],
+          "parentTaskId": 6
+        }
+      ]
     },
     {
       "id": 7,
       "title": "Profile Data Scraping and Processing",
-      "description": "Develop profile data extraction, normalization, and storage functionality with de-duplication.",
+      "description": "Develop comprehensive profile data extraction, normalization, and storage functionality with de-duplication, connection degree determination, and handling of premium/restricted profiles.",
       "status": "pending",
       "dependencies": [
         6
       ],
       "priority": "medium",
-      "details": "Create profile scraping service that extracts detailed information from LinkedIn profiles (name, title, experience, education, etc.). Implement data normalization to ensure consistent format. Develop de-duplication logic to prevent re-scraping profiles. Build structured storage of profile data in the database. Implement error handling for failed scraping attempts. Create a service for tracking scraping progress and results. Develop rate limiting and anti-detection measures specific to profile viewing.",
-      "testStrategy": "Test profile data extraction with various profile types. Verify data normalization and consistency. Test de-duplication logic with existing profiles. Validate error handling for different failure scenarios during scraping."
+      "details": "1. Create profile scraping service that extracts detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.\n2. Implement support for determining connection degree (1st, 2nd, 3rd) for each profile.\n3. Develop advanced data normalization to ensure consistent formatting across different profiles.\n4. Add support for extracting data from both public and private profiles (when logged in).\n5. Implement rate limiting and anti-detection measures specifically for profile viewing.\n6. Add mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.\n7. Implement robust error handling for various profile states (incomplete, restricted, etc.).\n8. Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.\n9. Create a service for tracking scraping progress and results.",
+      "testStrategy": "1. Test comprehensive profile data extraction with various profile types, including public and private profiles.\n2. Verify data normalization and consistency across different profile formats.\n3. Test de-duplication logic with existing profiles.\n4. Validate connection degree determination for different profile relationships.\n5. Test error handling for different failure scenarios during scraping, including incomplete and restricted profiles.\n6. Verify rate limiting and anti-detection measures for profile viewing.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Profile Scraping Service",
+          "description": "Develop a service that can extract detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.",
+          "dependencies": [],
+          "details": "1. Research and select the appropriate web scraping library or tool to use for extracting data from LinkedIn profiles.\n2. Implement the scraping logic to fetch the required data fields from public LinkedIn profiles.\n3. Ensure the scraping process is efficient and does not violate LinkedIn's terms of service.\n4. Implement error handling to gracefully handle various profile states (incomplete, restricted, etc.).\n5. Test the scraping service thoroughly to ensure it can handle a wide range of profile scenarios.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 2,
+          "title": "Determine Connection Degree",
+          "description": "Implement functionality to determine the connection degree (1st, 2nd, 3rd) for each profile.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Analyze the data extracted from the profiles to identify the connection degree for each profile.\n2. Implement logic to determine the connection degree based on the available information, such as shared connections, mutual followers, etc.\n3. Ensure the connection degree determination is accurate and consistent across all profiles.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 3,
+          "title": "Implement Data Normalization",
+          "description": "Develop advanced data normalization to ensure consistent formatting across different profiles.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Analyze the data fields extracted from the profiles and identify any inconsistencies in formatting, capitalization, abbreviations, etc.\n2. Implement normalization rules to standardize the data format across all profiles.\n3. Ensure the normalization process is robust and can handle a wide range of variations in the input data.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 4,
+          "title": "Handle Premium/Restricted Profiles",
+          "description": "Add support for extracting data from both public and private (premium/Sales Navigator) profiles.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Investigate the differences in data availability between public and private LinkedIn profiles.\n2. Implement logic to detect if a profile is public or private and adjust the scraping process accordingly.\n3. Develop mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.\n4. Ensure the handling of premium/restricted profiles is seamless and does not impact the overall data extraction process.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 5,
+          "title": "Implement Rate Limiting and Anti-Detection Measures",
+          "description": "Add rate limiting and anti-detection measures specifically for profile viewing.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Research and implement rate limiting strategies to prevent overloading LinkedIn's servers and avoid detection.\n2. Develop anti-detection mechanisms, such as rotating proxy servers, user-agent randomization, and IP address rotation, to ensure the scraping process is not flagged as suspicious activity.\n3. Continuously monitor the scraping process and adjust the rate limiting and anti-detection measures as needed to maintain a stable and uninterrupted data extraction.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 6,
+          "title": "Implement Structured Data Storage",
+          "description": "Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "1. Design a database schema to store the extracted profile data in a structured format.\n2. Implement de-duplication logic to ensure that profiles are not re-scraped and stored multiple times.\n3. Develop mechanisms to update existing profile data when new information is available.\n4. Ensure the data storage process is efficient and can handle a large volume of profiles without performance issues.",
+          "status": "pending",
+          "parentTaskId": 7
+        },
+        {
+          "id": 7,
+          "title": "Implement Scraping Progress Tracking",
+          "description": "Create a service for tracking scraping progress and results.",
+          "dependencies": [
+            1,
+            6
+          ],
+          "details": "1. Develop a service that can monitor the progress of the profile scraping process.\n2. Implement mechanisms to track the number of profiles scraped, the success rate, and any errors encountered.\n3. Provide a way to visualize the scraping progress and generate reports on the data extraction process.\n4. Ensure the progress tracking service is integrated with the overall profile data management system.",
+          "status": "pending",
+          "parentTaskId": 7
+        }
+      ]
     },
     {
       "id": 8,
       "title": "Lead Management and Annotation System",
-      "description": "Implement lead creation, status tracking, assignment, and annotation functionality.",
+      "description": "Implement a comprehensive lead management system with support for custom statuses, assignment, filtering, annotation, activity logging, bulk operations, prioritization, and export/merge capabilities.",
       "status": "pending",
       "dependencies": [
         7
       ],
       "priority": "medium",
-      "details": "Create Lead model with fields for scraped profile data, status, assignment, and relationship to campaigns. Implement Lead Status model for custom status definitions. Develop CRUD operations for leads with validation. Build lead assignment functionality to users for follow-up. Create lead filtering and sorting capabilities based on various criteria. Implement Lead Comments model and functionality for adding notes to leads. Develop activity logging for lead interactions and status changes. Build endpoints for retrieving lead history and annotations.",
-      "testStrategy": "Test lead creation from scraped profile data. Verify status tracking and transitions. Test lead assignment functionality. Validate comment system and activity logging. Test filtering and sorting capabilities for leads."
+      "details": "1. Create Lead model with fields for scraped profile data, custom status, assignment, and relationship to campaigns.\n2. Implement Lead Status model for defining and managing custom status definitions aligned with sales workflows.\n3. Develop CRUD operations for leads with validation, including support for bulk lead creation, update, and deletion.\n4. Build lead assignment functionality to assign leads to users for follow-up actions.\n5. Create lead filtering and sorting capabilities based on various criteria such as status, assigned user, campaign, and custom fields.\n6. Implement Lead Comments model and functionality for adding notes and annotations to leads.\n7. Develop activity logging to track all interactions and status changes for each lead.\n8. Implement lead prioritization mechanisms based on configurable criteria such as lead score, engagement, or custom business rules.\n9. Build lead export functionality to allow users to export lead data in various formats (CSV, Excel, etc.).\n10. Implement lead merging capabilities to handle duplicate lead entries.",
+      "testStrategy": "1. Test lead creation from scraped profile data and bulk lead management operations.\n2. Verify custom status tracking and transitions aligned with sales workflows.\n3. Test lead assignment functionality and ensure proper follow-up actions.\n4. Validate lead filtering, sorting, and prioritization capabilities.\n5. Test the lead annotation system and activity logging for all interactions.\n6. Ensure lead export functionality works as expected in various formats.\n7. Test lead merging capabilities to handle duplicate entries.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Lead Model and CRUD Operations",
+          "description": "Create a comprehensive Lead model and implement CRUD operations with validation.",
+          "details": "1. Design the Lead model schema with fields for scraped profile data, status, assignment, and relationship to campaigns.\\n2. Implement validation for required fields and data types.\\n3. Create REST API endpoints for lead creation, retrieval, update, and deletion.\\n4. Add middleware for request validation and error handling.\\n5. Implement unit and integration tests for the Lead model and CRUD operations.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Develop Custom Lead Status Management",
+          "description": "Implement Lead Status model and management functionality to support custom status definitions aligned with sales workflows.",
+          "details": "1. Create a LeadStatus model to define custom lead statuses with names, descriptions, and ordering.\\n2. Implement CRUD operations for lead status management.\\n3. Build a status workflow engine to define valid status transitions.\\n4. Create API endpoints for managing lead statuses and transitions.\\n5. Implement status validation to ensure leads only transition to valid statuses.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Implement Lead Assignment Functionality",
+          "description": "Build lead assignment functionality that allows leads to be assigned to users for follow-up actions.",
+          "details": "1. Update the Lead model to include assignment information (assigned user, assignment date, etc.).\\n2. Create API endpoints for assigning leads to users and for users to claim leads.\\n3. Implement automatic assignment features based on configurable rules (round-robin, skill-based, etc.).\\n4. Add notification mechanisms for users when leads are assigned to them.\\n5. Implement reporting on lead assignment statistics (assignments per user, response times, etc.).",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 4,
+          "title": "Create Lead Filtering and Sorting Capabilities",
+          "description": "Implement comprehensive filtering and sorting capabilities for leads based on various criteria.",
+          "details": "1. Design and implement a query builder for complex lead filtering based on multiple criteria.\\n2. Create API endpoints that support filtering leads by status, assignment, campaign, date ranges, and profile attributes.\\n3. Implement sorting functionality by various fields (name, date added, status, priority, etc.).\\n4. Add pagination support for large result sets.\\n5. Create a saved filter feature allowing users to save and reuse common filters.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 5,
+          "title": "Develop Lead Annotation System",
+          "description": "Implement a robust annotation system for adding notes and comments to leads.",
+          "details": "1. Create a LeadComment model for storing notes and comments associated with leads.\\n2. Implement CRUD operations for lead comments with proper validation.\\n3. Add support for rich text formatting in comments.\\n4. Implement comment threading to allow for organized discussions about leads.\\n5. Create API endpoints for managing lead comments and retrieving comment history.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 6,
+          "title": "Implement Activity Logging",
+          "description": "Develop activity logging functionality to track all interactions and changes to leads.",
+          "details": "1. Create a LeadActivityLog model for tracking all actions and changes related to leads.\\n2. Implement hooks or middleware to automatically log activities when leads are created, updated, or have status changes.\\n3. Record user information, timestamp, and detailed change information for each activity.\\n4. Create API endpoints for retrieving lead activity history with filtering options.\\n5. Implement a dashboard for viewing recent lead activities across the system.",
+          "status": "pending",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 7,
+          "title": "Build Bulk Lead Management Operations",
+          "description": "Implement functionality for performing operations on multiple leads simultaneously.",
+          "details": "1. Create API endpoints for bulk operations such as status updates, assignments, and deletion.\\n2. Implement a selection mechanism for users to choose multiple leads for bulk operations.\\n3. Add validation to ensure bulk operations are only performed on valid leads and with appropriate user permissions.\\n4. Implement progress tracking for long-running bulk operations.\\n5. Create a transaction system to ensure bulk operations are atomic (all succeed or all fail).",
+          "status": "pending",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "parentTaskId": 8
+        },
+        {
+          "id": 8,
+          "title": "Implement Lead Export and Merging",
+          "description": "Develop functionality for exporting leads in various formats and merging duplicate lead entries.",
+          "details": "1. Create export functionality for leads in various formats (CSV, Excel, JSON, etc.).\\n2. Implement customizable export templates to control which fields are included in exports.\\n3. Add scheduling capabilities for automated exports.\\n4. Develop duplicate detection logic to identify potential duplicate leads based on configurable criteria.\\n5. Implement lead merging functionality that combines data from duplicate leads while preserving history and relationships.",
+          "status": "pending",
+          "dependencies": [
+            1,
+            4
+          ],
+          "parentTaskId": 8
+        }
+      ]
     },
     {
       "id": 9,
       "title": "Scheduling System with Redis Integration",
-      "description": "Implement campaign scheduling with distributed locking using Redis for concurrent execution control.",
+      "description": "Implement a comprehensive campaign scheduling system with Redis integration, supporting distributed locking, cron-based scheduling, error recovery, job monitoring, and integration with LinkedIn search and email campaigns.",
       "status": "pending",
       "dependencies": [
         6,
         7
       ],
       "priority": "medium",
-      "details": "Set up Redis integration for distributed locking. Implement node-schedule for cron-based execution of campaigns. Create a job scheduler service that manages campaign execution. Develop concurrency control to prevent multiple instances of the same campaign from running simultaneously. Build a queue system for campaign execution. Implement error recovery for failed jobs. Create monitoring endpoints for scheduled jobs. Develop campaign execution automation with configurable parameters.",
-      "testStrategy": "Test distributed locking with Redis under concurrent scenarios. Verify scheduled job execution with various timing configurations. Test error recovery mechanisms for failed jobs. Validate concurrency control for multiple campaigns."
+      "details": "1. Set up Redis integration for distributed locking to prevent concurrent execution of the same campaign.\n2. Implement detailed cron-based scheduling for different campaign components, including LinkedIn search and email campaigns.\n3. Develop robust error recovery and retry mechanisms to handle failed jobs.\n4. Add job monitoring and status reporting capabilities to the scheduling system.\n5. Ensure the scheduling system integrates seamlessly with both LinkedIn search and email campaign workflows.\n6. Implement configurable rate limiting to prevent detection by platforms.\n7. Add support for scheduling based on various factors like time zones, account usage, and other relevant parameters.",
+      "testStrategy": "1. Verify distributed locking with Redis under concurrent campaign execution scenarios.\n2. Test cron-based scheduling with various timing configurations for different campaign components.\n3. Validate error recovery mechanisms by simulating job failures and ensuring successful retries.\n4. Inspect job monitoring and status reporting to ensure accurate and timely information.\n5. End-to-end test the integration with LinkedIn search and email campaign systems.\n6. Confirm rate limiting is working as expected and does not impact campaign execution.\n7. Test scheduling based on different parameters like time zones and account usage.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up Redis Integration",
+          "description": "Integrate Redis into the application to enable distributed locking and caching capabilities.",
+          "dependencies": [],
+          "details": "1. Install and configure Redis on the server.\n2. Integrate Redis client library into the application code.\n3. Implement distributed locking mechanism using Redis to prevent concurrent execution of the same campaign.\n4. Utilize Redis for caching campaign data and job status information to improve performance.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 2,
+          "title": "Implement Cron-based Scheduling",
+          "description": "Develop a cron-based scheduling system to manage the execution of different campaign components.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Design a scheduling engine that can handle cron-based scheduling for LinkedIn search and email campaigns.\n2. Implement a scheduling service that can parse cron expressions and trigger the execution of campaign tasks at the appropriate times.\n3. Ensure the scheduling service can handle time zone differences and other relevant scheduling parameters.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 3,
+          "title": "Implement Error Recovery and Retry Mechanism",
+          "description": "Develop a robust error recovery and retry mechanism to handle failed campaign jobs.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Implement a job execution monitoring system to track the status of campaign tasks.\n2. Develop a retry mechanism that can automatically re-execute failed jobs after a configurable delay.\n3. Implement error handling and logging to capture detailed information about job failures.\n4. Ensure the retry mechanism can handle different types of errors and gracefully recover from failures.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 4,
+          "title": "Implement Job Monitoring and Reporting",
+          "description": "Add job monitoring and status reporting capabilities to the scheduling system.",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "1. Develop a dashboard or reporting interface to display the status of scheduled campaigns and their individual tasks.\n2. Implement real-time job monitoring to track the progress and execution of campaign tasks.\n3. Provide detailed job logs and error reports to help identify and troubleshoot issues.\n4. Allow users to view the execution history and performance metrics of past campaigns.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 5,
+          "title": "Integrate with LinkedIn Search and Email Campaigns",
+          "description": "Ensure the scheduling system seamlessly integrates with LinkedIn search and email campaign workflows.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "1. Develop API integrations with LinkedIn's search and campaign management platforms.\n2. Implement data synchronization mechanisms to keep the scheduling system up-to-date with campaign data from LinkedIn.\n3. Ensure the scheduling system can trigger and monitor the execution of LinkedIn search and email campaigns.\n4. Provide a unified interface for managing all campaign components within the scheduling system.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 6,
+          "title": "Implement Rate Limiting",
+          "description": "Add configurable rate limiting to prevent detection by platforms.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "1. Analyze the rate limits and usage policies of the integrated platforms (LinkedIn, email providers).\n2. Develop a rate limiting mechanism that can dynamically adjust the execution rate of campaign tasks based on platform policies.\n3. Implement throttling and backoff strategies to ensure the scheduling system stays within the allowed usage limits.\n4. Provide configuration options to allow users to customize the rate limiting parameters.",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 7,
+          "title": "Implement Advanced Scheduling Options",
+          "description": "Add support for scheduling based on various factors like time zones, account usage, and other relevant parameters.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "details": "1. Develop a scheduling engine that can handle time zone-based scheduling for campaigns.\n2. Implement account-level usage tracking and scheduling policies to ensure fair distribution of campaign execution across user accounts.\n3. Allow users to configure custom scheduling parameters, such as start/end times, recurrence patterns, and priority levels.\n4. Integrate the scheduling system with other relevant data sources (e.g., user profiles, account usage) to enable more advanced scheduling logic.",
+          "status": "pending",
+          "parentTaskId": 9
+        }
+      ]
     },
     {
       "id": 10,
       "title": "Email Integration and System Optimization",
-      "description": "Implement email notification system and optimize overall system performance.",
+      "description": "Implement a robust email notification system to improve user communication and experience.",
       "status": "pending",
       "dependencies": [
         8,
         9
       ],
-      "priority": "low",
-      "details": "Create Email Settings model for configuration. Integrate Nodemailer for email functionality. Implement email template system for various notifications. Build automated alerts for system events (login failures, campaign completion). Develop campaign data export via email. Optimize database queries with proper indexing. Implement caching strategies for frequently accessed data. Add rate limiting for API endpoints. Perform final performance testing and optimization. Create comprehensive API documentation. Implement database archiving strategy for historical data.",
-      "testStrategy": "Test email sending functionality with various templates. Verify notification triggers for system events. Test campaign data export via email. Measure and validate performance improvements from optimizations. Verify API documentation completeness and accuracy."
+      "priority": "high",
+      "details": "1. Create an Email Settings model to store configuration options for the email system.\n2. Integrate Nodemailer to enable email sending functionality.\n3. Implement a flexible email template system to support various notification types.\n4. Develop automated alerts to notify users of important system events (e.g., login failures, campaign completion).\n5. Implement a campaign data export feature to allow users to receive reports via email.\n6. Optimize database queries and implement caching strategies to improve the performance of email-related functionality.",
+      "testStrategy": "1. Verify the Email Settings model can be properly configured and used by the email system.\n2. Test the email sending functionality with various templates and scenarios.\n3. Validate that automated alerts are triggered correctly and the email notifications are delivered as expected.\n4. Ensure the campaign data export feature works as intended, with emails being sent successfully.\n5. Measure and validate the performance improvements achieved through database optimizations and caching strategies.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Email Settings Configuration",
+          "description": "Create a comprehensive email settings system with support for multiple email providers.",
+          "details": "1. Design and implement an EmailSettings model to store SMTP configuration, API keys, and provider settings.\\n2. Create CRUD operations for managing email settings.\\n3. Implement validation for email settings to ensure they are properly configured.\\n4. Add support for multiple email providers (SMTP, SendGrid, Mailgun, etc.).\\n5. Implement connection testing to verify email settings before saving.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 10
+        },
+        {
+          "id": 2,
+          "title": "Develop Email Template System",
+          "description": "Implement a template-based email system with customizable templates for various types of emails.",
+          "details": "1. Create an EmailTemplate model to store email templates with subject, body, and metadata.\\n2. Implement a template engine that supports variables and conditional content.\\n3. Create a template editor interface for users to customize templates.\\n4. Implement a preview feature to see how templates will appear before sending.\\n5. Add support for different email formats (plain text, HTML).",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 3,
+          "title": "Implement Email Sending Queue",
+          "description": "Create an email sending queue with retry mechanism for handling failed deliveries.",
+          "details": "1. Design and implement an EmailQueue model to store pending emails.\\n2. Create a worker process to send emails from the queue.\\n3. Implement a retry mechanism for failed email sends with configurable retry attempts and delays.\\n4. Add queue prioritization to handle urgent emails before regular ones.\\n5. Implement queue monitoring and management endpoints.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 4,
+          "title": "Add Email Tracking Capabilities",
+          "description": "Implement tracking functionality for emails, including opens, clicks, and other engagement metrics.",
+          "details": "1. Design and implement an EmailTracker model to store tracking information.\\n2. Add pixel tracking for email opens.\\n3. Implement URL tracking for link clicks in emails.\\n4. Create dashboards and reports for email engagement metrics.\\n5. Add webhook endpoints for receiving tracking events from email service providers.",
+          "status": "pending",
+          "dependencies": [
+            3,
+            2
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 5,
+          "title": "Implement Email Campaign Scheduling",
+          "description": "Create a system for scheduling and automating email campaigns.",
+          "details": "1. Design and implement an EmailCampaign model to store campaign configuration.\\n2. Create a scheduling mechanism for sending emails at specified times.\\n3. Implement campaign targeting based on lead attributes and criteria.\\n4. Add support for drip campaigns with sequenced emails.\\n5. Integrate with the centralized scheduling system from Task 9.",
+          "status": "pending",
+          "dependencies": [
+            3,
+            2
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 6,
+          "title": "Implement Email Personalization",
+          "description": "Develop functionality to personalize emails using scraped profile data.",
+          "details": "1. Create a personalization system that can merge lead data into email templates.\\n2. Implement conditional content based on lead attributes.\\n3. Add support for dynamic content insertion (e.g., company-specific information).\\n4. Create a personalization tag library for common use cases.\\n5. Implement fallback values for missing data to prevent empty fields.",
+          "status": "pending",
+          "dependencies": [
+            2
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 7,
+          "title": "Implement Email Testing and Validation",
+          "description": "Create functionality to test and validate emails before sending them to leads.",
+          "details": "1. Implement email validation to check for common issues (broken links, missing images, etc.).\\n2. Create a test sending feature to send test emails to specified addresses.\\n3. Add spam score checking to evaluate the likelihood of emails being marked as spam.\\n4. Implement inbox rendering previews to show how emails will appear in different email clients.\\n5. Add A/B testing capabilities for email campaigns.",
+          "status": "pending",
+          "dependencies": [
+            2,
+            6
+          ],
+          "parentTaskId": 10
+        }
+      ]
     },
     {
       "id": 11,
@@ -445,6 +870,28 @@
           "status": "done"
         }
       ]
+    },
+    {
+      "id": 18,
+      "title": "Implement Comprehensive System Optimization and Performance Enhancement",
+      "description": "Optimize system performance through database improvements, caching, rate limiting, and implement monitoring, security, and documentation enhancements to ensure robust, efficient operation.",
+      "details": "This task requires implementing multiple optimization strategies across the system:\n\n1. Database Query Optimization:\n   - Analyze slow-running queries using EXPLAIN PLAN\n   - Create appropriate indexes on frequently queried columns\n   - Optimize JOIN operations and review query execution plans\n   - Rewrite inefficient queries using best practices\n\n2. Caching Implementation:\n   - Implement Redis or Memcached for application-level caching\n   - Set up cache invalidation strategies (TTL, manual invalidation)\n   - Identify and cache frequently accessed data (user profiles, configuration settings)\n   - Implement cache warming for critical data\n\n3. API Rate Limiting:\n   - Implement token bucket or leaky bucket algorithm for rate limiting\n   - Configure rate limits based on user roles/authentication status\n   - Create appropriate response headers (X-RateLimit-Limit, X-RateLimit-Remaining)\n   - Implement graceful handling of rate limit exceeded scenarios\n\n4. Performance Testing:\n   - Set up JMeter or Gatling test scripts for load testing\n   - Establish performance baselines and improvement targets\n   - Test system under various load conditions (normal, peak, stress)\n   - Identify and resolve bottlenecks\n\n5. API Documentation:\n   - Implement OpenAPI/Swagger documentation for all endpoints\n   - Include request/response examples, authentication requirements\n   - Document rate limits and error responses\n   - Create usage guides for common API workflows\n\n6. Database Archiving:\n   - Design partitioning strategy for historical data\n   - Implement automated archiving process for data older than defined thresholds\n   - Ensure archived data remains queryable when needed\n   - Create data retention policies aligned with business requirements\n\n7. Monitoring and Alerting:\n   - Set up Prometheus/Grafana or similar monitoring stack\n   - Configure alerts for critical system metrics (CPU, memory, disk, response times)\n   - Implement application-level metrics for business-critical operations\n   - Create dashboards for real-time system visibility\n\n8. Security Hardening:\n   - Run OWASP ZAP or similar tool for vulnerability scanning\n   - Implement proper input validation and output encoding\n   - Review and update authentication/authorization mechanisms\n   - Ensure secure communication (TLS 1.3, proper cipher suites)",
+      "testStrategy": "Testing will be conducted in multiple phases to verify each optimization area:\n\n1. Database Optimization Testing:\n   - Measure query execution times before and after optimization\n   - Verify at least 30% improvement in slow query performance\n   - Use database profiling tools to confirm proper index usage\n   - Test with production-like data volumes to ensure scalability\n\n2. Caching Verification:\n   - Measure hit/miss ratios (target >80% hit rate for frequently accessed data)\n   - Verify cache invalidation works correctly when underlying data changes\n   - Load test with and without caching to measure performance improvement\n   - Confirm memory usage remains within acceptable limits\n\n3. Rate Limiting Tests:\n   - Verify rate limits are correctly applied per user/IP\n   - Test rate limit headers are properly returned\n   - Confirm rate limit exceeded responses work as expected\n   - Verify high-priority operations continue during rate limiting\n\n4. Performance Validation:\n   - Run baseline performance tests before and after all optimizations\n   - Verify system handles target concurrent user load (e.g., 1000 simultaneous users)\n   - Confirm response times remain under SLA thresholds under load\n   - Test recovery time after stress conditions\n\n5. Documentation Verification:\n   - Review API documentation for completeness and accuracy\n   - Verify all endpoints are documented with correct parameters\n   - Test documentation examples to ensure they work as described\n   - Conduct peer review of documentation clarity\n\n6. Archiving Tests:\n   - Verify archived data is correctly stored and retrievable\n   - Test performance impact of archiving operations\n   - Confirm data retention policies are correctly implemented\n   - Validate data integrity after archiving operations\n\n7. Monitoring Tests:\n   - Trigger test conditions to verify alerts fire appropriately\n   - Confirm all critical metrics are being captured\n   - Verify dashboard visibility and accuracy\n   - Test alert notification channels (email, SMS, etc.)\n\n8. Security Testing:\n   - Run automated vulnerability scans before and after hardening\n   - Perform penetration testing on critical endpoints\n   - Verify secure headers and configurations\n   - Conduct code review focused on security improvements",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium"
+    },
+    {
+      "id": 19,
+      "title": "Implement Comprehensive User Management System",
+      "description": "Design and implement a complete user management system with role-based access control, profile management, organizational structure, security features, and user activity tracking.",
+      "details": "Create a modular user management system with the following components:\n\n1. Role-Based Access Control (RBAC):\n   - Implement at least 4 user roles: Admin, Manager, Regular User, and Read-Only User\n   - Create a permissions framework that allows granular control over system features\n   - Design role inheritance where appropriate (e.g., Admin inherits all permissions)\n   - Implement a UI for administrators to manage roles and assign permissions\n\n2. User Profile Management:\n   - Create editable user profiles with personal information, contact details, and profile pictures\n   - Implement user preferences for interface customization, notifications, and privacy settings\n   - Add account settings for email, password changes, and two-factor authentication setup\n\n3. Team/Organization Structure:\n   - Design a hierarchical organization model with departments and teams\n   - Implement user-to-team assignments with specific roles within teams\n   - Create interfaces for organization admins to manage the structure\n   - Add team-specific dashboards and communication channels\n\n4. Activity Tracking and Audit Logs:\n   - Log all significant user actions (login/logout, data modifications, permission changes)\n   - Create a searchable and filterable audit log interface for administrators\n   - Implement data retention policies for logs\n   - Add export functionality for compliance reporting\n\n5. Security Features:\n   - Implement password policies (minimum length, complexity requirements, expiration)\n   - Add account lockout after failed login attempts\n   - Create password reset workflows with secure verification\n   - Implement session management with timeout settings\n\n6. Notification System:\n   - Create user-configurable notification preferences (email, in-app, mobile)\n   - Implement notification categories and importance levels\n   - Add notification history and management interface\n\n7. User Dashboard:\n   - Design a customizable dashboard with draggable widgets\n   - Create role-specific default dashboards\n   - Implement dashboard settings persistence\n\n8. Onboarding System:\n   - Create a step-by-step onboarding workflow for new users\n   - Implement interactive tutorials for key features\n   - Add a knowledge base with searchable help articles\n   - Create role-specific training materials\n\nUse a secure authentication framework and ensure all user data is properly encrypted. Follow GDPR and other relevant privacy regulations for data handling.",
+      "testStrategy": "Testing should cover all aspects of the user management system:\n\n1. Role and Permission Testing:\n   - Verify each role has the correct permissions by attempting actions with different user accounts\n   - Test permission inheritance and overrides\n   - Verify UI elements are properly shown/hidden based on permissions\n   - Test role assignment and removal functionality\n\n2. Profile Management Testing:\n   - Verify all profile fields can be edited and saved correctly\n   - Test validation for required fields and format requirements\n   - Verify preference changes are applied immediately and persist across sessions\n   - Test profile picture upload, cropping, and display\n\n3. Organization Structure Testing:\n   - Test creation, editing, and deletion of departments and teams\n   - Verify user assignments to multiple teams work correctly\n   - Test hierarchical relationships and permissions within the organization\n   - Verify team dashboards show correct information\n\n4. Audit and Activity Testing:\n   - Verify all specified actions are properly logged\n   - Test filtering and searching in the audit log\n   - Verify log retention policies are enforced\n   - Test export functionality for various formats\n\n5. Security Testing:\n   - Test password policies are enforced during creation and changes\n   - Verify account lockout works after specified failed attempts\n   - Test password reset workflow end-to-end\n   - Verify session timeout and forced logout functionality\n\n6. Notification Testing:\n   - Test each notification delivery method works correctly\n   - Verify preference changes affect notification delivery\n   - Test notification history and management\n\n7. Dashboard Testing:\n   - Verify dashboard customization works and persists\n   - Test widget functionality and data display\n   - Verify role-specific dashboards are applied correctly\n\n8. Onboarding Testing:\n   - Test the complete onboarding flow for different user roles\n   - Verify tutorials work correctly and can be completed\n   - Test knowledge base search functionality\n\nAdditional Testing:\n- Performance testing with large numbers of users and complex organization structures\n- Security testing including penetration testing and vulnerability scanning\n- Accessibility testing to ensure compliance with WCAG standards\n- Cross-browser and responsive design testing\n- Integration testing with other system components",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high"
     }
   ],
   "metadata": {

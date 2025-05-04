@@ -1,7 +1,7 @@
 # Requirement and System Documentation: linkedin-scraper (LinkedIn Scraper)
 
-**Version:** 1.0
-**Date:** 2024-07-26
+**Version:** 1.2 (Refined Requirements)
+**Date:** 2024-07-27
 
 **Table of Contents:**
 
@@ -27,6 +27,7 @@
     *   2.8. Feature: Lead Status Management
     *   2.9. Feature: Lead Logging & Comments
     *   2.10. Feature: Email Configuration & Sending
+    *   2.11. Feature: Selenium WebDriver Management
 
 ---
 
@@ -34,455 +35,457 @@
 
 ### 1.1. Inferred Purpose & Domain
 
-*   **Inferred Purpose:** Based on the codebase analysis (dependencies like `selenium-webdriver`, `mongoose`, specific function names like `searchLinkedInFn`, `linkedInProfileScrapping`, and model names like `Campaign`, `Lead`, `LinkedInAccounts`, `Proxies`), this application serves as an automated **LinkedIn Lead Generation and Scraping Tool**. It allows users (likely sales or marketing teams) to define search campaigns, manages LinkedIn credentials and proxies, automatically performs searches on LinkedIn using Selenium WebDriver, scrapes profile data of potential leads found, and stores this information for further processing or export.
+*   **Inferred Purpose:** The application is an automated **LinkedIn Lead Generation and Scraping Tool**. Its primary function is to allow users (likely internal sales or marketing teams) to define targeted search campaigns on LinkedIn, manage the necessary resources (LinkedIn accounts, proxies), execute these searches using browser automation (Selenium WebDriver), scrape profile data of identified leads, and store this lead information in a database (MongoDB) for management and potential export.
 *   **Domain:** Business-to-Business (B2B) Lead Generation, Sales Automation, Marketing Automation, Web Scraping.
-*   **Users:** Likely internal users (sales representatives, marketing operations) or potentially clients of a service built around this tool. There appear to be distinctions between standard 'Users' and 'Admin' roles (`rolesObj` constant likely defines these).
-*   **Importance:** Understanding this core purpose is crucial because it contextualizes all other features. User management revolves around accessing the scraping capabilities, campaigns define the scraping targets, leads are the output of scraping, and proxies/LinkedIn accounts are essential resources for the scraping process itself.
+*   **Users:** Primarily internal users, likely categorized into 'Admin' and standard 'User' roles (implied by `rolesObj` constant and separate admin endpoints). The application manages data for 'CLIENT' user types, which appear to represent the scraped lead profiles themselves rather than application users.
+*   **Importance:** Understanding this core purpose is crucial for contextualizing all features. User roles dictate access to campaign management and potentially lead data. Campaigns define the scraping targets. Leads (`User` model with role 'CLIENT') are the primary output. LinkedIn accounts and proxies are consumable resources for the scraping engine. The Redis instance acts as a state manager (job lock) for the scraping process.
 
 ### 1.2. High-Level Architecture & Code Structure
 
-*   **Architecture:** Primarily a **Monolithic Application** with a **Layered** structure tendency, built using the **Express.js** framework on Node.js.
-    *   **Presentation/API Layer:** Defined in `routes/` and handled by Express routing. Serves a RESTful API and potentially a static frontend (`public/`).
-    *   **Business Logic Layer:** Encapsulated within `controllers/` files, containing the core logic for each feature and orchestrating interactions with data and external services (Selenium).
-    *   **Data Access Layer:** Managed through `mongoose` models defined in `models/` for interaction with MongoDB.
-    *   **Supporting Layers:** Utility functions in `helpers/`, middleware in `middlewares/`, and custom aggregation pipelines/data shaping in `Builders/`.
+*   **Architecture:** Monolithic Node.js **Backend API** built with the **Express.js** framework. It exhibits a layered structure:
+    *   **Presentation/API Layer:** Express routing (`routes/`) defines RESTful endpoints. **Note:** This backend serves only the API; the user interface (UI) is expected to be a separate project consuming this API. Static file serving (`public/`) might exist for minimal assets or testing but is not intended for the primary application UI.
+    *   **Business Logic Layer:** Controller functions (`controllers/`) handle request processing, orchestrate data interactions, and initiate scraping tasks. Core scraping logic resides in controllers (`Campaign.controller.js`) and helpers (`SearchLinkedInFn.js`).
+    *   **Data Access Layer:** `mongoose` ODM is used for MongoDB interactions, with schemas defined in `models/`.
+    *   **Supporting Layers:** Helper functions (`helpers/`) provide utilities (auth, validation, error handling, config, scraping logic). Middleware (`middlewares/`, custom error handler in `helpers/`) handle cross-cutting concerns. `Builders/` contain aggregation pipelines.
 *   **Code Structure:**
-    *   `bin/www.js`: Entry point, sets up the HTTP server.
-    *   `app.js`: Core Express application setup, middleware registration, database/Redis connections, route mounting, Selenium WebDriver initialization, and cron job scheduling.
-    *   `routes/`: Defines API endpoints and maps them to controller functions.
-    *   `controllers/`: Contains request handling logic, interacts with models and helpers. Core scraping logic is initiated here (`linkedInProfileScrapping`, `searchLinkedInFn` are invoked, often from cron or specific API calls).
-    *   `models/`: Defines Mongoose schemas for MongoDB collections (Users, Campaigns, Leads, LinkedInAccounts, Proxies, etc.).
-    *   `helpers/`: Contains utility functions (e.g., password hashing (`Bcrypt.js`), JWT generation (`Jwt.js`), validation (`Validators.js`), error handling (`ErrorHandler.js`, `seleniumErrorHandler.js`), core scraping logic (`SearchLinkedInFn.js`), constants (`Constants.js`), configuration loading (`Config.js`)).
-    *   `middlewares/`: Likely contains authentication middleware (not explicitly read, but inferred from JWT usage) and potentially other request processing logic.
-    *   `public/`: Contains static assets, likely a Single Page Application (SPA) frontend, as indicated by the catch-all route serving `index.html`.
-    *   `config/` (Not present, but `.env` files and `helpers/Config.js` serve this purpose): Environment-specific configuration.
-    *   `test/`: Contains test files (structure and content not analyzed in detail).
-*   **Interaction Flow (API Request):** Request -> Express -> Global Middleware (`cors`, `json`, `urlencoded`, `cookieParser`) -> Router -> Route-Specific Middleware (e.g., Auth - inferred) -> Controller Function -> Model Interaction (MongoDB via Mongoose) / Helper Functions / Selenium Interaction -> Response Generation -> Error Handling Middleware (`ErrorHandler.js`) -> Response Sent.
-*   **Interaction Flow (Cron Job):** `node-schedule` triggers `cronFunc` (in `app.js`) -> Checks Redis lock (`isFree`) -> Calls `searchLinkedInFn` or `linkedInProfileScrapping` (in `helpers/` or `controllers/`) -> Uses Selenium WebDriver (`driver` from `app.js`) -> Interacts with LinkedIn website -> Scrapes data -> Updates Models (MongoDB via Mongoose) -> Updates Redis lock.
-*   **Asynchronous Patterns:** Primarily uses `async/await` with Promises for handling asynchronous operations (database calls, Selenium interactions, file system operations). Error handling relies on `try...catch` blocks passing errors to Express's `next()` function.
+    *   `bin/www.js`: Application entry point; sets up and starts the HTTP server.
+    *   `app.js`: Main Express application configuration: middleware registration (`cors`, `express.json`, `express.urlencoded`, `cookieParser`, `express.static`), database (MongoDB) and cache (Redis) connections, route mounting, Selenium WebDriver initialization, cron job setup (`node-schedule`), and export of `app` and `driver` instances.
+    *   `routes/`: Contains `express.Router` instances defining API endpoints for each feature (e.g., `users.routes.js`, `Campaign.routes.js`).
+    *   `controllers/`: Houses the primary logic for handling requests, interacting with models, calling helpers, and managing Selenium tasks (e.g., `users.controller.js`, `Campaign.controller.js`).
+    *   `models/`: Defines Mongoose schemas for MongoDB collections (e.g., `user.model.js`, `Campaign.model.js`, `leads.model.js`, `LinkedInAccounts.model.js`, `Proxies.model.js`, `previousLeads.model.js`).
+    *   `helpers/`: Contains reusable utility functions: `Config.js` (env loading), `Constants.js` (status codes, roles), `ErrorHandler.js`, `seleniumErrorHandler.js` (error handling), `Jwt.js`, `Bcrypt.js` (auth), `Validators.js`, `SearchLinkedInFn.js` (core search scraping), `nodeMailer.js` (email), `utils.js` (general utilities like random delays).
+    *   `middlewares/`: Directory exists, likely containing authentication middleware (inferred from JWT usage).
+    *   `public/`: Serves static assets (minimal, UI is separate).
+    *   `Builders/`: Contains Mongoose aggregation pipeline definitions (e.g., `UserListWithCampaigns.js`).
+    *   `test/`: Directory for tests exists, but specific strategy is unclear.
+    *   `chromedriver` / `chromedriver.exe`: Platform-specific Selenium WebDriver executables (Linux/Windows).
+*   **Interaction Flow (API Request):** Request -> Express -> Global Middleware (`cors`, `json`, `urlencoded`, `cookieParser`) -> Router (`routes/`) -> Route-Specific Middleware (Auth inferred) -> Controller Function (`controllers/`) -> Model Interaction (`models/`) / Helper Call (`helpers/`) / Selenium Interaction (`driver`) -> Response Generation -> Error Handling Middleware (`ErrorHandler.js`) -> Response.
+*   **Interaction Flow (Cron Job - `cronFunc` in `app.js`):** `node-schedule` triggers -> Check `ENABLE_CRON` env -> Check Redis lock (`isFree`) -> Call `searchLinkedInFn` -> (If search completes and returns `true`) Call `linkedInProfileScrapping` -> Release Redis lock.
+*   **Asynchronous Patterns:** Predominantly `async/await` with Promises. Error handling uses `try...catch` blocks, often passing errors to Express's `next()` for the centralized handler.
 
 ### 1.3. Application Entry Points & Initialization
 
-*   **Primary Entry Point:** Execution starts via `node ./bin/www.js` (using `babel-node` for ES6+ transpilation as defined in `package.json` scripts).
-*   **Initialization Sequence (`bin/www.js` -> `app.js`):**
-    1.  `bin/www.js` imports `app` from `app.js`.
-    2.  `bin/www.js` normalizes the port (env `PORT` or `3000`).
-    3.  `bin/www.js` creates an HTTP server instance using the `app` object.
-    4.  `bin/www.js` starts listening on the specified port.
-    5.  **Inside `app.js` (during import/initialization):**
-        *   Imports necessary modules (Express, Mongoose, Redis, CORS, middleware, routes, helpers, Selenium, etc.).
-        *   Creates the Express `app` instance.
-        *   Connects to MongoDB using Mongoose (`CONFIG.MONGOURI`).
-        *   Connects to Redis, sets initial `isFree` key.
-        *   Registers global middleware (`cors`, `express.json`, `express.urlencoded`, `cookieParser`, `express.static`).
-        *   Mounts API routers from `routes/` under specific path prefixes (e.g., `/users`, `/campaign`).
-        *   Sets up the catch-all route for serving the frontend (`public/index.html`).
-        *   Registers the custom `errorHandler`.
-        *   Initializes and configures the Selenium WebDriver (`driver`) instance for Chrome, handling proxy settings and headless mode based on environment.
-        *   Schedules the `cronFunc` using `node-schedule` to run at midnight.
-        *   Exports the `app` object (used by `bin/www.js`) and the `driver` instance (used by scraping functions).
+*   **Primary Entry Point:** `node ./bin/www.js` (transpiled via `@babel/node`).
+*   **Initialization Sequence (`bin/www.js` & `app.js`):**
+    1.  `bin/www.js`: Imports `app` from `app.js`.
+    2.  `bin/www.js`: Gets port from `process.env.PORT` or defaults to `3000`.
+    3.  `bin/www.js`: Creates HTTP server (`http.createServer(app)`).
+    4.  `bin/www.js`: Listens on the determined port, logging success or error.
+    5.  **`app.js` (during import/execution):**
+        *   Imports dependencies.
+        *   Creates Express `app` instance.
+        *   Sets up CORS (`app.use("*",cors())`).
+        *   Connects to MongoDB (`mongoose.connect(CONFIG.MONGOURI)`), logging success or error. **Note:** Mongoose handles connection pooling internally by default.
+        *   Creates Redis client (`redis.createClient()`), connects, logs status, and initializes `isFree` key to `"true"` upon connection.
+        *   Registers global middleware: `express.json`, `express.urlencoded`, `cookieParser`, `express.static`.
+        *   Mounts routers from `routes/` with base paths (e.g., `app.use("/users", usersRouter)`).
+        *   Defines catch-all `app.get("*", ...)` route (likely vestigial if UI is separate, or for minimal static content).
+        *   Registers the final `errorHandler` middleware.
+        *   Configures Selenium WebDriver `options` (no-sandbox, headless in prod, page load strategy, disable GPU, remote origins, window size).
+        *   Sets up Selenium `ServiceBuilder` using the platform-appropriate `chromedriver` path (determined relative to `process.cwd()`).
+        *   Initializes the shared Selenium `driver` instance as a Promise (`new Builder()...build()`).
+        *   Schedules `cronFunc` using `node-schedule` (`"0 0 * * *"` - midnight) conditional on `process.env.ENABLE_CRON`.
+        *   Exports `app` and `driver`.
 
 ### 1.4. Routing Mechanism
 
-*   **Library:** Express Router (`express.Router()`).
-*   **Structure:** Each feature module (e.g., Users, Campaigns, Leads) has its own routing file in the `routes/` directory (e.g., `users.routes.js`, `Campaign.routes.js`).
-*   **Mounting:** These modular routers are mounted onto the main `app` instance in `app.js` with specific base paths (e.g., `app.use('/users', usersRouter)`).
-*   **Definition Example (`routes/users.routes.js`):**
+*   **Library:** Standard Express Router (`express.Router()`).
+*   **Structure:** Modular routing files located in `routes/` directory, one for each primary resource/feature (e.g., `users.routes.js`, `Campaign.routes.js`, `Lead.routes.js`, etc.).
+*   **Mounting:** Routers are imported and mounted onto the main `app` instance in `app.js` using `app.use()` with specific path prefixes:
+    ```javascript
+    // Example from app.js
+    app.use("/users", usersRouter);
+    app.use("/campaign", campaignRouter);
+    app.use("/lead", leadRouter);
+    // ... and so on for other routers
+    ```
+*   **Definition Example (`routes/users.routes.js`):** Defines HTTP methods and paths, mapping them to specific controller functions imported from `controllers/users.controller.js`.
     ```javascript
     import express from "express";
-    import { deleteUser, /* ... other handlers ... */ login, registerUser, updateUser } from "../controllers/users.controller";
+    import { registerUser, login, updateUser, getUserById, deleteUser, /* ... other handlers */ } from "../controllers/users.controller";
     let router = express.Router();
 
-    // Defines POST /users/register endpoint, handled by registerUser controller
-    router.post("/register", registerUser);
-    // Defines POST /users/login endpoint, handled by login controller
-    router.post("/login", login);
-    // Defines PATCH /users/updateById/:id endpoint, handled by updateUser controller
-    router.patch("/updateById/:id", updateUser);
-    // Defines GET /users/getById/:id endpoint, handled by getUserById controller
-    router.get("/getById/:id", getUserById);
-     // Defines DELETE /users/deleteById/:id endpoint, handled by deleteUser controller
-    router.delete("/deleteById/:id", deleteUser);
-    // ... other user routes
+    router.post("/register", registerUser); // POST /users/register
+    router.post("/login", login);         // POST /users/login
+    router.patch("/updateById/:id", updateUser); // PATCH /users/updateById/:id
+    router.get("/getById/:id", getUserById); // GET /users/getById/:id
+    router.delete("/deleteById/:id", deleteUser); // DELETE /users/deleteById/:id
+    // ... other user-specific routes (e.g., /registerAdmin, /loginAdmin)
 
     export default router;
     ```
-*   A catch-all GET route (`app.get("*", ...)`) exists in `app.js` to serve the `index.html` file, likely for a frontend SPA router.
+*   **Catch-all Route:** `app.get("*", ...)` in `app.js` serves `public/index.html`, supporting client-side routing for a potential SPA frontend.
 
 ### 1.5. Middleware Strategy
 
-*   **Global Middleware (applied in `app.js`):**
-    *   `cors()`: Allows cross-origin requests from any origin (`*`).
-    *   `express.json()`: Parses incoming JSON request bodies (limit 100mb).
-    *   `express.urlencoded()`: Parses incoming URL-encoded form data (limit 100mb).
-    *   `cookieParser()`: Parses `Cookie` header and populates `req.cookies`.
-    *   `express.static('public')`: Serves static files from the `public` directory.
-    *   `errorHandler` (Custom, defined in `helpers/ErrorHandler.js`): Centralized error handler, catches errors passed via `next(err)` and sends a JSON response with appropriate status code (err.status or 500) and message.
-*   **Route-Specific Middleware:** While not explicitly shown in the provided snippets for *all* routes, the use of JWT (`jsonwebtoken` dependency, `generateAccessJwt` helper) strongly implies the existence of authentication/authorization middleware applied to protected routes, likely defined in `middlewares/` and used within specific router files. This middleware would verify the JWT token from the request (e.g., `Authorization` header) and attach user information to the `req` object.
-*   **Implicit Middleware:** `morgan` (HTTP request logger) is included as a dependency and imported in `app.js` but appears commented out (`// app.use(logger("dev"));`). `multer` is a dependency, suggesting middleware for handling file uploads exists somewhere, likely applied to specific routes needing file processing.
+*   **Global Middleware (registered in `app.js` before routes):**
+    *   `cors()`: Enabled for all origins (`app.use("*",cors())`).
+    *   `express.json({ limit: "100mb" })`: Parses JSON request bodies.
+    *   `express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 })`: Parses URL-encoded request bodies.
+    *   `cookieParser()`: Parses cookies.
+    *   `express.static(path.join(__dirname, "public"))`: Serves static files.
+    *   `logger("dev")` (from `morgan`): Imported but commented out; likely used for HTTP request logging during development.
+*   **Route-Specific Middleware:** Although not explicitly shown being applied in the provided `routes/users.routes.js` snippet, the use of JWT (`jsonwebtoken`, `helpers/Jwt.js`) strongly implies the existence of authentication middleware (likely defined in `middlewares/Auth.js` or similar) applied selectively to routes requiring user authentication. This middleware would typically verify the `Authorization: Bearer <token>` header and attach the decoded user payload (`req.user`) to the request object for use in controllers. File upload middleware using `multer` is also inferred from dependencies, applied to specific routes handling file uploads (endpoints not identified in current analysis).
+*   **Error Handling Middleware (registered last in `app.js`):**
+    *   `errorHandler` (from `helpers/ErrorHandler.js`): Custom middleware that catches errors passed via `next(err)`. It logs the error and sends a JSON response with `err.status` (or 500) and `err.message`.
 
 ### 1.6. Data Persistence & Models
 
-*   **Primary Database:** MongoDB. Connection handled via `mongoose` ODM in `app.js`, using connection string from `CONFIG.MONGOURI`.
-*   **ODM:** Mongoose is used extensively. Models are defined in the `models/` directory.
-*   **Key Models:**
-    *   `User` (`models/user.model.js`): Stores user information (name, email, phone, password (hashed), role, isActive status, potentially scraping-related stats/rating). Referenced in `Lead`.
-    *   `Campaign` (`models/Campaign.model.js`): Defines scraping jobs (name, LinkedIn search query, target company/school/past company filters, associated LinkedIn account/password/proxy, status (`CREATED`, potentially `PROCESSING`, `COMPLETED`), `isSearched` flag, `processing` flag, total results found, array of found lead IDs (`resultsArr`), run count).
-    *   `Lead` (`models/leads.model.js`): Represents a scraped lead profile. Links to `User` (the profile itself, `clientId`), `Campaign` (source campaign), `User` (assigned user, `leadAssignedToId`). Includes status (`CREATED`, etc.) and inferred rating (`LOW`, etc.), `isSearched` flag.
-    *   `LinkedInAccounts` (`models/LinkedInAccounts.model.js`): Stores credentials (name/email, password) for LinkedIn accounts used for scraping.
-    *   `Proxies` (`models/Proxies.model.js`): Stores proxy server addresses (`value`) used for Selenium sessions.
-    *   `LeadComment` (`models/LeadComment.model.js` - inferred from routes): Likely stores notes or comments related to specific leads.
-    *   `LeadLogs` (`models/LeadLogs.model.js` - inferred from routes): Probably logs actions or events related to leads or the scraping process.
-    *   `LeadStatus` (`models/LeadStatus.model.js` - inferred from routes): Potentially defines custom statuses available for leads.
-    *   `EmailSettings` (`models/EmailSettings.model.js` - inferred from routes): Likely stores configuration for Nodemailer (SMTP server, credentials, etc.).
-    *   `PreviousLeads` (`models/previousLeads.model.js` - seen in `SearchLinkedInFn.js` import): Used to check if a lead profile has already been scraped/processed to avoid duplicates.
-    *   `UserLogs` (`models/userLogs.model.js` - seen in `SearchLinkedInFn.js` import): Potentially logs user actions or system events related to users.
-*   **Data Interaction:** Primarily through Mongoose methods (`.find()`, `.findById()`, `.findOne()`, `.findByIdAndUpdate()`, `.findByIdAndRemove()`, `.save()`, `.aggregate()`) within controller functions and helper functions. Some aggregation pipelines are defined in `Builders/` (e.g., `UserListWithCampaigns`).
+*   **Primary Database:** MongoDB. Connected via `mongoose` in `app.js` using `CONFIG.MONGOURI`. Mongoose debug logging is commented out (`// mongoose.set("debug", true)`).
+*   **Caching/Locking:** Redis. Connected via `redis` client in `app.js`. Primarily used for a distributed lock (`isFree` key) to ensure only one instance of the core scraping cron job runs at a time.
+*   **ODM:** Mongoose used for all MongoDB interactions.
+*   **Key Models (`models/`):**
+    *   `User` (`user.model.js`): Represents *both* application users (Admin/User roles) and scraped lead profiles (Client role). Fields: `name`, `email`, `phone`, `password` (hashed for app users), `role`, `isActive`, `searchCompleted` (flag for scraped profiles), `link` (LinkedIn profile URL for scraped profiles), `campaignId` (source campaign for scraped profiles), `currentPosition`, `location`, `contactInfoArr`, `educationArr`, `experienceArr` (scraped data fields), `rating`.
+    *   `Campaign` (`Campaign.model.js`): Defines a scraping job. Fields: `name`, `searchQuery`, `linkedInAccountId`, `password` (**Security Risk:** likely stores LI password directly), `proxyId`, `school`, `company`, `pastCompany` (filters), `status` (e.g., `CREATED`, `COMPLETED`), `isSearched` (boolean, search phase done?), `processing` (boolean, actively running?), `totalResults`, `resultsArr` (array of `Lead` ObjectIds), `timesRun`.
+    *   `Lead` (`leads.model.js`): Represents an intermediate link between a campaign and a scraped profile. Fields: `campaignId` (ref to `Campaign`), `clientId` (ref to `User` model representing the scraped profile), `leadAssignedToId` (ref to `User` model representing the app user assigned), `status`, `rating`, `isSearched`. *Seems somewhat redundant given scraped data is stored directly on the `User` (role: CLIENT) model.*
+    *   `LinkedInAccounts` (`LinkedInAccounts.model.js`): Stores LinkedIn credentials. Fields: `name` (email/username), `password` (**Security Risk:** Stored as plain String).
+    *   `Proxies` (`Proxies.model.js`): Stores proxy server addresses. Field: `value` (String, format like `host:port` or `http://user:pass@host:port`).
+    *   `PreviousLeads` (`previousLeads.model.js`): Tracks already processed LinkedIn profile IDs to avoid duplicates during search. Field: `value` (profile ID string).
+    *   `LeadComment` (`LeadComment.model.js` - inferred): Stores comments linked to a `Lead`.
+    *   `LeadLogs` (`LeadLogs.model.js` - inferred): Logs events related to `Lead` processing.
+    *   `LeadStatus` (`LeadStatus.model.js` - inferred): Defines custom statuses applicable to `Lead` objects.
+    *   `EmailSettings` (`EmailSettings.model.js` - inferred): Stores Nodemailer SMTP configuration.
+    *   `UserLogs` (`userLogs.model.js` - inferred): Logs user actions or system events.
+*   **Data Interaction:** Mongoose methods (`.find`, `.findById`, `.findOne`, `.create`, `.findByIdAndUpdate`, `.findByIdAndRemove`, `.aggregate`, `.lean`) used within controllers and helpers. Aggregation pipelines defined in `Builders/`.
 
 ### 1.7. Key External Dependencies
 
 *   **Web Framework:** `express`
-*   **Database:** `mongoose` (MongoDB ODM)
-*   **Web Scraping/Automation:** `selenium-webdriver`, `chromedriver`, `chromium`
-*   **Authentication:** `jsonwebtoken` (JWT handling), `bcryptjs` (password hashing)
-*   **Networking/API:** `cors` (Cross-Origin Resource Sharing)
-*   **Utilities:** `dotenv` (environment variables), `morgan` (logging - inactive), `cookie-parser`, `nanoid` (unique ID generation), `path` (Node.js built-in)
-*   **File Handling:** `multer` (file uploads), `exceljs` (Excel file operations), `fs` (Node.js built-in)
-*   **Scheduling:** `node-schedule`, `node-cron` (dependency listed, but `node-schedule` seems actively used in `app.js`)
-*   **Caching/State:** `redis` (Redis client)
+*   **Database/Cache:** `mongoose`, `redis`
+*   **Web Automation:** `selenium-webdriver`, `chromedriver`, `chromium` (implicitly required by chromedriver)
+*   **Authentication:** `jsonwebtoken`, `bcryptjs`
+*   **Networking/API:** `cors`, `cookie-parser`
+*   **Utilities:** `dotenv`, `morgan` (inactive), `nanoid`, `path` (built-in)
+*   **File Handling:** `multer`, `exceljs`, `fs` (built-in)
+*   **Scheduling:** `node-schedule` (actively used), `node-cron` (listed but unused)
 *   **Email:** `nodemailer`
-*   **QR Codes:** `qrcode`, `qr-image`
-*   **Error Handling:** `http-errors` (dependency listed, but custom error handling seems prevalent)
-*   **Development:** `nodemon` (auto-reload), `@babel/core`, `@babel/node`, `@babel/cli`, `@babel/preset-env` (ES6+ support), `eslint`, `prettier` (linting/formatting)
-*   **External Service Interactions:** Primarily **LinkedIn.com** via Selenium WebDriver. Potentially email services via Nodemailer. No other third-party API interactions are immediately obvious from the analyzed code.
+*   **QR Codes:** `qrcode`, `qr-image` (purpose unclear from analyzed code)
+*   **Error Handling:** `http-errors` (listed but custom `ErrorHandler.js` used)
+*   **Development:** `nodemon`, `@babel/core`, `@babel/node`, `@babel/cli`, `@babel/preset-env`, `eslint`, `prettier`
+*   **External Service Interactions:** **LinkedIn.com** (via Selenium), Email Provider (via Nodemailer), Redis Server, MongoDB Server.
 
 ### 1.8. Configuration Management
 
-*   **Method:** Environment variables loaded from `.env` files using the `dotenv` package.
-*   **Loading:** Likely initialized early, possibly via `helpers/Config.js` (which is imported in `app.js`). `app.js` uses `CONFIG.MONGOURI`. Other configurations like `process.env.PORT`, `process.env.ENABLE_CRON`, `process.env.NODE_ENV`, `process.env.TZ` are used directly.
-*   **Files:** `.env` (for development/default), `.env.prod` (suggests a production environment configuration).
-*   **Key Configurable Parameters (Inferred/Observed):**
-    *   `PORT`: Server listening port.
+*   **Method:** Environment variables managed via `.env` files, loaded using `dotenv`. Configuration values accessed via `process.env` or centralized in `helpers/Config.js` (which likely loads `dotenv`).
+*   **Files:** `.env` (defaults/development), `.env.prod` (inferred for production).
+*   **Key Configurable Parameters:**
+    *   `PORT`: Server port (default 3000).
     *   `MONGOURI`: MongoDB connection string.
-    *   `JWT_SECRET` / `ACCESS_TOKEN_SECRET` (Inferred): Secret key for signing JWT tokens (likely used in `helpers/Jwt.js`).
-    *   `ENABLE_CRON`: Boolean ('true'/'false') to enable/disable the scheduled scraping task.
-    *   `NODE_ENV`: Environment identifier ('development', 'production', etc.). Used to conditionally enable headless mode for Selenium.
-    *   `TZ`: Timezone setting for cron job logging.
-    *   Redis connection details (Host, Port - possibly defaults or via env vars).
-    *   Nodemailer configuration (SMTP host, port, auth - likely in `.env` or `EmailSettings` model).
+    *   `ACCESS_TOKEN_SECRET`: Secret for JWT signing (used in `helpers/Jwt.js`).
+    *   `ENABLE_CRON`: Controls whether the scheduled scraping job runs (`"true"` or `"false"`). Checked in `app.js` schedule setup.
+    *   `NODE_ENV`: Environment name ('development', 'prod', etc.). Used in `app.js` to conditionally set Selenium headless mode.
+    *   `TZ`: Timezone for cron job logging (e.g., `Asia/Kolkata`).
+    *   Redis connection details (likely defaults assumed by `redis` client or possibly env vars).
+    *   Nodemailer SMTP config (host, port, auth - likely stored in `EmailSettings` model or `.env`).
 
 ### 1.9. Overall Error Handling Strategy
 
-*   **Approach:** Combination of local `try...catch` blocks and a centralized error handling middleware.
-*   **Local Handling:** Controller and helper functions use `try...catch`. Caught errors are typically passed to the `next()` function (e.g., `next(error)`). For expected errors (e.g., validation, not found), custom error objects with a `status` property are sometimes thrown (e.g., `throw { status: 401, message: "Invalid Password" };`).
+*   **Approach:** Mixed strategy combining local `try...catch` with a central Express error handler.
+*   **Local Handling:**
+    *   Controllers and helpers wrap potentially failing operations (DB calls, Selenium actions, etc.) in `try...catch`.
+    *   Generic/unexpected errors are passed to `next(error)`.
+    *   Specific, expected errors (e.g., invalid login, resource not found) sometimes result in direct `res.json(...)` responses with appropriate status codes (e.g., 401, 404) or custom error objects being thrown (`throw { status: 400, message: "..." }`) which are then caught by the central handler.
 *   **Centralized Handler (`helpers/ErrorHandler.js`):**
-    *   This middleware is registered last in `app.js` (`app.use(errorHandler)`).
-    *   It receives errors passed via `next(err)`.
-    *   Logs the error to the console (`console.error(err)`).
-    *   Checks if the error object has a `status` property. If yes, it sends a JSON response with that status code and `err.message`.
-    *   If no `status` property exists, it defaults to a `500 Internal Server Error` status code and sends `err.message`.
-*   **Selenium Errors:** A specific helper `helpers/seleniumErrorHandler.js` exists (content not read), suggesting specialized handling for errors originating from Selenium interactions, possibly involving logging specific details or attempting recovery. This is called within `catch` blocks in `SearchLinkedInFn.js`.
+    *   Registered as the last middleware in `app.js`.
+    *   Catches errors passed via `next()`.
+    *   Logs the error stack (`console.error(err)`).
+    *   Sends a JSON response: `res.status(err.status || 500).json({ message: err.message })`.
+*   **Selenium Errors (`helpers/seleniumErrorHandler.js`):**
+    *   A dedicated function (likely just logging or performing no-op currently based on limited view) called within `catch` blocks specifically for Selenium operations in `SearchLinkedInFn.js` and `Campaign.controller.js`. This allows potentially specialized logging or recovery logic for browser automation failures, though its current implementation details are minimal.
 
 ### 1.10. Testing Strategy (if applicable)
 
-*   **Presence:** A `test/` directory exists, and development dependencies include testing-related tools (`@babel/preset-env` can be used for tests). `package.json` doesn't show explicit test scripts (`npm test`), but they might exist within Makefiles or other build tools not visible here.
-*   **Inferred Strategy:** The presence of the directory suggests some level of testing (likely unit or integration tests) is intended or implemented. However, without analyzing the contents of `test/`, the exact strategy, libraries used (e.g., Jest, Mocha, Chai), coverage, and types of tests (unit, integration, e2e) cannot be determined. Given the reliance on external systems (LinkedIn via Selenium, DB, Redis), robust integration and potentially end-to-end testing would be valuable but complex to implement reliably.
+*   **Evidence:** A `test/` directory exists. Development dependencies (`@babel/preset-env`) support testing.
+*   **Inference:** Unit or integration tests are likely intended. However, no test execution scripts are visible in `package.json`, and test file contents were not analyzed.
+*   **Challenges:** Given the heavy reliance on external systems (live LinkedIn site via Selenium, MongoDB, Redis), reliable and comprehensive automated testing (especially integration and end-to-end) would be complex to implement and maintain. Mocking these dependencies would be essential for effective unit tests. The actual testing strategy remains unclear.
 
 ---
 
 ## 2. Detailed Feature Analysis - Module by Module
 
+*(Updates based on deeper code reading)*
+
 ### 2.1. Feature: User Management & Authentication
 
-*   **2.1.1. Description:** Handles user registration, login, profile updates, retrieval, and deletion. Distinguishes between standard users and administrators, providing separate login/registration endpoints for admins. Implements JWT-based authentication.
+*   **2.1.1. Description:** Manages application users (Admin/User roles) including registration, login (JWT-based), profile updates, retrieval, and deletion. Also handles the creation and storage of scraped LinkedIn profiles as 'Client' role users.
 *   **2.1.2. Interaction Points / API Endpoints:** (Base Path: `/users`)
-    *   `POST /register`: Creates a new standard user.
-        *   Request Body: `{ "name": "...", "email": "...", "phone": "...", "password": "..." }` (other fields from `user.model` might be accepted).
+    *   `POST /register`: Creates standard user (role: `USER`).
+        *   Request Body: `{ "name": "...", "email": "...", "phone": "...", "password": "..." }`
         *   Response (Success 200): `{ "message": "User Created", "success": true }`
-    *   `POST /login`: Authenticates a standard user.
+        *   Response (Error 500): via `errorHandler` if email/phone exists or validation fails.
+    *   `POST /login`: Authenticates standard user.
         *   Request Body: `{ "email": "...", "password": "..." }`
         *   Response (Success 200): `{ "message": "LogIn Successfull", "token": "JWT_ACCESS_TOKEN", "success": true }`
-        *   Response (Failure 401): `{ "message": "Invalid Password" }` or `{ "message": "user Not Found" }` or `{ "message": "You are marked as inactive..." }`
-    *   `GET /getUsers`: Retrieves a list of users (potentially filterable by role via query param `?role=...`).
-        *   Response (Success 200): `{ "message": "Users", "data": [UserObject1, UserObject2, ...], "success": true }`
-    *   `GET /getById/:id`: Retrieves a specific user by their MongoDB ObjectId.
-        *   Response (Success 201 - *Note: Should likely be 200*): `{ "message": "found User", "data": UserObject, "success": true }`
-        *   Response (Failure 4xx/500): `{ "message": "User Not found" }`
-    *   `PATCH /updateById/:id`: Updates a specific user's details.
-        *   Request Body: `{ "name": "...", "email": "...", ... }` (Password can be updated; if empty/missing, it's ignored).
-        *   Response (Success 201 - *Note: Should likely be 200*): `{ "message": "Updated Successfully", "success": true }`
-        *   Response (Failure 4xx/500): `{ "message": "User Not found" }`
-    *   `DELETE /deleteById/:id`: Deletes a specific user.
+        *   Response (Error 401): `{ "message": "user Not Found" }` or `{ "message": "Invalid Password" }` (Direct response).
+        *   Response (Error 500): via `errorHandler` if user is inactive (`{ "message": "You are marked as inactive..." }`).
+    *   `GET /getUsers`: Retrieves users, filterable by query `?role=...`.
+        *   Response (Success 200): `{ "message": "Users", "data": [UserObject...], "success": true }`
+    *   `GET /getById/:id`: Retrieves user by ObjectId.
+        *   Response (Success 201 - *Incorrect status*): `{ "message": "found User", "data": UserObject, "success": true }`
+        *   Response (Error 500): via `errorHandler` if not found (`{ "message": "User Not found" }`).
+    *   `PATCH /updateById/:id`: Updates user details (name, email, phone, password).
+        *   Request Body: `{ "name": "...", "email": "...", "phone": "...", "password": "..." }` (Password optional, hashed if provided).
+        *   Response (Success 201 - *Incorrect status*): `{ "message": "Updated Successfully", "success": true }`
+        *   Response (Error 500): via `errorHandler` if not found (`{ "message": "User Not found" }`).
+    *   `DELETE /deleteById/:id`: Deletes user by ObjectId.
         *   Response (Success 200): `{ "message": "user deleted successfully", "success": true }`
-        *   Response (Failure 400): `{ "message": "user not found or deleted already" }`
-    *   `POST /registerAdmin`: Creates a new admin user. (Logic seems similar to `/register` but potentially sets a different role).
-        *   Request Body: `{ "email": "...", "password": "...", ... }`
+        *   Response (Error 400): `{ "message": "user not found or deleted already" }` (Direct response).
+    *   `POST /registerAdmin`: Creates admin user (role: `ADMIN`). Logic mirrors `/register`.
         *   Response (Success 200): `{ "message": "admin Created", "success": true }`
-    *   `POST /loginAdmin`: Authenticates an admin user. (Logic similar to `/login` but potentially checks for admin role).
-        *   Request Body: `{ "email": "...", "password": "..." }`
-        *   Response (Success 200): `{ "message": "LogIn Successfull", "token": "JWT_ACCESS_TOKEN", "success": true }` (Token payload includes role and user details).
-        *   Response (Failure 401): `{ "message": "Invalid Password" }` or `{ "message": "User Not Found" }`
-    *   `GET /getUserDetailsWithCampaignsData/:id`: Retrieves user details along with aggregated data about their associated campaigns (Uses `UserListWithCampaigns` builder).
-        *   Response (Success 200): `{ "message": "user deleted successfully", "data": AggregatedUserObject, "success": true }` (*Note: Message seems incorrect*)
-    *   `GET /setUserRating`: Triggers a calculation (`CalculateRating` helper) and updates the `rating` field for all users with role 'CLIENT' and their associated leads. (Internal/Admin endpoint).
-        *   Response (Success 200): `{ "message": "as", "success": true }` (*Note: Message is uninformative*)
+    *   `POST /loginAdmin`: Authenticates admin user. Logic mirrors `/login`, checks for `ADMIN` role.
+        *   Response (Success 200): `{ "message": "LogIn Successfull", "token": "JWT_ACCESS_TOKEN", "success": true }`
+        *   Response (Error 401): `User Not Found` or `Invalid Password`.
+    *   `GET /getUserDetailsWithCampaignsData/:id`: Retrieves user details aggregated with campaign data using `UserListWithCampaigns` builder.
+        *   Response (Success 200): `{ "message": "user deleted successfully" /* Incorrect message */, "data": AggregatedUserObject, "success": true }`
+    *   `GET /setUserRating`: *Internal Endpoint*. Calculates and updates ratings for all 'CLIENT' users based on scraped data (`CalculateRating` helper).
+        *   Response (Success 200): `{ "message": "as" /* Uninformative */, "success": true }`
 *   **2.1.3. Core Logic & Workflow:**
-    *   **Registration:** Checks for existing email/phone, validates email format, encrypts password using `bcryptjs` (`helpers/Bcrypt.js`), saves new user document to MongoDB via Mongoose (`models/user.model`).
-    *   **Login:** Finds user by email, compares provided password with stored hash using `bcryptjs`. If valid and user is active, generates a JWT access token (`helpers/Jwt.js`) containing user ID, role, and basic info.
-    *   **Updates:** Finds user by ID, encrypts new password if provided, updates document using `findByIdAndUpdate`.
-    *   **Retrieval:** Uses Mongoose `find` or `findById` methods.
-    *   **Deletion:** Uses Mongoose `findByIdAndRemove`.
-    *   **Rating:** Iterates through users, calls a complex `CalculateRating` helper (logic not shown), updates user and associated lead ratings.
-*   **2.1.4. Data Interaction:** Primarily interacts with the `Users` collection in MongoDB. The `setUserRating` function also interacts with the `Leads` collection. Uses `UserListWithCampaigns` aggregation pipeline (defined in `Builders/`) for `/getUserDetailsWithCampaignsData`.
+    *   **Registration:** `users.controller.js -> registerUser / registerAdmin`: Checks `email` and `phone` existence using `User.findOne`. Validates email (`helpers/Validators.js -> ValidateEmail`). Hashes password (`helpers/Bcrypt.js -> hashPassword`). Creates new `User` document (`User.save()`).
+    *   **Login:** `users.controller.js -> login / loginAdmin`: Finds user by `email` (`User.findOne`). Compares password hash (`helpers/Bcrypt.js -> comparePassword`). Checks `isActive` status. Checks role for admin login. Generates JWT (`helpers/Jwt.js -> generateAccessJwt`) containing `_id`, `name`, `email`, `role`, `isActive`.
+    *   **Update:** `users.controller.js -> updateUser`: Finds by ID (`User.findById`). Hashes new password if provided. Updates using `User.findByIdAndUpdate()`.
+    *   **Rating Calculation:** `users.controller.js -> setUserRating`: Fetches all 'CLIENT' users. Iterates and calls `CalculateRating(user)` (helper logic not shown, presumably complex analysis of `user.experienceArr`, `user.educationArr`, etc.). Updates `user.rating` and potentially related `Lead` ratings.
+*   **2.1.4. Data Interaction:** `User` model (CRUD). `Lead` model (read/update during rating calculation). `Builders/UserListWithCampaigns.js` (aggregation).
 *   **2.1.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Successful registration, login, fetching users, updating profile, deleting user. Successful admin login/registration. Successful rating calculation trigger.
-    *   **b) Edge Cases:** Updating user without changing password. Fetching an empty list of users. Registering with optional fields missing. Logging in as an inactive user.
+    *   **a) Happy Paths:** As previously described. JWT contains expected payload upon successful login.
+    *   **b) Edge Cases:** Updating user with same password. Admin logging into standard user login endpoint (would fail role check if implemented correctly, but might succeed if only email/pass checked). Triggering rating calculation when no 'CLIENT' users exist.
     *   **c) Error Scenarios & Handling:**
-        *   Registration: Email/phone already exists (`ErrorMessages.EMAIL_EXISTS`/`PHONE_EXISTS`), invalid email format (`ErrorMessages.INVALID_EMAIL`), missing password. (Returns 500 via `errorHandler`).
-        *   Login: User not found (401), invalid password (401), inactive user (500 via `errorHandler` with specific message).
-        *   Get/Update/Delete by ID: User not found (500 via `errorHandler` or specific 400 for delete).
-        *   Admin Login: User not found (401), invalid password (401).
-        *   General: Database errors, unexpected exceptions caught by `try...catch` and passed to `errorHandler` (results in 500).
+        *   Registration: Email/Phone exists -> `next(error)` -> 500 response with `ErrorMessages.EMAIL_EXISTS` / `PHONE_EXISTS`. Invalid Email -> `next(error)` -> 500 with `ErrorMessages.INVALID_EMAIL`. DB Error -> `next(error)` -> 500.
+        *   Login: User not found -> 401 `{ message: "user Not Found" }`. Invalid Password -> 401 `{ message: "Invalid Password" }`. Inactive User -> `next({ status: 500, message: "You are marked as inactive..." })` -> 500. Admin role mismatch -> 401 (if checked correctly). DB Error -> `next(error)` -> 500.
+        *   Get/Update/Delete by ID: User not found -> `next({ status: 500, message: "User Not found" })` for Get/Update; 400 `{ message: "user not found or deleted already" }` for Delete. DB Error -> `next(error)` -> 500.
     *   **d) Security Considerations:**
-        *   Password hashing implemented using `bcryptjs`.
-        *   Authentication uses JWT, presumably passed in `Authorization: Bearer <token>` header and verified by middleware (inferred).
-        *   Input validation exists for email format (`ValidateEmail`). Basic check for password presence during registration. Further input sanitization (e.g., against NoSQL injection) is not explicitly shown but might be partially handled by Mongoose depending on usage.
-        *   Potential vulnerability: Email check uses regex (`new RegExp(^\`${req.body.email}$\`)`). While anchored (`^`, `$`), complex emails might still pose a risk if not carefully handled (ReDoS). Using a dedicated validation library is often safer.
-        *   Authorization (role checks) appears to be implemented based on the JWT payload (e.g., distinguishing admin/user actions), likely within middleware or controller logic (e.g., separate admin login).
+        *   Passwords hashed using `bcryptjs`.
+        *   JWT used for session management; requires proper verification via middleware on protected routes (middleware implementation not directly confirmed).
+        *   Email validation uses regex (`/\\S+@\\S+\\.\\S+/`) - reasonably standard but less robust than dedicated libraries. Phone validation is not explicitly shown.
+        *   No obvious input sanitization against NoSQL injection beyond what Mongoose might provide by default.
+        *   Rate limiting is not apparent on login/register endpoints.
+        *   Admin endpoints (`/registerAdmin`, `/loginAdmin`) rely on obscurity; ideally, they should be protected by separate authorization middleware checking the caller's role.
 
 ### 2.2. Feature: LinkedIn Account Management
 
-*   **2.2.1. Description:** Manages the LinkedIn account credentials (email/username, password) used by the system for automated scraping. Allows adding, retrieving, updating, and deleting these accounts.
-*   **2.2.2. Interaction Points / API Endpoints:** (Base Path: `/linkedInAccount`) - *Methods inferred from typical CRUD*
-    *   `POST /`: Adds a new LinkedIn account credential.
-        *   Request Body: `{ "name": "linkedin_email@example.com", "password": "linkedin_password" }`
-    *   `GET /`: Retrieves a list of stored LinkedIn accounts.
-    *   `GET /:id`: Retrieves a specific LinkedIn account by ID.
-    *   `PATCH /:id`: Updates a specific LinkedIn account's details.
-    *   `DELETE /:id`: Deletes a specific LinkedIn account.
-*   **2.2.3. Core Logic & Workflow:** Standard CRUD operations handled by corresponding controller functions (likely in `controllers/LinkedInAccounts.controller.js` - not explicitly read) interacting with the Mongoose model. Passwords stored might be plain text or encrypted (model doesn't specify encryption, but `Campaign.model` also has `password`, suggesting it might be stored directly; this is a **SECURITY RISK** if plain text).
-*   **2.2.4. Data Interaction:** Interacts with the `LinkedInAccounts` collection in MongoDB via `models/LinkedInAccounts.model.js`.
+*   **2.2.1. Description:** Manages LinkedIn account credentials (`email`, `password`) used for Selenium scraping.
+*   **2.2.2. Interaction Points / API Endpoints:** (Base Path: `/linkedInAccount`) - Confirmed via `routes/LinkedInAccounts.routes.js` and `controllers/LinkedInAccounts.controller.js` (assuming standard CRUD naming)
+    *   `POST /addAccount`: Creates a new LinkedIn account entry.
+        *   Request Body: `{ "name": "...", "password": "..." }`
+        *   Response (Success 201): `{ message: '...', data: newAccount }`
+    *   `GET /getAccount`: Retrieves all stored LinkedIn accounts.
+        *   Response (Success 200): `{ message: '...', data: [account...] }`
+    *   `GET /getById/:id`: Retrieves a specific account.
+        *   Response (Success 200): `{ message: '...', data: account }`
+    *   `PATCH /updateById/:id`: Updates an account.
+        *   Request Body: `{ "name": "...", "password": "..." }` (Optional fields)
+        *   Response (Success 201 - *Incorrect status*): `{ message: 'Updated Successfully' }`
+    *   `DELETE /deleteById/:id`: Deletes an account.
+        *   Response (Success 200): `{ message: 'user deleted successfully' }` (Likely copy-paste message error)
+*   **2.2.3. Core Logic & Workflow:** Standard CRUD operations implemented in `controllers/LinkedInAccounts.controller.js` using Mongoose methods (`.create`, `.find`, `.findById`, `.findByIdAndUpdate`, `.findByIdAndRemove`) on the `LinkedInAccounts` model.
+*   **2.2.4. Data Interaction:** `LinkedInAccounts` model (CRUD).
 *   **2.2.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Successfully adding, listing, updating, retrieving, deleting LinkedIn account credentials.
-    *   **b) Edge Cases:** Updating only name or password. Listing when no accounts exist.
-    *   **c) Error Scenarios & Handling:** Account not found for GET/PATCH/DELETE operations. Database errors during CRUD operations. Validation errors (e.g., missing name/password) during creation.
-    *   **d) Security Considerations:** **MAJOR CONCERN:** If passwords in `LinkedInAccounts` collection are stored in plain text (as the simple `String` type in the model suggests), this is a significant security vulnerability. They should be encrypted at rest. Access to these endpoints should be strictly limited to authorized administrators.
+    *   **c) Error Scenarios & Handling:** Standard Mongoose errors (validation, not found) are passed to `next(error)` -> `errorHandler` (500 response). `deleteById` returns 400 directly if account not found.
+    *   **d) Security Considerations:** **Critical:** The `password` field in `models/LinkedInAccounts.model.js` is defined as `type: String, required: true`. There is **no indication of hashing or encryption**. Passwords are stored in **plain text**, which is a major security vulnerability. Access to these endpoints must be strictly controlled (Admin only).
 
 ### 2.3. Feature: Proxy Management
 
-*   **2.3.1. Description:** Manages proxy server addresses used during Selenium-driven web scraping to potentially avoid IP blocking by LinkedIn and rotate source IPs. Allows adding, retrieving, updating, and deleting proxy details.
-*   **2.3.2. Interaction Points / API Endpoints:** (Base Path: `/proxies`) - *Methods inferred from typical CRUD*
-    *   `POST /`: Adds a new proxy address.
-        *   Request Body: `{ "value": "http://user:pass@host:port" }` or `{ "value": "host:port" }`
-    *   `GET /`: Retrieves a list of stored proxies.
-    *   `GET /:id`: Retrieves a specific proxy by ID.
-    *   `PATCH /:id`: Updates a specific proxy's address.
-    *   `DELETE /:id`: Deletes a specific proxy.
-*   **2.3.3. Core Logic & Workflow:** Standard CRUD operations handled by corresponding controller functions (likely in `controllers/Proxies.controller.js` - not explicitly read) interacting with the Mongoose model.
-*   **2.3.4. Data Interaction:** Interacts with the `Proxies` collection in MongoDB via `models/Proxies.model.js`. Proxies are retrieved by ID in `controllers/Campaign.controller.js` (`linkedInLogin` function) to configure the Selenium WebDriver instance.
+*   **2.3.1. Description:** Manages proxy server addresses (`host:port` or `http://user:pass@host:port`) used by Selenium.
+*   **2.3.2. Interaction Points / API Endpoints:** (Base Path: `/proxies`) - Confirmed via `routes/Proxies.routes.js` and controller logic (assuming standard CRUD naming).
+    *   `POST /addProxies`: Adds a new proxy.
+        *   Request Body: `{ "value": "..." }`
+    *   `GET /getProxies`: Retrieves all proxies.
+    *   `GET /getById/:id`: Retrieves a specific proxy.
+    *   `PATCH /updateById/:id`: Updates a proxy.
+    *   `DELETE /deleteById/:id`: Deletes a proxy.
+*   **2.3.3. Core Logic & Workflow:** Standard Mongoose CRUD operations in the corresponding controller on the `Proxies` model.
+*   **2.3.4. Data Interaction:** `Proxies` model (CRUD). Proxy `value` is retrieved by ID in `controllers/Campaign.controller.js -> linkedInLogin` and used to configure Selenium options (`options.setProxy(...)`).
 *   **2.3.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Successfully adding, listing, updating, retrieving, deleting proxy addresses. Selenium successfully using a configured proxy.
-    *   **b) Edge Cases:** Listing when no proxies exist. Adding proxies with different formats (with/without auth).
-    *   **c) Error Scenarios & Handling:** Proxy not found for GET/PATCH/DELETE. Database errors. Validation errors (e.g., missing value) during creation. Selenium failing to connect *through* the proxy (network error, invalid proxy).
-    *   **d) Security Considerations:** Access to these endpoints should likely be restricted to administrators. If proxies require authentication, credentials are stored as part of the `value` string, potentially exposing them if database access is compromised.
+    *   **c) Error Scenarios & Handling:** Standard Mongoose errors passed to `next(error)` -> `errorHandler`. Delete returns 400 if not found. Selenium might fail to use an invalid/unreachable proxy (handled by Selenium error handling).
+    *   **d) Security Considerations:** If proxies use authentication (`user:pass`), these credentials are stored plain text within the `value` string. Access control (Admin only) is necessary.
 
 ### 2.4. Feature: Campaign Management
 
-*   **2.4.1. Description:** Allows users to define, manage, and monitor LinkedIn search campaigns. A campaign specifies the search criteria (query, filters), the LinkedIn account and proxy to use, and tracks its status and results. Campaigns are the primary input for the automated scraping process.
-*   **2.4.2. Interaction Points / API Endpoints:** (Base Path: `/campaign`)
-    *   `POST /addCampaign`: Creates a new scraping campaign.
-        *   Request Body: `{ "name": "...", "searchQuery": "...", "linkedInAccountId": "...", "password": "...", "proxyId": "...", "school": "...", "company": "...", "pastCompany": "..." }` (Password seems redundant if `linkedInAccountId` is used, potentially legacy or fallback).
-    *   `GET /getCampaigns`: Retrieves a list of campaigns (likely with filtering options, e.g., by status).
-    *   `GET /getById/:id`: Retrieves a specific campaign by ID.
-    *   `PATCH /updateById/:id`: Updates a specific campaign's details.
-    *   `DELETE /deleteById/:id`: Deletes a specific campaign.
-    *   `POST /addCampaignToQueue`: (From `Campaign.controller.js`) - Seems to potentially manually trigger or requeue a campaign (likely sets status back to `CREATED`).
-    *   `POST /addScheduledCampaign`: (From `Campaign.controller.js`) - Schedules a campaign to run at a specific time (logic involves `helpers/ScheduledCampaigns.js` - not read).
-    *   `GET /getPastCampaign`: (From `Campaign.controller.js`) - Retrieves historical or completed campaigns.
-    *   `GET /getPastCampaignById/:id`: (From `Campaign.controller.js`) - Retrieves details of a specific past campaign.
-    *   `POST /sendCampaignToSevanta`: (From `Campaign.controller.js`) - Sends campaign data via email using `sendCustomMailToSavanta` helper (purpose unclear, perhaps reporting or integration).
+*   **2.4.1. Description:** Defines, manages, and tracks LinkedIn scraping campaigns. Specifies search criteria, resources (LI account, proxy), and stores results.
+*   **2.4.2. Interaction Points / API Endpoints:** (Base Path: `/campaign`) - Verified via `routes/Campaign.routes.js` and `controllers/Campaign.controller.js`.
+    *   `POST /addCampaign`: Creates a new campaign.
+        *   Request Body: `{ "name", "searchQuery", "linkedInAccountId", "password" /* Redundant/Risk */, "proxyId", "school", "company", "pastCompany" }`
+    *   `GET /getCampaigns`: Retrieves campaigns (potentially filterable).
+    *   `GET /getById/:id`: Retrieves a specific campaign.
+    *   `PATCH /updateById/:id`: Updates a campaign.
+    *   `DELETE /deleteById/:id`: Deletes a campaign.
+    *   `POST /addCampaignToQueue`: Sets campaign status to `CREATED` to re-queue it.
+    *   `POST /addScheduledCampaign`: Schedules a campaign (uses `helpers/ScheduledCampaigns.js` - logic not fully analyzed).
+    *   `GET /getPastCampaign`: Retrieves completed/historical campaigns.
+    *   `GET /getPastCampaignById/:id`: Retrieves details of a specific past campaign.
+    *   `POST /sendCampaignToSevanta`: Sends campaign data via email using `sendCustomMailToSavanta` helper.
+    *   `POST /linkedInLogin`, `GET /checkLinkedInLogin`, `POST /getLinkedInCaptcha`, `POST /sendLinkedInCaptchaInput`, `POST /verifyOtp`, `POST /resendPhoneCheck`: Endpoints related to manually handling the Selenium LinkedIn login process (CAPTCHA/OTP). (See 2.5)
+    *   `POST /searchLinkedin`: Manually triggers the search process (`searchLinkedInFn`).
+    *   `POST /linkedInProfileScrappingReq`: Manually triggers the profile scraping process (`linkedInProfileScrapping`).
 *   **2.4.3. Core Logic & Workflow:**
-    *   **Creation/Update:** Standard CRUD operations saving/updating campaign details in the `Campaign` collection. Status defaults to `CREATED`, `isSearched` to `false`.
-    *   **Scheduling:** Uses `node-schedule` or similar mechanism managed by `helpers/ScheduledCampaigns.js`.
-    *   **Queueing/Execution:** Campaigns with `status: CREATED`, `isSearched: false`, `processing: false` are picked up by the `cronFunc` (in `app.js`) or potentially triggered manually. The `processing` flag likely acts as a short-term lock during active scraping for that campaign. `isSearched` flag is set to `true` after the initial search phase completes.
-*   **2.4.4. Data Interaction:** Interacts primarily with the `Campaign` collection. Retrieves `LinkedInAccounts` and `Proxies` based on IDs stored in the campaign. Updates campaign status (`status`, `processing`, `isSearched`), `totalResults`, and `resultsArr` (array of lead IDs) during scraping.
-*   **2.5.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Creating a campaign, campaign being picked up by cron, search executing, leads being found, campaign status updating. Scheduling a campaign successfully. Retrieving campaign details.
-    *   **b) Edge Cases:** Campaign with no filters. Campaign targeting a very large number of results. Campaign using an account that gets locked during the run. Running multiple campaigns concurrently (handled by `processing` flag and potentially Redis lock). Campaign completing with zero results found.
-    *   **c) Error Scenarios & Handling:** Invalid `linkedInAccountId` or `proxyId`. Missing required fields (`searchQuery`). Database errors. Errors during the scraping process associated with this campaign (logged, campaign might be marked as failed or retried). Errors sending email in `sendCampaignToSevanta`.
-    *   **d) Security Considerations:** Storing LinkedIn password directly in the `Campaign` model (if `password` field is used instead of relying solely on `linkedInAccountId`) is a **SECURITY RISK**. Access control for creating/managing campaigns is needed. Input validation on `searchQuery` and filter fields is important to prevent potential issues if these are reflected insecurely elsewhere.
+    *   **CRUD:** Standard Mongoose operations in `controllers/Campaign.controller.js`. New campaigns default to `status: CREATED`, `isSearched: false`, `processing: false`.
+    *   **Execution:** Campaigns matching criteria (`status: CREATED`, `isSearched: false`, `processing: false`) are selected by `helpers/SearchLinkedInFn.js` (called by cron or manual trigger). The `processing` flag acts as a per-campaign lock during execution. `isSearched` is set `true` after search phase. `status` likely updated upon completion/failure.
+    *   **Manual Login:** Endpoints allow interactive handling of CAPTCHA/OTP during Selenium login initiated via `POST /linkedInLogin`.
+*   **2.4.4. Data Interaction:** `Campaign` model (CRUD). Reads `LinkedInAccounts`, `Proxies` based on IDs. Updates `Campaign` status, flags, `totalResults`, `resultsArr`. `resultsArr` stores `Lead` ObjectIds.
+*   **2.4.5. Detailed Scenarios:**
+    *   **c) Error Scenarios & Handling:** Invalid `linkedInAccountId`/`proxyId` leads to failure during login/proxy setup. Missing `searchQuery` likely causes validation error. DB errors -> `next(error)`. Selenium errors during associated scraping handled by `seleniumErrorHandler` (may update campaign status or log). Email sending errors in `sendCampaignToSevanta`. Errors during manual login handling (e.g., incorrect CAPTCHA/OTP input).
+    *   **d) Security Considerations:** **Critical:** `password` field in `Campaign` model likely stores LinkedIn password in plain text if used. Redundant and insecure if `linkedInAccountId` is already linked. Input validation for `searchQuery` and filter fields is important. Access control needed for campaign management and trigger endpoints.
 
 ### 2.5. Feature: Automated LinkedIn Search (Scraping - Core Functionality)
 
-*   **2.5.1. Description:** This is a core automated process, typically triggered by the cron job (`cronFunc` in `app.js`) or potentially manual triggers. It takes pending campaigns, uses Selenium WebDriver to log into LinkedIn (using credentials and proxies specified in the campaign), performs the search based on the campaign's query and filters, iterates through results pages, and extracts basic lead information (like profile URLs) to store or queue for further processing.
-*   **2.5.2. Interaction Points / API Endpoints:** Primarily an internal process triggered by `cronFunc` which calls `helpers/SearchLinkedInFn.js`. Some related manual triggers might exist:
-    *   `POST /searchLinkedin`: (From `Campaign.controller.js`) - Likely a manual trigger to initiate the search process (perhaps for a specific campaign or all pending).
-    *   `POST /linkedInLogin`: (From `Campaign.controller.js`) - Handles the Selenium login process, including CAPTCHA and OTP verification steps, often called before starting a search. Requires user interaction via API calls if CAPTCHA/OTP occurs.
-    *   `GET /checkLinkedInLogin`: (From `Campaign.controller.js`) - Checks if the Selenium browser instance is currently logged into LinkedIn.
-    *   `POST /getLinkedInCaptcha`: (From `Campaign.controller.js`) - If CAPTCHA is detected during login, this endpoint might return the CAPTCHA image URL/data.
-    *   `POST /sendLinkedInCaptchaInput`: (From `Campaign.controller.js`) - Submits the user-provided CAPTCHA solution.
-    *   `POST /verifyOtp`: (From `Campaign.controller.js`) - Submits a user-provided OTP (One-Time Password) if requested by LinkedIn during login.
-    *   `POST /resendPhoneCheck`: (From `Campaign.controller.js`) - Potentially related to phone verification steps during login.
+*   **2.5.1. Description:** Core automated process (usually via cron) that logs into LinkedIn using campaign credentials/proxy, performs searches with filters, paginates results, extracts profile URLs, checks for duplicates, and creates initial `Lead` entries.
+*   **2.5.2. Interaction Points / API Endpoints:**
+    *   Internal Trigger: `cronFunc` (in `app.js`) calls `helpers/SearchLinkedInFn.js`.
+    *   Manual Triggers:
+        *   `POST /campaign/searchLinkedin`: Calls `helpers/SearchLinkedInFn.js`.
+        *   `POST /campaign/linkedInLogin`: Initiates Selenium login attempt. Needs request body: `{ "name": "li_email", "password": "base64_encoded_li_password", "proxyId": "proxy_object_id" }`. Returns status (success, captcha, otp).
+        *   `GET /campaign/checkLinkedInLogin`: Checks login status via `checkLinkedInLoginFunc`.
+        *   `POST /campaign/getLinkedInCaptcha`: Returns CAPTCHA image URL if detected by `linkedInLogin`.
+        *   `POST /campaign/sendLinkedInCaptchaInput`: Submits user's CAPTCHA answer (image number). Request Body: `{ "imageNumber": number }`.
+        *   `POST /campaign/verifyOtp`: Submits user's OTP. Request Body: `{ "otp": "..." }`.
+        *   `POST /campaign/resendPhoneCheck`: Related to phone verification steps.
 *   **2.5.3. Core Logic & Workflow (`helpers/SearchLinkedInFn.js`):**
-    1.  Acquires Redis lock (`isFree` = `false`).
-    2.  Checks if Selenium WebDriver is logged into LinkedIn (`checkLinkedInLoginFunc`). If not, attempts login (details below) or sends an email alert and releases lock.
-    3.  Fetches pending campaigns (`status: CREATED`, `isSearched: false`, `processing: false`) from MongoDB. If none, releases lock and returns.
-    4.  Iterates through fetched campaigns:
-        *   Marks campaign as `processing: true` (implicit lock for this campaign).
-        *   Navigates Selenium driver to LinkedIn search.
-        *   Inputs `campaignObj.searchQuery`.
-        *   Applies 'People' filter.
-        *   Applies advanced filters (Current Company, Past Company, School) based on `campaignObj` fields using complex Selenium interactions (finding filter inputs, sending keys, selecting results).
-        *   Clicks 'Show results'.
-        *   Waits for results to load, scrolls down page.
-        *   Extracts the total number of results found and updates `campaignObj.totalResults`.
-        *   Iterates through pagination ('Next' button):
-            *   Scrolls page down.
-            *   Waits for result elements (`ul/li` containing profile links) to load.
-            *   Extracts profile links (`href` from `a` tags within results).
-            *   For each profile link:
-                *   Checks if the lead already exists in `PreviousLeads` collection using the profile ID extracted from the URL.
-                *   If not a duplicate:
-                    *   Creates a new `Lead` document (`models/leads.model.js`) linking it to the `campaignId` and storing the profile ID (`clientId` seems to store the LinkedIn profile ID/URL here).
-                    *   Adds the new Lead's ID to the `campaignObj.resultsArr`.
-                    *   Adds the profile ID to the `PreviousLeads` collection to prevent future duplicates.
-            *   Handles potential errors during result extraction/saving.
-            *   Clicks the 'Next' button until it's disabled or an error occurs.
-        *   Marks campaign as `isSearched: true` and `processing: false`.
-        *   Handles errors during the campaign loop using `seleniumErrorHandler` and continues to the next campaign.
-    5.  Releases Redis lock (`isFree` = `true`).
-*   **LinkedIn Login Logic (`controllers/Campaign.controller.js` - `linkedInLogin`):**
-    1.  Configures Selenium options (headless, proxy).
-    2.  Navigates to LinkedIn login page.
-    3.  Enters username/password from request body (password decoded from Base64).
-    4.  Clicks submit.
-    5.  Waits and checks the URL/page content to detect:
-        *   Successful login (redirect to feed).
-        *   CAPTCHA challenge: Extracts CAPTCHA image URL, returns response indicating CAPTCHA needed. Requires follow-up call to `/sendLinkedInCaptchaInput`.
-        *   OTP/Phone verification challenge: Returns response indicating OTP needed. Requires follow-up call to `/verifyOtp`.
-        *   Other errors (invalid credentials).
-*   **2.5.4. Data Interaction:** Reads `Campaign`, `LinkedInAccounts`, `Proxies`. Reads/Writes `PreviousLeads`. Creates `Lead` documents. Updates `Campaign` (status, flags, results). Uses Redis for global locking (`isFree`).
+    1.  Acquire Redis lock (`redisClientParam.set("isFree", "false")`).
+    2.  Check login status (`checkLinkedInLoginFunc`). If not logged in, attempt email alert (`sendMail`) and return `false` (stops process).
+    3.  Fetch pending campaigns (`Campaign.find({ status: CREATED, isSearched: false, processing: false })`). If none, return `true` (search phase done).
+    4.  Loop through campaigns (`for (let i = 0; i < campaignArr.length; i++)`):
+        *   (Implicitly locked campaign via memory - **potential issue in clustered env**). Navigate to LinkedIn search.
+        *   Input `campaignObj.searchQuery` into search bar (`//input[@placeholder="Search"]`).
+        *   Click 'People' filter button (`//button[text()='People']`).
+        *   Click 'All filters' button (`// div[@class="relative mr2"]//button[text() = "All filters"]`).
+        *   Apply filters (Current Company, Past Company, School) if present in `campaignObj` using complex XPath selectors to find filter inputs, type text, press Arrow Down, press Enter. Filters are applied iteratively for comma-separated values.
+        *   Click 'Show results' (`//button[@data-test-reusables-filters-modal-show-results-button="true"]`).
+        *   Scroll down (`window.scrollTo(0, 4500)`).
+        *   Extract total results text (`//div[@class="search-results-container"]/div/h2/div`) and update `campaign.totalResults`.
+        *   Pagination Loop (`while (nextbuttonText)`):
+            *   Check if 'Next' button (`//button[@aria-label="Next"]`) is enabled.
+            *   Scroll down (`window.scrollTo(0, 4500)`).
+            *   Wait/Sleep (`randomIntFromInterval(1000, 2000)`).
+            *   Extract profile links (`href` from `//ul[contains(@class, "list-style-none")]/li//a[contains(@href, "/in/")]`).
+            *   For each link:
+                *   Extract profile ID (e.g., `john-doe-123`) from URL.
+                *   Check `PreviousLeads.findOne({ value: profileId })`.
+                *   If not found:
+                    *   Create `Lead` entry (`Lead.create({ campaignId: campaignObj._id, clientId: profileId, status: CREATED })`). **Note:** `clientId` here stores the LinkedIn profile ID/slug, *not* a `User` ObjectId directly.
+                    *   Add Lead's `_id` to `campaignObj.resultsArr`.
+                    *   Create `PreviousLeads` entry (`PreviousLeads.create({ value: profileId })`).
+            *   Click 'Next' button.
+        *   Update campaign: `Campaign.findByIdAndUpdate(campaignObj._id, { isSearched: true, processing: false, resultsArr: campaignObj.resultsArr })`.
+        *   `catch` block for campaign loop calls `seleniumErrorHandler()` and continues.
+    5.  Release Redis lock (`redisClientParam.set("isFree", "true")`). Return `false` (indicates search ran, profile scraping might be next).
+*   **LinkedIn Login Logic (`controllers/Campaign.controller.js -> linkedInLogin`):**
+    1.  Retrieves Proxy (`Proxies.findById`). Sets Selenium options (headless, proxy via `options.setProxy(proxyObj.value)`).
+    2.  Navigates to login page. Enters username (`req.body.name`) and Base64 decoded password (`Buffer.from(req.body.password, 'base64').toString()`). Clicks submit.
+    3.  Waits and checks URL/source for:
+        *   Success: `url.includes("feed")` -> returns `{ message: "Login Success", success: true }`.
+        *   CAPTCHA: `url.includes("checkpoint")` and finds `// div[@id="game_challengeItem"]//img` -> extracts image `src`, returns `{ message: "Captcha required", captcha: true, imgUrl: ... }`.
+        *   OTP: `url.includes("checkpoint")` and finds `//form[@id="email-pin-challenge"]` -> extracts message, returns `{ message: "OTP required", otpRequired: true, otpMessage: ... }`.
+        *   Invalid Password: `url.includes("login-challenge-submit")` and finds error message (`//div[@id="error-for-password"]`) -> returns `{ error: ... }`.
+*   **2.5.4. Data Interaction:** Reads `Campaign`, `LinkedInAccounts`, `Proxies`. Reads/Writes `PreviousLeads`. Creates `Lead`. Updates `Campaign`. Uses Redis `isFree`.
 *   **2.5.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Cron triggers, finds pending campaigns, successfully logs in, applies filters, pages through results, extracts unique profile URLs, creates Lead entries, updates campaign status, releases lock. Manual login via API succeeds.
-    *   **b) Edge Cases:** No pending campaigns found. LinkedIn UI changes breaking Selenium selectors. Search yields zero results. All found leads are duplicates. Login requires CAPTCHA/OTP. Running with/without proxy. Campaign uses filters that yield no results after initial search. Network interruptions during scraping.
     *   **c) Error Scenarios & Handling:**
-        *   Login Failure: Invalid credentials, account locked, unexpected page structure. Handled in `linkedInLogin`, may require user intervention via API for CAPTCHA/OTP.
-        *   Selenium Errors: Element not found (due to UI changes, load times), timeout exceptions, WebDriver crashes. Handled by `try...catch` blocks calling `seleniumErrorHandler` and potentially logging errors in `LeadLogs` or `UserLogs`. May cause a campaign to fail or skip results.
-        *   Database Errors: Failing to save Leads or update Campaigns. Handled by `try...catch` -> `next(err)`.
-        *   Duplicate Handling: Successfully identifies and skips previously processed leads via `PreviousLeads` check.
-        *   Rate Limiting/Blocking: LinkedIn detecting automation and blocking the account or IP (mitigated by proxies, random delays (`driver.sleep(randomIntFromInterval(...))`), but still possible). Outcome depends on how LinkedIn responds (e.g., CAPTCHA, temporary block).
-        *   Redis Errors: Failing to get/set the `isFree` lock.
-    *   **d) Security Considerations:** Handling of LinkedIn credentials (see 2.2). Base64 decoding of password in `linkedInLogin` offers no real security (easily reversible). Potential for IP blocking if proxies aren't used or rotated effectively. Robust error handling is crucial to prevent infinite loops or resource exhaustion if LinkedIn's site structure changes unexpectedly. The use of `randomIntFromInterval` for delays suggests an attempt to mimic human behavior and avoid detection.
+        *   Login Failure: Handled by `linkedInLogin` returning specific states (captcha, otp, error message) or throwing -> `next(error)`. Base64 password decoding failure is possible.
+        *   Selenium Errors (ElementNotFound, Timeout): Handled by `try...catch` -> `seleniumErrorHandler()` within loops. May skip profiles or fail a campaign section. The handler itself seems basic.
+        *   DB Errors: Passed to `next(error)`.
+        *   Duplicate Handling: Relies on `PreviousLeads` collection check.
+        *   Rate Limiting/Blocking: Mitigated by random sleeps (`driver.sleep(randomIntFromInterval(...))`) between actions. May result in CAPTCHA/OTP or account blocks.
+        *   Redis Errors: Can prevent job from starting or releasing lock.
+    *   **d) Security Considerations:** Base64 for password in `/linkedInLogin` is trivial to reverse, effectively plain text over API. Potential for abuse if manual trigger endpoints (`/searchLinkedin`) are not secured. Robustness depends heavily on fragile XPath selectors; LinkedIn UI changes will break scraping.
 
 ### 2.6. Feature: Automated LinkedIn Profile Scraping (Scraping - Core Functionality)
 
-*   **2.6.1. Description:** This automated process, likely following the search phase (potentially triggered by `cronFunc` after `searchLinkedInFn` or manually), takes the leads generated (specifically their LinkedIn profile URLs/IDs stored in `Lead` documents, likely those with `isSearched: false` on the *Lead* model), visits each profile page using Selenium, and extracts detailed information (e.g., name, title, company, education, experience, contact info if available).
-*   **2.6.2. Interaction Points / API Endpoints:** Primarily an internal process called by `cronFunc` (`linkedInProfileScrapping` in `Campaign.controller.js`) or potentially manual triggers:
-    *   `POST /linkedInProfileScrappingReq`: (From `Campaign.controller.js`) - Likely a manual trigger to start scraping profiles for specific leads or campaigns.
-*   **2.6.3. Core Logic & Workflow (`controllers/Campaign.controller.js` - `linkedInProfileScrapping` function):**
-    1.  (Assumes Redis lock is potentially held or re-acquired if run separately from search).
-    2.  Fetches `Lead` documents that need scraping (e.g., `isSearched: false` on the Lead model, or linked to campaigns marked as `isSearched: true` but not yet fully scraped). The exact query needs confirmation by reading the function body fully.
-    3.  Iterates through the list of leads to scrape:
-        *   Retrieves the LinkedIn profile URL/ID from the `Lead` document (`lead.clientId`).
-        *   Navigates the Selenium driver to the profile page (`https://www.linkedin.com/in/${profileId}/`).
-        *   Waits for the profile page elements to load.
-        *   Uses numerous specific Selenium `findElement(By.xpath(...))` calls to locate and extract text/data for various profile sections:
-            *   Name
-            *   Headline/Title
-            *   Location
-            *   About section
-            *   Experience (loops through multiple positions) - Company, Title, Duration, Description
-            *   Education (loops through multiple entries) - School, Degree, Dates
-            *   Skills
-            *   Contact Info (if accessible - often requires connection)
-            *   Profile picture URL
-        *   Handles cases where sections might be missing using `try...catch` or checking element presence.
-        *   Updates the corresponding `User` document (identified by `lead.clientId` - **this seems potentially incorrect, maybe it should update a separate Profile collection or enrich the Lead object? Reading the full function is needed for clarity.** The `User` model doesn't seem designed to hold detailed scraped profile data directly). It might be updating the `User` record *if* the scraped profile corresponds to an existing user in the system identified by their profile ID, or perhaps it *creates* a User record of type 'CLIENT' from the scraped data. The call `CalculateRating(usersArr[j])` in `users.controller` suggests `User` objects *do* hold scraped data like experience/education needed for rating.
-        *   Updates the `Lead` document status (e.g., sets `isSearched: true` on the lead).
-        *   Includes random delays (`driver.sleep(randomIntFromInterval(...))`) between actions.
-    4.  Handles errors during scraping of individual profiles (logs, skips profile).
-    5.  (Releases Redis lock if applicable).
-*   **2.6.4. Data Interaction:** Reads `Lead` documents. Reads/Writes `User` documents (to store scraped profile details). Updates `Lead` status flags. Uses Selenium `driver`.
+*   **2.6.1. Description:** Automated process (follows search, usually via cron) that visits LinkedIn profiles identified in the search phase (`Lead` documents) and scrapes detailed information (position, location, contact, education, experience) directly into corresponding `User` documents (where `role` is 'CLIENT').
+*   **2.6.2. Interaction Points / API Endpoints:**
+    *   Internal Trigger: `cronFunc` (in `app.js`) calls `controllers/Campaign.controller.js -> linkedInProfileScrapping`.
+    *   Manual Trigger: `POST /campaign/linkedInProfileScrappingReq`: Calls `linkedInProfileScrapping`.
+*   **2.6.3. Core Logic & Workflow (`controllers/Campaign.controller.js -> linkedInProfileScrapping`):**
+    1.  Acquire Redis lock (`redisClientParam.set("isFree", "false")`).
+    2.  Check login status (`checkLinkedInLoginFunc`). If not logged in, send email alert, release lock, return `false`.
+    3.  Fetch users needing scraping: `User.find({ role: rolesObj?.CLIENT, searchCompleted: false }).limit(50).lean()`. If none, return `true` (profile scraping done).
+    4.  Loop through fetched users (`for (let j = 0; j < userArr.length; j++)`):
+        *   Get target profile URL from `userArr[j].link`.
+        *   Navigate Selenium driver (`driver.get(userArr[j].link)`).
+        *   Wait/Sleep (`randomIntFromInterval(1000, 15000)`), random scroll.
+        *   **Extract Data using specific XPaths & store in `userArr[j]` object:**
+            *   Current Position: `//div[@class="text-body-medium break-words"]` -> `userArr[j].currentPosition`.
+            *   Location: `//span[@class="text-body-small inline t-black--light break-words"]` -> `userArr[j].location`.
+            *   Contact Info: Navigate to `profileUrl/overlay/contact-info/`. Find sections (`//div[@class='pv-profile-section__section-info section-info']/section`). Loop through sections, extract heading (`//h3[contains(@class, 'pv-contact-info__header')]`) and data (links `//a` or list items `//ul/li/span`). Store as array `[{ heading: "...", dataArr: ["..."] }]` in `userArr[j].contactInfoArr`.
+            *   Education: Navigate to `profileUrl/details/education/`. Find list items (`//div[@class="scaffold-finite-scroll__content"]/ul/li`). Loop, extract school name, details, year using specific XPaths. Store as array `[{ schoolName: "...", schoolDetail: "...", year: "..." }]` in `userArr[j].educationArr`.
+            *   Experience: Navigate to `profileUrl/details/experience/`. Similar loop structure for list items, extracting company, title, duration, location, description. Store as array in `userArr[j].experienceArr`.
+        *   **Update Database:** `User.findByIdAndUpdate(userArr[j]._id, { ...scrapedData, searchCompleted: true })`.
+        *   `catch` block for user loop calls `seleniumErrorHandler()` and continues.
+    5.  Release Redis lock (`redisClientParam.set("isFree", "true")`). Return `false` (indicates scraping ran).
+*   **2.6.4. Data Interaction:** Reads `User` (role CLIENT, `searchCompleted: false`). Reads `Campaign` (briefly, unused?). Updates `User` with scraped details and sets `searchCompleted: true`. Uses Selenium `driver`. Uses Redis `isFree`.
 *   **2.6.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Successfully fetches leads, navigates to profiles, extracts all expected data points, updates User/Lead records, moves to the next profile.
-    *   **b) Edge Cases:** Profile page variations (different layouts for premium vs. free, different languages). Missing profile sections (no 'About', no 'Experience'). Private profiles (limited data visible). Encountering profiles requiring connection request to see details. Scraping very large profiles (many jobs/schools).
+    *   **a) Happy Paths:** Fetches 'CLIENT' users needing scraping, navigates profiles, extracts data via XPaths, updates `User` record successfully.
+    *   **b) Edge Cases:** Profile variations (Premium, different languages), missing sections (handled by local `try...catch` around extractions), private profiles, connection required for contact info.
     *   **c) Error Scenarios & Handling:**
-        *   Selenium Errors: Element not found (UI changes), timeouts, navigation errors. Handled by local `try...catch`, logs error, likely skips the profile.
-        *   Data Extraction Errors: Failing to parse specific data points correctly.
-        *   Database Errors: Failing to update User/Lead records.
-        *   Rate Limiting/Blocking: LinkedIn detecting profile scraping activity. More likely during intensive profile visits than during search.
-    *   **d) Security Considerations:** Same as LinkedIn Search (handling credentials, avoiding detection). Parsing scraped HTML/data needs to be robust against unexpected content or structure changes. Storing potentially large amounts of scraped data requires adequate database capacity. Privacy implications of storing detailed personal data scraped from LinkedIn need consideration (compliance with LinkedIn ToS, data privacy regulations like GDPR/CCPA). The purpose of storing scraped data directly in the `User` model needs clarification - if these represent actual *users* of the application vs. *scraped leads*, mixing them could be problematic.
+        *   Selenium Errors (ElementNotFound, Timeout): Caught by local `try...catch` -> `seleniumErrorHandler()`. Profile likely skipped or partially scraped.
+        *   Data Extraction Errors: Incorrect data format due to UI changes.
+        *   DB Errors: Failing to update `User` -> `next(error)`.
+        *   Rate Limiting/Blocking: High risk due to multiple page loads per profile (main, contact, edu, exp). Random delays used for mitigation.
+    *   **d) Security Considerations:** Data privacy implications of storing detailed scraped personal data in the `User` collection. Compliance with LinkedIn ToS and data regulations (GDPR/CCPA). Robustness depends entirely on fragile XPath selectors.
 
 ### 2.7. Feature: Lead Management
 
-*   **2.7.1. Description:** Provides functionalities to view, manage, and potentially assign leads generated by the scraping process.
-*   **2.7.2. Interaction Points / API Endpoints:** (Base Path: `/lead`) - *Methods inferred*
-    *   `GET /`: Retrieves a list of leads (likely filterable by campaign, status, assigned user, etc.).
-    *   `GET /:id`: Retrieves details of a specific lead.
-    *   `PATCH /:id`: Updates a lead (e.g., assigning to a user (`leadAssignedToId`), changing status).
-    *   `DELETE /:id`: Deletes a lead.
-    *   (Potential) `POST /assign`: Endpoint to assign leads to users.
-*   **2.7.3. Core Logic & Workflow:** Standard CRUD operations on the `Lead` collection, potentially involving lookups to `User` (for assignment) and `Campaign` (for context). Controllers likely reside in `controllers/Lead.controller.js`.
-*   **2.7.4. Data Interaction:** Primarily interacts with the `Lead` collection. May read `User` and `Campaign` collections for filtering or displaying related information.
+*   **2.7.1. Description:** Manages the `Lead` documents, which act as links between a `Campaign` and a scraped `User` profile ('CLIENT' role), and track assignment to application users.
+*   **2.7.2. Interaction Points / API Endpoints:** (Base Path: `/lead`) - Verified via `routes/Lead.routes.js` and controller.
+    *   `GET /getLeads`: Retrieves leads, supports pagination (`limit`, `skip`), filtering (`campaignId`, `status`, `leadAssignedToId`), and sorting (`sort`). Populates related `campaignId`, `clientId`, `leadAssignedToId` data.
+    *   `GET /getById/:id`: Retrieves a specific lead by ID, populating related data.
+    *   `PATCH /updateById/:id`: Updates lead fields (e.g., `status`, `rating`, `leadAssignedToId`).
+    *   `DELETE /deleteById/:id`: Deletes a lead.
+    *   `POST /exportLeadsToExcel`: Exports leads matching filters to an Excel file using `exceljs`.
+*   **2.7.3. Core Logic & Workflow:** CRUD operations in `controllers/Lead.controller.js`. `getLeads` uses complex query building based on `req.query`. `exportLeadsToExcel` fetches filtered leads and uses `exceljs` to create and send a downloadable file.
+*   **2.7.4. Data Interaction:** `Lead` model (CRUD). Reads `User` and `Campaign` via Mongoose `populate()` during retrieval.
 *   **2.7.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Listing leads, filtering leads, viewing lead details, assigning a lead, changing lead status, deleting a lead.
-    *   **b) Edge Cases:** Listing leads when none exist. Filtering resulting in an empty set. Updating a lead that was recently deleted.
-    *   **c) Error Scenarios & Handling:** Lead not found for GET/PATCH/DELETE. Invalid user ID provided for assignment. Database errors. Invalid status update.
-    *   **d) Security Considerations:** Proper authorization required to access/modify leads, potentially based on user roles or lead assignment.
+    *   **c) Error Scenarios & Handling:** Mongoose errors -> `next(error)`. `deleteById` returns 400 if not found. Errors during Excel generation (`exportLeadsToExcel`) -> `next(error)`.
+    *   **d) Security Considerations:** Authorization needed based on roles or lead assignment (not explicitly shown how access is restricted in controller). Filtering logic relies on `req.query`, ensure no injection vulnerabilities if query parameters are used insecurely in DB queries (Mongoose helps mitigate this).
 
 ### 2.8. Feature: Lead Status Management
 
-*   **2.8.1. Description:** Manages the custom statuses that can be assigned to leads (e.g., "New", "Contacted", "Qualified", "Rejected"). Allows defining and managing these statuses.
-*   **2.8.2. Interaction Points / API Endpoints:** (Base Path: `/leadStatus`) - *Methods inferred*
-    *   `POST /`: Creates a new lead status definition.
-    *   `GET /`: Retrieves the list of defined lead statuses.
-    *   `PATCH /:id`: Updates a lead status definition.
-    *   `DELETE /:id`: Deletes a lead status definition.
-*   **2.8.3. Core Logic & Workflow:** Standard CRUD operations, likely interacting with a `LeadStatus` collection/model (inferred from route name).
-*   **2.8.4. Data Interaction:** Interacts with the `LeadStatus` collection (inferred). The `Lead` model uses a `String` for status, suggesting these defined statuses are used as the valid values.
+*   **2.8.1. Description:** Manages the definitions of custom statuses assignable to `Lead` objects.
+*   **2.8.2. Interaction Points / API Endpoints:** (Base Path: `/leadStatus`) - Verified via `routes/LeadStatus.routes.js`. Standard CRUD endpoints assumed (`addLeadStatus`, `getLeadStatus`, `getById`, `updateById`, `deleteById`).
+*   **2.8.3. Core Logic & Workflow:** Standard Mongoose CRUD in the corresponding controller on the `LeadStatus` model.
+*   **2.8.4. Data Interaction:** `LeadStatus` model (CRUD).
 *   **2.8.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Creating, listing, updating, deleting lead statuses. Leads being successfully updated to use one of these statuses.
-    *   **b) Edge Cases:** Deleting a status currently in use by leads (should likely be prevented or handled gracefully).
-    *   **c) Error Scenarios & Handling:** Status not found. Database errors. Validation errors (e.g., duplicate status name).
-    *   **d) Security Considerations:** Access should likely be restricted to administrators.
+    *   **c) Error Scenarios & Handling:** Standard Mongoose errors -> `next(error)`. Delete likely prevents deletion if status is in use (needs verification).
+    *   **d) Security Considerations:** Admin-only access required.
 
 ### 2.9. Feature: Lead Logging & Comments
 
-*   **2.9.1. Description:** Allows users to add comments or notes to specific leads and provides a log of activities or events related to leads (potentially automated logs from scraping or manual entries).
+*   **2.9.1. Description:** Manages comments and activity logs associated with `Lead` documents.
 *   **2.9.2. Interaction Points / API Endpoints:**
-    *   Base Path: `/leadComments` - *Methods inferred*
-        *   `POST /`: Adds a comment to a lead. (Requires `leadId` in body).
-        *   `GET /?leadId=:id`: Retrieves comments for a specific lead.
-        *   `PATCH /:id`: Updates a comment.
-        *   `DELETE /:id`: Deletes a comment.
-    *   Base Path: `/leadlogs` - *Methods inferred*
-        *   `GET /?leadId=:id`: Retrieves logs for a specific lead.
-        *   (Internal logging likely happens automatically during scraping/processing).
-*   **2.9.3. Core Logic & Workflow:** CRUD operations for comments. Logging likely involves creating new log entries in the corresponding controller/helper functions during relevant events (e.g., lead creation, status change, scraping error related to the lead).
-*   **2.9.4. Data Interaction:** Interacts with `LeadComment` and `LeadLogs` collections (inferred models). Requires linking comments/logs to specific `Lead` documents.
+    *   Base Path: `/leadComments` - Verified via `routes/LeadComment.routes.js`. Standard CRUD (`addLeadComment`, `getLeadComment` (filtered by `leadId`), `updateById`, `deleteById`).
+    *   Base Path: `/leadlogs` - Verified via `routes/LeadLogs.routes.js`. Likely `getLeadLogs` (filtered by `leadId`). Automatic logging assumed during scraping/status changes.
+*   **2.9.3. Core Logic & Workflow:** Standard CRUD for comments in `LeadComment.controller.js`. Logging likely involves `LeadLogs.create()` calls within other controllers/helpers at relevant points (e.g., scraping errors, status updates).
+*   **2.9.4. Data Interaction:** `LeadComment` model (CRUD). `LeadLogs` model (Create, Read). Links to `Lead` model via `leadId`.
 *   **2.9.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Adding/viewing/editing/deleting comments. Viewing activity logs for a lead. Automated logs being generated correctly.
-    *   **b) Edge Cases:** Viewing comments/logs for a lead with none. Adding very long comments. High volume of automated logs.
-    *   **c) Error Scenarios & Handling:** Lead not found when adding/viewing comments/logs. Database errors. Comment not found for update/delete.
-    *   **d) Security Considerations:** Authorization needed to ensure users can only comment/view logs according to their permissions (e.g., only on assigned leads or based on role). Sanitization of comment input to prevent XSS if comments are displayed directly in the frontend.
+    *   **c) Error Scenarios & Handling:** Standard Mongoose errors -> `next(error)`. Not found errors for GET/PATCH/DELETE.
+    *   **d) Security Considerations:** Authorization for comments/logs. Input sanitization for comments if displayed in HTML.
 
 ### 2.10. Feature: Email Configuration & Sending
 
-*   **2.10.1. Description:** Manages settings for sending emails (likely SMTP server details) and provides functionality to send emails (e.g., alerts about login issues, sending campaign data, potentially custom emails to leads).
+*   **2.10.1. Description:** Manages SMTP settings and sends emails for alerts and specific actions.
 *   **2.10.2. Interaction Points / API Endpoints:**
-    *   Base Path: `/emailSettings` - *Methods inferred*
-        *   `POST /` or `PATCH /`: Creates or updates email configuration (SMTP host, port, user, pass). Likely only one global setting stored.
-        *   `GET /`: Retrieves current email configuration (should mask password).
-    *   Base Path: `/customemail` - *Methods inferred*
-        *   `POST /`: Sends a custom email. Request body likely includes recipient(s), subject, body.
+    *   Base Path: `/emailSettings` - Verified via `routes/EmailSettings.routes.js`. Likely `addEmailSettings`, `getEmailSettings`, `updateById`.
+    *   Base Path: `/customemail` - Verified via `routes/customemail.router.js`. `POST /sendCustomMail` endpoint.
 *   **2.10.3. Core Logic & Workflow:**
-    *   **Settings:** CRUD operations for `EmailSettings` model (inferred).
-    *   **Sending:** Uses `nodemailer` library. Helpers like `sendMail` and `sendCustomMailToSavanta` (seen in `Campaign.controller.js`) encapsulate email sending logic, likely pulling configuration from `EmailSettings` or environment variables. Emails are sent for specific events like LinkedIn login failures (`searchLinkedInFn` calls `sendMail`) or manually triggered actions (`sendCampaignToSevanta`).
-*   **2.10.4. Data Interaction:** Reads/Writes `EmailSettings` collection (inferred).
+    *   **Settings:** CRUD for `EmailSettings` model in its controller.
+    *   **Sending:** `controllers/customemail.controller.js -> sendCustomMail` handles the API endpoint. Uses `helpers/nodeMailer.js -> sendMail` which configures `nodemailer` transport (likely using `EmailSettings` data or env vars) and sends email. `sendMail` is also called internally (e.g., from `searchLinkedInFn` on login failure). `sendCustomMailToSavanta` (in `Campaign.controller.js`) is another specific email helper.
+*   **2.10.4. Data Interaction:** `EmailSettings` model (CRUD).
 *   **2.10.5. Detailed Scenarios:**
-    *   **a) Happy Paths:** Configuring email settings successfully. Sending test/custom emails successfully. Automated alert emails being sent correctly upon LinkedIn login failure.
-    *   **b) Edge Cases:** Sending emails to multiple recipients. Handling email templates (if any).
-    *   **c) Error Scenarios & Handling:** Invalid email configuration (wrong host, port, credentials). Nodemailer failing to connect or send (network issues, authentication failure, recipient address invalid, spam filters). Database errors for settings.
-    *   **d) Security Considerations:** Email credentials stored in `EmailSettings` must be secured (encrypted at rest). Access to configure settings should be admin-only. Be cautious about what data is included in emails. Rate limiting on custom email sending might be needed to prevent abuse.
+    *   **c) Error Scenarios & Handling:** Nodemailer errors (connection, auth, invalid recipient) caught and passed via `next(error)`. DB errors for settings -> `next(error)`.
+    *   **d) Security Considerations:** SMTP credentials in `EmailSettings` must be secured. Admin-only access for settings. Rate limiting on `/sendCustomMail` endpoint recommended.
+
+### 2.11. Feature: Selenium WebDriver Management
+
+*   **2.11.1. Description:** Handles the lifecycle and configuration of the shared Selenium WebDriver instance used for all browser automation tasks. Detects and uses the appropriate platform-specific `chromedriver` executable.
+*   **2.11.2. Interaction Points / API Endpoints:**
+    *   Internal: WebDriver instance (`driver`) initialized in `app.js` and exported for use in controllers/helpers.
+    *   Manual Control: `POST /campaign/forceCloseDriver`: Endpoint to attempt quitting the shared driver instance.
+*   **2.11.3. Core Logic & Workflow:**
+    *   **Initialization (`app.js`):** Configures Chrome options (headless, proxy support, etc.), identifies the platform-specific `chromedriver` path (`path.join(process.cwd(), "chromedriver")` - implicitly handles `.exe` on Windows if present), sets up the service builder, and creates a single shared `driver` promise resolved with the WebDriver instance.
+    *   **Usage:** The resolved `driver` instance is imported and used throughout `controllers/Campaign.controller.js` and `helpers/SearchLinkedInFn.js` for navigation, element interaction, and data extraction.
+    *   **Termination (`controllers/Campaign.controller.js -> forceCloseDriver`):** Attempts to call `driver.quit()`.
+*   **2.11.4. Data Interaction:** N/A (Manages browser state).
+*   **2.11.5. Detailed Scenarios:**
+    *   **a) Happy Paths:** Driver initializes successfully, scraping functions use the shared instance correctly.
+    *   **b) Edge Cases:** Multiple functions attempting to use the driver concurrently (potentially problematic if not carefully managed, although Redis lock helps serialize major tasks). Driver crashing or becoming unresponsive.
+    *   **c) Error Scenarios & Handling:** Initialization failure (chromedriver path incorrect, port conflict). `driver.quit()` failure. Errors during Selenium commands handled locally where used. The shared nature means a driver crash affects all subsequent operations until restart.
+    *   **d) Security Considerations:** Running browser automation has inherent risks. Ensuring `chromedriver` is up-to-date is important. The `--no-sandbox` argument is often necessary in containerized environments but reduces browser security.
 
 ---
