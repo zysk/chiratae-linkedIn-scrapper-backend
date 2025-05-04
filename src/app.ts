@@ -13,6 +13,8 @@ import { errorHandler, ApiError } from './middleware/errorHandler';
 // Import routes
 import userRoutes from './routes/user.routes';
 import userRatingRoutes from './routes/userRating.routes';
+import linkedinAccountRoutes from './routes/linkedinAccount.routes';
+import proxyRoutes from './routes/proxy.routes';
 
 // Create Express app
 const app = express();
@@ -53,6 +55,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/ratings', userRatingRoutes);
+app.use('/api/linkedin-accounts', linkedinAccountRoutes);
+app.use('/api/proxies', proxyRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

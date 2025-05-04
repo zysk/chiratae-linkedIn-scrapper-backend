@@ -17,64 +17,105 @@ This project is a backend API service that automates LinkedIn searches, profile 
 - Lead management and annotation
 - Email integration for notifications
 
-## Tech Stack
+## ✅ Completed Components
 
-- Node.js with TypeScript
-- Express.js for API server
-- MongoDB with Mongoose for database
-- Redis for distributed locking
-- Selenium WebDriver for browser automation
-- JWT for authentication
-- Node-schedule for cron jobs
+### 1. Authentication System
+- JWT-based authentication with refresh tokens
+- Role-based access control (USER, ADMIN, CLIENT)
+- Secure password hashing with bcrypt
+- User management API for admins
+
+### 2. LinkedIn Account and Proxy Management
+- Secure credential storage with AES-256-GCM encryption
+- LinkedIn account CRUD operations
+- Proxy server CRUD operations
+- Automatic rotation of accounts and proxies
+- Usage tracking and availability management
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v16+)
+- Node.js (v14+)
 - MongoDB
-- Redis
-- Chrome browser (for Selenium WebDriver)
+- npm or yarn
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd linkedin-scraper-backend
-   ```
+```bash
+# Clone the repository
+git clone <repository-url>
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. Create a `.env` file based on `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
 
-4. Edit the `.env` file with your configuration.
+# Start development server
+npm run dev
+```
 
-5. Build the project:
-   ```bash
-   npm run build
-   ```
+### Testing
 
-6. Start the server:
-   ```bash
-   npm start
-   ```
+```bash
+# Run automated tests
+npm test
 
-For development:
-   ```bash
-   npm run dev
-   ```
+# Test LinkedIn and Proxy management
+npm run test:linkedin-proxy
+
+# Check port availability
+npm run port:check 4000
+
+# Run on alternative port
+npm run dev:4001
+```
 
 ## API Documentation
 
-API documentation will be available at `/api/docs` when the server is running.
+See [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md) for a complete list of API endpoints.
+
+For testing with Postman, see [docs/POSTMAN_GUIDE.md](docs/POSTMAN_GUIDE.md).
+
+## Project Structure
+
+```
+├── src/
+│   ├── controllers/     # Request handlers
+│   ├── middleware/      # Express middleware
+│   ├── models/          # MongoDB models
+│   ├── routes/          # API routes
+│   ├── services/        # Business logic
+│   ├── utils/           # Utility functions
+│   ├── app.ts           # Express app
+│   └── server.ts        # Server entry point
+├── docs/                # Documentation
+├── postman/             # Postman collections
+├── scripts/             # Utility scripts
+└── tests/               # Test files
+```
+
+## Port Management
+
+If you encounter port conflicts, use the provided scripts:
+
+```bash
+# Check if port 4000 is available
+npm run port:check 4000
+
+# Find the next available port
+npm run port:find
+
+# Run on a specific port
+npm run dev:port --port=4001
+```
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

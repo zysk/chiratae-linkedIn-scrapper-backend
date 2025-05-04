@@ -1,0 +1,108 @@
+### Authentication: Register an admin user
+POST http://localhost:4000/api/users/register
+Content-Type: application/json
+
+{
+  "email": "admin4@example.com",
+  "password": "adminpass123",
+  "name": "Admin User 4",
+  "role": "ADMIN"
+}
+
+### Authentication: Login as admin
+POST http://localhost:4000/api/users/login
+Content-Type: application/json
+
+{
+  "email": "admin2@example.com",
+  "password": "adminpass123"
+}
+
+### Create LinkedIn Account
+# Replace {{adminToken}} with the access token from the login response
+POST http://localhost:4000/api/linkedin-accounts
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "linkedin_test@example.com",
+  "password": "linkedin123",
+  "status": "active"
+}
+
+### Get All LinkedIn Accounts
+GET http://localhost:4000/api/linkedin-accounts
+Authorization: Bearer {{adminToken}}
+
+### Get LinkedIn Account by ID
+# Replace {{accountId}} with an actual account ID
+GET http://localhost:4000/api/linkedin-accounts/{{accountId}}
+Authorization: Bearer {{adminToken}}
+
+### Update LinkedIn Account
+# Replace {{accountId}} with an actual account ID
+PUT http://localhost:4000/api/linkedin-accounts/{{accountId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "linkedin_test@example.com",
+  "password": "updated_password",
+  "status": "inactive"
+}
+
+### Delete LinkedIn Account
+# Replace {{accountId}} with an actual account ID
+DELETE http://localhost:4000/api/linkedin-accounts/{{accountId}}
+Authorization: Bearer {{adminToken}}
+
+### Get Next LinkedIn Account for Rotation
+GET http://localhost:4000/api/linkedin-accounts/next
+Authorization: Bearer {{adminToken}}
+
+### Create Proxy
+POST http://localhost:4000/api/proxies
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "host": "192.168.1.1",
+  "port": 8080,
+  "username": "proxyuser",
+  "password": "proxypass",
+  "protocol": "http",
+  "status": "active"
+}
+
+### Get All Proxies
+GET http://localhost:4000/api/proxies
+Authorization: Bearer {{adminToken}}
+
+### Get Proxy by ID
+# Replace {{proxyId}} with an actual proxy ID
+GET http://localhost:4000/api/proxies/{{proxyId}}
+Authorization: Bearer {{adminToken}}
+
+### Update Proxy
+# Replace {{proxyId}} with an actual proxy ID
+PUT http://localhost:4000/api/proxies/{{proxyId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "host": "192.168.1.1",
+  "port": 8080,
+  "username": "proxyuser",
+  "password": "updated_password",
+  "protocol": "http",
+  "status": "inactive"
+}
+
+### Delete Proxy
+# Replace {{proxyId}} with an actual proxy ID
+DELETE http://localhost:4000/api/proxies/{{proxyId}}
+Authorization: Bearer {{adminToken}}
+
+### Get Next Proxy for Rotation
+GET http://localhost:4000/api/proxies/next
+Authorization: Bearer {{adminToken}}

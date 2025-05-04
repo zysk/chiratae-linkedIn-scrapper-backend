@@ -1,0 +1,742 @@
+{
+  "info": {
+    "_postman_id": "12345678-abcd-1234-efgh-1234567890ab",
+    "name": "Chiratae LinkedIn Scraper - LinkedIn & Proxy Tests",
+    "description": "Tests for LinkedIn Account and Proxy Management (Task #3)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    pm.expect(response).to.have.property('token');",
+                  "});",
+                  "",
+                  "if (response.token) {",
+                  "    pm.environment.set('adminToken', response.token);",
+                  "    console.log(\"Admin token saved to environment\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin2@example.com\",\n    \"password\": \"adminpass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            },
+            "description": "Login with admin credentials to get token for subsequent requests"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints necessary for obtaining tokens"
+    },
+    {
+      "name": "LinkedIn Accounts",
+      "item": [
+        {
+          "name": "Create LinkedIn Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('id');",
+                  "});",
+                  "",
+                  "if (response.data && response.data.id) {",
+                  "    pm.environment.set('linkedinAccountId', response.data.id);",
+                  "    console.log(\"LinkedIn Account ID saved: \" + response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"linkedin_test\",\n    \"password\": \"securePassword123\",\n    \"email\": \"linkedin_test@example.com\",\n    \"description\": \"Test LinkedIn account\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts"
+              ]
+            },
+            "description": "Create a new LinkedIn account (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All LinkedIn Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data array\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts"
+              ]
+            },
+            "description": "Get all LinkedIn accounts (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get LinkedIn Account by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data with correct ID\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('id');",
+                  "    pm.expect(response.data.id).to.equal(pm.environment.get('linkedinAccountId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{linkedinAccountId}}"
+                }
+              ]
+            },
+            "description": "Get LinkedIn account details by ID (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update LinkedIn Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has updated data\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('username');",
+                  "    pm.expect(response.data.username).to.equal('linkedin_test_updated');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"linkedin_test_updated\",\n    \"password\": \"newSecurePassword456\",\n    \"email\": \"linkedin_updated@example.com\",\n    \"description\": \"Updated test LinkedIn account\",\n    \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{linkedinAccountId}}"
+                }
+              ]
+            },
+            "description": "Update LinkedIn account details (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Next Available LinkedIn Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Note: This endpoint might return 404 if no available accounts",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    pm.test(\"Response has data\", function () {",
+                  "        pm.expect(response).to.have.property('data');",
+                  "        pm.expect(response.data).to.have.property('id');",
+                  "    });",
+                  "} else if (pm.response.code === 404) {",
+                  "    pm.test(\"No available accounts found (expected)\", function() {",
+                  "        // This is acceptable if no accounts are available",
+                  "        pm.expect(pm.response.code).to.equal(404);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Status code should be either 200 or 404\", function () {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts/next/available",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts",
+                "next",
+                "available"
+              ]
+            },
+            "description": "Get next available LinkedIn account for rotation (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete LinkedIn Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Account deleted successfully\", function () {",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/linkedin-accounts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "linkedin-accounts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{linkedinAccountId}}"
+                }
+              ]
+            },
+            "description": "Delete LinkedIn account (admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "LinkedIn Account management endpoints"
+    },
+    {
+      "name": "Proxies",
+      "item": [
+        {
+          "name": "Create Proxy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('id');",
+                  "});",
+                  "",
+                  "if (response.data && response.data.id) {",
+                  "    pm.environment.set('proxyId', response.data.id);",
+                  "    console.log(\"Proxy ID saved: \" + response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"192.168.1.100\",\n    \"port\": 8080,\n    \"username\": \"proxyuser\",\n    \"password\": \"proxypass\",\n    \"protocol\": \"http\",\n    \"description\": \"Test proxy server\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies"
+              ]
+            },
+            "description": "Create a new proxy (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Proxies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data array\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies"
+              ]
+            },
+            "description": "Get all proxies (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Proxy by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data with correct ID\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('id');",
+                  "    pm.expect(response.data.id).to.equal(pm.environment.get('proxyId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{proxyId}}"
+                }
+              ]
+            },
+            "description": "Get proxy details by ID (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Proxy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has updated data\", function () {",
+                  "    pm.expect(response).to.have.property('data');",
+                  "    pm.expect(response.data).to.have.property('host');",
+                  "    pm.expect(response.data.host).to.equal('192.168.1.101');",
+                  "    pm.expect(response.data.protocol).to.equal('https');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"192.168.1.101\",\n    \"port\": 8081,\n    \"username\": \"proxyuser_updated\",\n    \"password\": \"proxypass_updated\",\n    \"protocol\": \"https\",\n    \"description\": \"Updated test proxy server\",\n    \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{proxyId}}"
+                }
+              ]
+            },
+            "description": "Update proxy details (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Next Available Proxy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Note: This endpoint might return 404 if no available proxies",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    pm.test(\"Response has data\", function () {",
+                  "        pm.expect(response).to.have.property('data');",
+                  "        pm.expect(response.data).to.have.property('id');",
+                  "    });",
+                  "} else if (pm.response.code === 404) {",
+                  "    pm.test(\"No available proxies found (expected)\", function() {",
+                  "        // This is acceptable if no proxies are available",
+                  "        pm.expect(pm.response.code).to.equal(404);",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Status code should be either 200 or 404\", function () {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies/next/available",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies",
+                "next",
+                "available"
+              ]
+            },
+            "description": "Get next available proxy for rotation (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Proxy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Proxy deleted successfully\", function () {",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxies/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proxies",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{proxyId}}"
+                }
+              ]
+            },
+            "description": "Delete proxy (admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Proxy management endpoints"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    }
+  ]
+}
