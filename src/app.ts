@@ -10,6 +10,10 @@ import { createClient } from 'redis';
 import { CONFIG } from './utils/config';
 import { errorHandler, ApiError } from './middleware/errorHandler';
 
+// Import routes
+import userRoutes from './routes/user.routes';
+import userRatingRoutes from './routes/userRating.routes';
+
 // Create Express app
 const app = express();
 
@@ -29,51 +33,43 @@ const redisClient = createClient({
 
 redisClient.on('connect', () => {
   console.log('Redis connected');
-  redisClient.set('isFree', 'true')
-    .then(() => console.log('Key set successfully in Redis'))
-    .catch((err) => console.error('Error setting key in Redis:', err));
+  redisClient.set('app:status', 'online');
 });
 
 redisClient.on('error', (err) => {
   console.error('Redis connection error:', err);
 });
 
-redisClient.connect().catch((err) => {
-  console.error('Redis connection attempt failed:', err);
-});
+redisClient.connect().catch(console.error);
 
-// Set up middleware
-app.use(cors());
-app.use(logger(CONFIG.NODE_ENV === 'development' ? 'dev' : 'combined'));
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: false, limit: '100mb', parameterLimit: 10000000 }));
+// Middleware
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(cors());
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/ratings', userRatingRoutes);
+
 // Health check endpoint
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'Server is running',
-    environment: CONFIG.NODE_ENV,
-    timestamp: new Date().toISOString()
+    message: 'API is running',
+    timestamp: new Date(),
+    environment: CONFIG.NODE_ENV
   });
 });
 
-// Setup routes (will be implemented later)
-// app.use('/users', usersRouter);
-// app.use('/campaign', campaignRouter);
-// app.use('/lead', leadRouter);
-// ... more routes
-
 // Catch 404 and forward to error handler
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const error = new ApiError(`Route not found: ${req.originalUrl}`, 404);
-  next(error);
+app.use((req, res, next) => {
+  next(new ApiError(`Not Found - ${req.originalUrl}`, 404));
 });
 
-// Global error handler middleware
+// Error handler
 app.use(errorHandler);
 
-export { redisClient };
 export default app;

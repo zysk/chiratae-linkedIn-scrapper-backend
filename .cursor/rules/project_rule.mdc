@@ -1,7 +1,7 @@
 ---
 description:
 globs:
-alwaysApply: true
+alwaysApply: false
 ---
 - This project is a revamp of an existing project.
 	- Go through `old-code` to analyze the business logic of previous project.
