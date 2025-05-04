@@ -1,41 +1,23 @@
-import mongoose from 'mongoose';
-import { config } from '../config/config';
+import { Connection } from 'mongoose';
+import { getMongoConnectionPool, mongoose } from '../services/mongoConnectionPool.service';
 import { Logger } from '../services/logger.service';
+import { config } from '../config/config';
 
 const logger = new Logger('Database');
 
 /**
- * Database connection options
- */
-const dbOptions: mongoose.ConnectOptions = {
-  serverSelectionTimeoutMS: 5000, // 5 seconds timeout for server selection
-  socketTimeoutMS: 45000, // 45 seconds socket timeout
-  // Other options can be added as needed
-};
-
-/**
- * Connects to MongoDB database
+ * Connects to MongoDB database using the connection pool
  * @returns Promise that resolves when connection is successful
  */
-export const connectDatabase = async (): Promise<mongoose.Connection> => {
+export const connectDatabase = async (): Promise<Connection> => {
   try {
     logger.info(`Connecting to MongoDB at ${maskConnectionString(config.MONGOURI)}...`);
-    await mongoose.connect(config.MONGOURI, dbOptions);
 
-    const connection = mongoose.connection;
+    // Get the singleton connection pool instance
+    const connectionPool = getMongoConnectionPool();
 
-    // Set up event listeners for connection events
-    connection.on('error', (err) => {
-      logger.error('MongoDB connection error:', err);
-    });
-
-    connection.on('disconnected', () => {
-      logger.warn('MongoDB disconnected. Attempting to reconnect...');
-    });
-
-    connection.on('reconnected', () => {
-      logger.info('MongoDB reconnected successfully');
-    });
+    // Connect to MongoDB using the pool
+    const connection = await connectionPool.connect();
 
     logger.info('MongoDB connected successfully');
     return connection;
@@ -50,7 +32,12 @@ export const connectDatabase = async (): Promise<mongoose.Connection> => {
  */
 export const closeDatabase = async (): Promise<void> => {
   try {
-    await mongoose.connection.close();
+    // Get the singleton connection pool instance
+    const connectionPool = getMongoConnectionPool();
+
+    // Close the connection pool
+    await connectionPool.close();
+
     logger.info('MongoDB connection closed');
   } catch (error) {
     logger.error('Error closing MongoDB connection:', error);
@@ -83,6 +70,24 @@ const maskConnectionString = (uri: string): string => {
 export const handleDatabaseError = (error: unknown): void => {
   logger.error('Unhandled database error:', error);
   // Additional error handling logic can be added here
+};
+
+/**
+ * Get connection metrics for monitoring
+ * @returns Current connection metrics
+ */
+export const getConnectionMetrics = () => {
+  const connectionPool = getMongoConnectionPool();
+  return connectionPool.getConnectionMetrics();
+};
+
+/**
+ * Check if the database is connected
+ * @returns True if connected, false otherwise
+ */
+export const isDatabaseConnected = (): boolean => {
+  const connectionPool = getMongoConnectionPool();
+  return connectionPool.isConnectedToMongoDB();
 };
 
 // Export mongoose instance to have access to ObjectId, etc.

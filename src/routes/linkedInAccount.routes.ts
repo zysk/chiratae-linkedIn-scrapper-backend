@@ -7,6 +7,7 @@ import {
   updateLinkedInAccount,
   deleteLinkedInAccount,
   verifyLinkedInAccount,
+  bulkVerifyLinkedInAccounts,
 } from "../controllers/linkedInAccount.controller";
 
 // Create router
@@ -53,5 +54,12 @@ router.delete("/:id", authorizeJwt, isAdmin, deleteLinkedInAccount);
  * @access  Private/Admin
  */
 router.post("/:id/verify", authorizeJwt, isAdmin, verifyLinkedInAccount);
+
+/**
+ * @route   POST /linkedInAccount/verify/bulk
+ * @desc    Start bulk verification of LinkedIn accounts
+ * @access  Private/Admin
+ */
+router.post("/verify/bulk", authorizeJwt, isAdmin, bulkVerifyLinkedInAccounts);
 
 export default router;

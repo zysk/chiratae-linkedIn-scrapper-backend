@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: LinkedIn Account and Proxy Management
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Implement secure storage and management of LinkedIn credentials and proxy servers with rotation capabilities.
@@ -9,3 +9,68 @@ Create LinkedIn Account model with secure credential storage using encryption. I
 
 # Test Strategy:
 Test secure storage of credentials with encryption. Verify CRUD operations for both LinkedIn accounts and proxies. Test proxy validation functionality. Ensure proper access control for admin-only operations.
+
+# Subtasks:
+## 1. Design LinkedIn Account Model [done]
+### Dependencies: None
+### Description: Design the data model for storing LinkedIn account details, including secure credential storage using encryption. Identify the necessary fields and their validation requirements.
+### Details:
+1. Identify the required fields for the LinkedIn Account model, such as username, password, account status, last login time, etc.
+2. Determine the appropriate data types and validation rules for each field (e.g., username length, password complexity).
+3. Implement secure credential storage using encryption techniques like AES or RSA to protect sensitive information.
+4. Ensure the model adheres to best practices for data modeling and security.
+
+## 2. Implement CRUD Operations for LinkedIn Accounts [done]
+### Dependencies: 3.1
+### Description: Develop the backend API to perform Create, Read, Update, and Delete operations on the LinkedIn Account model, with proper validation and error handling.
+### Details:
+1. Implement the necessary controller, service, and repository layers to handle CRUD operations for the LinkedIn Account model.
+2. Ensure all operations validate the input data according to the model's requirements.
+3. Implement error handling to provide meaningful responses for invalid requests.
+4. Thoroughly test the CRUD operations to ensure they function as expected.
+
+## 3. Develop LinkedIn Account Usage Tracking and Monitoring [done]
+### Dependencies: 3.2
+### Description: Implement a system to track the usage and status of LinkedIn accounts, including login attempts, successful logins, and account lockouts.
+### Details:
+1. Design a usage tracking model to store information about each account's login attempts, successful logins, and account lockouts.
+2. Integrate the usage tracking functionality into the LinkedIn Account service to capture the necessary data.
+3. Implement a monitoring dashboard or reporting system to visualize the usage patterns and status of the LinkedIn accounts.
+4. Ensure the usage data is stored securely and can be accessed by authorized users only.
+
+## 4. Design Proxy Server Model [done]
+### Dependencies: None
+### Description: Design the data model for storing proxy server details, including support for authenticated and non-authenticated proxies.
+### Details:
+1. Identify the required fields for the Proxy Server model, such as host, port, username, password, authentication type, and status.
+2. Determine the appropriate data types and validation rules for each field (e.g., host and port format, username and password length).
+3. Ensure the model can handle both authenticated and non-authenticated proxy servers.
+4. Implement the Proxy Server model, adhering to best practices for data modeling and security.
+
+## 5. Implement CRUD Operations for Proxy Servers [done]
+### Dependencies: 3.4
+### Description: Develop the backend API to perform Create, Read, Update, and Delete operations on the Proxy Server model, with proper validation and error handling.
+### Details:
+1. Implement the necessary controller, service, and repository layers to handle CRUD operations for the Proxy Server model.
+2. Ensure all operations validate the input data according to the model's requirements.
+3. Implement error handling to provide meaningful responses for invalid requests.
+4. Thoroughly test the CRUD operations to ensure they function as expected.
+
+## 6. Implement Proxy Rotation Service [done]
+### Dependencies: 3.3, 3.5
+### Description: Develop a service that selects appropriate proxies based on usage patterns and rotates them to ensure optimal performance and reliability.
+### Details:
+1. Analyze the usage data collected for the LinkedIn accounts and proxy servers to identify patterns and trends.
+2. Implement a proxy selection algorithm that considers factors like proxy availability, performance, and usage history to select the most appropriate proxy for a given request.
+3. Develop a proxy rotation mechanism that automatically switches to a different proxy when the current one becomes unavailable or underperforms.
+4. Ensure the proxy rotation service is integrated with the LinkedIn Account service to seamlessly handle proxy selection and rotation.
+
+## 7. Implement Access Control for LinkedIn Accounts and Proxies [done]
+### Dependencies: 3.2, 3.5
+### Description: Develop an access control system to ensure only authorized users (e.g., admins) can manage the LinkedIn accounts and proxy servers.
+### Details:
+1. Implement a user management system with roles and permissions.
+2. Ensure only users with the appropriate permissions can perform CRUD operations on the LinkedIn Accounts and Proxy Servers.
+3. Implement access control checks in the backend API to enforce the permission rules.
+4. Provide a user interface for administrators to manage user accounts and their permissions.
+

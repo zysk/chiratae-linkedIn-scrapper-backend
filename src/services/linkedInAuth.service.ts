@@ -1,4 +1,4 @@
-import { WebDriver, By } from "selenium-webdriver";
+import { WebDriver, By, until, TimeoutError } from 'selenium-webdriver';
 import mongoose from "mongoose";
 import {
   navigateTo,
@@ -10,6 +10,12 @@ import {
 import LinkedInAccount from "../models/LinkedInAccount.model";
 import { decryptPassword } from "../helpers/Encryption"; // Assuming this helper exists
 import Logger from "../helpers/Logger";
+import { browserSessionManager } from './browserSession.service';
+import { webDriverFactory } from './webDriverFactory.service';
+import { ILinkedInAccount } from '../interfaces/LinkedInAccount.interface';
+import LinkedInAccountService from './linkedInAccount.service';
+import ProxyService from './proxy.service';
+import { config } from '../config/config';
 
 // Create a dedicated logger for LinkedIn authentication
 const logger = new Logger({ context: "linkedin-auth" });
@@ -45,217 +51,544 @@ export interface LoginResult {
 }
 
 /**
- * Attempts to log in to LinkedIn using provided credentials and WebDriver.
- * Handles common scenarios like CAPTCHA and OTP.
- *
- * @param driver - Selenium WebDriver instance.
- * @param accountId - MongoDB ObjectId of the LinkedInAccount.
- * @returns Promise<LoginResult> - The outcome of the login attempt.
+ * Authentication result with status and details
  */
-export const performLinkedInLogin = async (
-  driver: WebDriver,
-  accountId: string | mongoose.Types.ObjectId,
-): Promise<LoginResult> => {
-  try {
-    const account = await LinkedInAccount.findById(accountId);
-    if (!account || !account.password) {
+export interface AuthResult {
+  success: boolean;
+  sessionId?: string;
+  errorMessage?: string;
+  requiresCaptcha?: boolean;
+  requiresOtp?: boolean;
+  accountLocked?: boolean;
+}
+
+/**
+ * Service for handling LinkedIn authentication
+ */
+export class LinkedInAuthService {
+  private static instance: LinkedInAuthService;
+  private logger: Logger;
+  private linkedInUrl = 'https://www.linkedin.com/login';
+  private captchaDetectionSelectors = [
+    '.recaptcha-checkbox-border',
+    '.g-recaptcha',
+    'iframe[src*="recaptcha"]',
+    '#captcha-internal',
+    '.challenge-dialog'
+  ];
+  private otpDetectionSelectors = [
+    '#two-step-challenge',
+    '#input__pin',
+    '#verification-code',
+    '.two-step-verification'
+  ];
+  private lockedAccountSelectors = [
+    '.security-verification',
+    '.account-restricted',
+    '.account-locked'
+  ];
+
+  private constructor() {
+    this.logger = new Logger('LinkedInAuthService');
+  }
+
+  /**
+   * Get the singleton instance
+   */
+  public static getInstance(): LinkedInAuthService {
+    if (!LinkedInAuthService.instance) {
+      LinkedInAuthService.instance = new LinkedInAuthService();
+    }
+    return LinkedInAuthService.instance;
+  }
+
+  /**
+   * Authenticate a LinkedIn account
+   *
+   * @param accountId LinkedIn account ID or account object
+   * @param proxyId Optional proxy ID to use
+   * @param timeout Authentication timeout in seconds
+   * @returns Authentication result
+   */
+  public async authenticate(
+    accountId: string | ILinkedInAccount,
+    proxyId?: string,
+    timeout: number = 60
+  ): Promise<AuthResult> {
+    // Get the account
+    let account: ILinkedInAccount;
+    if (typeof accountId === 'string') {
+      const accountService = LinkedInAccountService.getInstance();
+      const foundAccount = await accountService.getAccountById(accountId);
+      if (!foundAccount) {
+        this.logger.error(`Account not found with ID: ${accountId}`);
+        return {
+          success: false,
+          errorMessage: `Account not found with ID: ${accountId}`
+        };
+      }
+      account = foundAccount;
+    } else {
+      account = accountId;
+    }
+
+    // Check if we already have a valid session for this account
+    const existingSession = browserSessionManager.getSessionByAccountId(account._id?.toString() || '');
+    if (existingSession && browserSessionManager.isSessionValid(existingSession.sessionId)) {
+      this.logger.info(`Using existing valid session for account: ${account.username}`);
       return {
-        status: LoginStatus.FAILED,
-        message: "LinkedIn account or password not found.",
+        success: true,
+        sessionId: existingSession.sessionId
       };
     }
 
-    // Get decrypted password using the account method
-    const decryptedPassword = await account.getDecryptedPassword();
-    if (!decryptedPassword) {
-      return {
-        status: LoginStatus.FAILED,
-        message: "Failed to decrypt LinkedIn password.",
+    let driver: WebDriver | null = null;
+
+    try {
+      // Get proxy if specified
+      let proxyValue: string | undefined = undefined;
+      if (proxyId) {
+        const proxyService = ProxyService.getInstance();
+        const proxy = await proxyService.getProxyById(proxyId);
+        if (proxy) {
+          proxyValue = proxyService.formatProxyString(proxy);
+          this.logger.info(`Using proxy for authentication: ${proxy.host}:${proxy.port}`);
+        }
+      }
+
+      // Create a new WebDriver with the specified options
+      const options = {
+        proxy: proxyValue,
+        timeout: timeout * 1000, // Convert to milliseconds
       };
-    }
 
-    logger.info(`Attempting login for: ${account.name}`);
-    await navigateTo(driver, LINKEDIN_LOGIN_URL);
-    await randomDelay(2000, 4000);
+      driver = await webDriverFactory.createDriver(options);
+      this.logger.info(`Starting LinkedIn authentication for account: ${account.username}`);
 
-    // Enter credentials
-    if (!(await sendKeysSafe(driver, USERNAME_INPUT, account.name))) {
+      // Navigate to LinkedIn login page
+      await driver.get(this.linkedInUrl);
+
+      // Wait for the login page to load
+      await driver.wait(until.elementLocated(By.id('username')), 10000);
+
+      // Add some random delay to mimic human behavior
+      await randomDelay(1000, 3000);
+
+      // Enter username
+      const usernameField = await driver.findElement(By.id('username'));
+      await this.typeSlowly(usernameField, account.username);
+
+      await randomDelay(500, 1500);
+
+      // Enter password
+      const passwordField = await driver.findElement(By.id('password'));
+      await this.typeSlowly(passwordField, account.password);
+
+      await randomDelay(800, 2000);
+
+      // Click sign-in button
+      const signInButton = await driver.findElement(By.css('button[type="submit"]'));
+      await signInButton.click();
+
+      // Wait for navigation (max 30 seconds)
+      const authResult = await this.handlePostLogin(driver, account, timeout);
+
+      if (authResult.success && driver) {
+        // Save the session
+        authResult.sessionId = await browserSessionManager.saveSession(
+          driver,
+          account._id?.toString(),
+          24, // 24 hour expiration
+          { accountUsername: account.username }
+        );
+
+        this.logger.info(`Successfully authenticated account: ${account.username}`);
+      }
+
+      return authResult;
+    } catch (error: any) {
+      this.logger.error(`Authentication error for account ${account.username}:`, error);
       return {
-        status: LoginStatus.FAILED,
-        message: "Failed to find or type in username field.",
+        success: false,
+        errorMessage: error.message || 'Unknown authentication error'
       };
+    } finally {
+      // Quit the driver unless we successfully authenticated
+      if (driver) {
+        try {
+          await driver.quit();
+        } catch (quitError) {
+          this.logger.warn('Error closing WebDriver:', quitError);
+        }
+      }
     }
-    await randomDelay(500, 1500);
-    if (!(await sendKeysSafe(driver, PASSWORD_INPUT, decryptedPassword))) {
-      return {
-        status: LoginStatus.FAILED,
-        message: "Failed to find or type in password field.",
-      };
-    }
-    await randomDelay(1000, 2000);
+  }
 
-    // Click Sign In
-    if (!(await clickElementSafe(driver, SIGN_IN_BUTTON))) {
-      return {
-        status: LoginStatus.FAILED,
-        message: "Failed to find or click sign in button.",
-      };
-    }
+  /**
+   * Handle post-login scenarios: success, CAPTCHA, OTP, or account locked
+   *
+   * @param driver WebDriver instance
+   * @param account LinkedIn account
+   * @param timeout Timeout in seconds
+   * @returns Authentication result
+   */
+  private async handlePostLogin(
+    driver: WebDriver,
+    account: ILinkedInAccount,
+    timeout: number
+  ): Promise<AuthResult> {
+    const maxWaitTime = timeout * 1000; // Convert to milliseconds
+    const startTime = Date.now();
 
-    await randomDelay(5000, 8000); // Wait for potential redirects/checks
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        // Check for CAPTCHA
+        if (await this.isCaptchaPresent(driver)) {
+          this.logger.warn(`CAPTCHA detected for account: ${account.username}`);
+          return {
+            success: false,
+            requiresCaptcha: true,
+            errorMessage: 'CAPTCHA verification required'
+          };
+        }
 
-    // --- Check Login Outcome ---
-    const currentUrl = await driver.getCurrentUrl();
+        // Check for OTP verification
+        if (await this.isOtpVerificationRequired(driver)) {
+          this.logger.warn(`OTP verification required for account: ${account.username}`);
+          return {
+            success: false,
+            requiresOtp: true,
+            errorMessage: 'Two-factor authentication required'
+          };
+        }
 
-    // 1. Check for successful login (e.g., redirected to feed)
-    if (currentUrl.includes("/feed")) {
-      // Optional: Double-check by looking for a known element on the feed page
-      const feedElement = await findElementSafe(driver, FEED_INDICATOR, 3000);
-      if (feedElement) {
-        logger.info(`Login successful for: ${account.name}`);
-        account.isValid = true;
-        account.isBlocked = false;
-        await account.save();
-        return { status: LoginStatus.SUCCESS, message: "Login successful." };
+        // Check for account locked
+        if (await this.isAccountLocked(driver)) {
+          this.logger.warn(`Account locked: ${account.username}`);
+          return {
+            success: false,
+            accountLocked: true,
+            errorMessage: 'Account is locked or requires security verification'
+          };
+        }
+
+        // Check for successful login (feed page, dashboard, or home)
+        if (await this.isLoggedIn(driver)) {
+          this.logger.info(`Login successful for account: ${account.username}`);
+          return { success: true };
+        }
+
+        // Check for login error messages
+        const errorMessage = await this.getLoginErrorMessage(driver);
+        if (errorMessage) {
+          this.logger.warn(`Login error for account ${account.username}: ${errorMessage}`);
+          return {
+            success: false,
+            errorMessage
+          };
+        }
+
+        // Wait a bit before checking again
+        await randomDelay(1000, 2000);
+      } catch (error: any) {
+        this.logger.warn(`Error during post-login handling: ${error.message}`);
       }
     }
 
-    // 2. Check for CAPTCHA challenge
-    const captchaImageElement = await findElementSafe(
-      driver,
-      CAPTCHA_IMAGE,
-      2000,
-    );
-    if (captchaImageElement) {
-      logger.info(`CAPTCHA required for: ${account.name}`);
-      const captchaImageUrl = await captchaImageElement.getAttribute("src");
-      return {
-        status: LoginStatus.CAPTCHA_REQUIRED,
-        message: "CAPTCHA verification is required.",
-        captchaImageUrl: captchaImageUrl || undefined,
-      };
-    }
-
-    // 3. Check for OTP/Phone verification challenge
-    const otpInputElement = await findElementSafe(driver, OTP_INPUT, 2000);
-    if (otpInputElement) {
-      logger.info(`OTP verification required for: ${account.name}`);
-      return {
-        status: LoginStatus.OTP_REQUIRED,
-        message: "OTP verification is required.",
-      };
-    }
-
-    // 4. If none of the above, assume failure (e.g., invalid credentials, unexpected page)
-    logger.warn(
-      `Login failed for: ${account.name}. Current URL: ${currentUrl}`,
-    );
-    account.isValid = false; // Mark as potentially invalid
-    await account.save();
+    // If we reach here, timeout occurred
+    this.logger.warn(`Authentication timeout for account: ${account.username}`);
     return {
-      status: LoginStatus.FAILED,
-      message: "Login failed. Invalid credentials or unexpected page.",
+      success: false,
+      errorMessage: 'Authentication timeout'
     };
-  } catch (error) {
-    logger.error(
-      `Error during LinkedIn login for account ${accountId}:`,
-      error,
-    );
-    // Update account status on error
+  }
+
+  /**
+   * Check if CAPTCHA verification is present
+   *
+   * @param driver WebDriver instance
+   * @returns True if CAPTCHA detected
+   */
+  private async isCaptchaPresent(driver: WebDriver): Promise<boolean> {
     try {
-      await LinkedInAccount.findByIdAndUpdate(accountId, { isValid: false });
-    } catch (dbError) {
-      logger.error(
-        `Failed to update account status after login error for ${accountId}`,
-        dbError,
-      );
+      for (const selector of this.captchaDetectionSelectors) {
+        try {
+          const element = await driver.findElement(By.css(selector));
+          if (element) {
+            return true;
+          }
+        } catch (error) {
+          // Element not found, continue checking other selectors
+        }
+      }
+
+      // Check current URL for CAPTCHA indicators
+      const currentUrl = await driver.getCurrentUrl();
+      return currentUrl.includes('captcha') ||
+        currentUrl.includes('checkpoint') ||
+        currentUrl.includes('challenge');
+    } catch (error) {
+      return false;
     }
-    return {
-      status: LoginStatus.UNKNOWN_ERROR,
-      message: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
-    };
   }
-};
 
-/**
- * Submits the solution for a CAPTCHA challenge.
- *
- * @param driver - Selenium WebDriver instance.
- * @param captchaSolution - The text entered by the user.
- * @returns Promise<boolean> - True if submission seemed successful, false otherwise.
- */
-export const submitCaptchaSolution = async (
-  driver: WebDriver,
-  captchaSolution: string,
-): Promise<boolean> => {
-  logger.info(`Submitting CAPTCHA solution: ${captchaSolution}`);
-  if (!(await sendKeysSafe(driver, CAPTCHA_INPUT, captchaSolution))) {
-    logger.error("Failed to find or type in CAPTCHA input field.");
-    return false;
-  }
-  await randomDelay(500, 1000);
-  // Assuming CAPTCHA submit is part of the main sign-in button or a specific one
-  if (!(await clickElementSafe(driver, SIGN_IN_BUTTON))) {
-    logger.error("Failed to find or click submit button after CAPTCHA.");
-    return false; // Need to identify the correct button if it's different
-  }
-  await randomDelay(5000, 8000); // Wait for verification
-  // TODO: Add check here to see if CAPTCHA was accepted (e.g., URL change, element check)
-  return true; // Assuming success for now
-};
+  /**
+   * Check if OTP verification is required
+   *
+   * @param driver WebDriver instance
+   * @returns True if OTP verification detected
+   */
+  private async isOtpVerificationRequired(driver: WebDriver): Promise<boolean> {
+    try {
+      for (const selector of this.otpDetectionSelectors) {
+        try {
+          const element = await driver.findElement(By.css(selector));
+          if (element) {
+            return true;
+          }
+        } catch (error) {
+          // Element not found, continue checking other selectors
+        }
+      }
 
-/**
- * Submits the OTP code.
- *
- * @param driver - Selenium WebDriver instance.
- * @param otpCode - The OTP code entered by the user.
- * @returns Promise<boolean> - True if submission seemed successful, false otherwise.
- */
-export const submitOtpCode = async (
-  driver: WebDriver,
-  otpCode: string,
-): Promise<boolean> => {
-  logger.info(`Submitting OTP code: ${otpCode}`);
-  if (!(await sendKeysSafe(driver, OTP_INPUT, otpCode))) {
-    logger.error("Failed to find or type in OTP input field.");
-    return false;
-  }
-  await randomDelay(500, 1000);
-  if (!(await clickElementSafe(driver, OTP_SUBMIT_BUTTON))) {
-    logger.error("Failed to find or click submit button after OTP.");
-    return false;
-  }
-  await randomDelay(5000, 8000); // Wait for verification
-  // TODO: Add check here to see if OTP was accepted (e.g., URL change to /feed)
-  return true; // Assuming success for now
-};
-
-/**
- * Checks if the current WebDriver session appears to be logged into LinkedIn.
- *
- * @param driver - Selenium WebDriver instance.
- * @returns Promise<boolean>
- */
-export const checkLinkedInLoginStatus = async (
-  driver: WebDriver,
-): Promise<boolean> => {
-  try {
-    const currentUrl = await driver.getCurrentUrl();
-    if (currentUrl.includes("/feed")) {
-      // More robust check: look for a feed element
-      const feedElement = await findElementSafe(driver, FEED_INDICATOR, 3000);
-      return !!feedElement; // True if feed element found
+      // Check URL for OTP indicators
+      const currentUrl = await driver.getCurrentUrl();
+      return currentUrl.includes('two-step-verification') ||
+        currentUrl.includes('checkpoint');
+    } catch (error) {
+      return false;
     }
-    return false;
-  } catch (error) {
-    logger.error("Error checking LinkedIn login status:", error);
-    return false;
   }
-};
 
-export default {
-  performLinkedInLogin,
-  submitCaptchaSolution,
-  submitOtpCode,
-  checkLinkedInLoginStatus,
-};
+  /**
+   * Check if account is locked
+   *
+   * @param driver WebDriver instance
+   * @returns True if account locked detected
+   */
+  private async isAccountLocked(driver: WebDriver): Promise<boolean> {
+    try {
+      for (const selector of this.lockedAccountSelectors) {
+        try {
+          const element = await driver.findElement(By.css(selector));
+          if (element) {
+            return true;
+          }
+        } catch (error) {
+          // Element not found, continue checking other selectors
+        }
+      }
+
+      // Check URL for locked account indicators
+      const currentUrl = await driver.getCurrentUrl();
+      return currentUrl.includes('security-verification') ||
+        currentUrl.includes('account-restricted') ||
+        currentUrl.includes('checkpoint');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Check if login was successful
+   *
+   * @param driver WebDriver instance
+   * @returns True if logged in successfully
+   */
+  private async isLoggedIn(driver: WebDriver): Promise<boolean> {
+    try {
+      // Check for elements that are present on the logged-in state
+      const loggedInSelectors = [
+        'input[placeholder*="Search"]',
+        '.feed-identity-module',
+        '.identity-panel',
+        '.nav-item__profile-member-photo',
+        '.global-nav'
+      ];
+
+      for (const selector of loggedInSelectors) {
+        try {
+          const element = await driver.findElement(By.css(selector));
+          if (element) {
+            return true;
+          }
+        } catch (error) {
+          // Element not found, continue checking other selectors
+        }
+      }
+
+      // Check URL for successful login indicators
+      const currentUrl = await driver.getCurrentUrl();
+      return currentUrl.includes('feed') ||
+        currentUrl.includes('mynetwork') ||
+        currentUrl.includes('dashboard');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Get login error message if present
+   *
+   * @param driver WebDriver instance
+   * @returns Error message or null if none found
+   */
+  private async getLoginErrorMessage(driver: WebDriver): Promise<string | null> {
+    try {
+      // Try various selectors for error messages
+      const errorSelectors = [
+        '#error-for-username',
+        '#error-for-password',
+        '.form__error',
+        '.alert-content',
+        '.form-error-message'
+      ];
+
+      for (const selector of errorSelectors) {
+        try {
+          const element = await driver.findElement(By.css(selector));
+          const text = await element.getText();
+          if (text && text.trim().length > 0) {
+            return text.trim();
+          }
+        } catch (error) {
+          // Element not found or has no text, continue checking other selectors
+        }
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Type text slowly like a human
+   *
+   * @param element Input element
+   * @param text Text to type
+   */
+  private async typeSlowly(element: any, text: string): Promise<void> {
+    for (const char of text) {
+      await element.sendKeys(char);
+      // Random delay between 50-150ms for typing
+      await randomDelay(50, 150);
+    }
+  }
+
+  /**
+   * Refresh an existing session or create a new one
+   *
+   * @param sessionId Existing session ID
+   * @param accountId LinkedIn account ID
+   * @param proxyId Optional proxy ID
+   * @returns New session ID
+   */
+  public async refreshSession(
+    sessionId: string,
+    accountId: string,
+    proxyId?: string
+  ): Promise<string | null> {
+    // Check if the session is still valid
+    if (sessionId && browserSessionManager.isSessionValid(sessionId)) {
+      this.logger.info(`Session ${sessionId} is still valid, extending expiration`);
+      const session = browserSessionManager.getSession(sessionId);
+      if (session && session.expiresAt) {
+        // Extend expiration by 24 hours
+        const newExpiration = new Date();
+        newExpiration.setHours(newExpiration.getHours() + 24);
+        session.expiresAt = newExpiration;
+        // Simulate saving the session again (in a real implementation, this would update the file)
+        browserSessionManager.deleteSession(sessionId);
+        const sessionData = browserSessionManager.getSession(sessionId);
+        return sessionId;
+      }
+    }
+
+    // Session invalid or expired, create a new one
+    this.logger.info(`Creating new session for account ${accountId}`);
+    const authResult = await this.authenticate(accountId, proxyId);
+
+    return authResult.success ? authResult.sessionId || null : null;
+  }
+
+  /**
+   * Handle OTP verification (manual step)
+   *
+   * @param driver WebDriver instance
+   * @param otp OTP code entered by user
+   * @returns Whether OTP was successfully submitted
+   */
+  public async handleOtpVerification(driver: WebDriver, otp: string): Promise<boolean> {
+    try {
+      // Try different OTP input fields
+      const otpSelectors = [
+        '#input__pin',
+        '#verification-code',
+        'input[name="pin"]',
+        'input[name="verification_code"]'
+      ];
+
+      let otpInputField = null;
+      for (const selector of otpSelectors) {
+        try {
+          otpInputField = await driver.findElement(By.css(selector));
+          if (otpInputField) {
+            break;
+          }
+        } catch (error) {
+          // Element not found, try next selector
+        }
+      }
+
+      if (!otpInputField) {
+        this.logger.error('OTP input field not found');
+        return false;
+      }
+
+      // Enter the OTP code
+      await this.typeSlowly(otpInputField, otp);
+
+      // Find submit button
+      const submitSelectors = [
+        'button[type="submit"]',
+        'button.btn__primary',
+        '.form__submit',
+        'button.verify-pin-submit'
+      ];
+
+      let submitButton = null;
+      for (const selector of submitSelectors) {
+        try {
+          submitButton = await driver.findElement(By.css(selector));
+          if (submitButton) {
+            break;
+          }
+        } catch (error) {
+          // Element not found, try next selector
+        }
+      }
+
+      if (!submitButton) {
+        this.logger.error('OTP submit button not found');
+        return false;
+      }
+
+      // Click the submit button
+      await submitButton.click();
+
+      // Wait for navigation or verification result
+      await randomDelay(2000, 5000);
+
+      // Check if we're logged in
+      return await this.isLoggedIn(driver);
+    } catch (error: any) {
+      this.logger.error(`Error handling OTP verification: ${error.message}`);
+      return false;
+    }
+  }
+}
+
+// Singleton instance for easy import
+export const linkedInAuthService = LinkedInAuthService.getInstance();
+export default linkedInAuthService;

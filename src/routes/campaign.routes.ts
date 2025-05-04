@@ -12,6 +12,11 @@ import {
   checkLinkedInLogin,
   sendLinkedInCaptchaInput,
   verifyOtp,
+  getCampaignLogs,
+  getCampaignStats,
+  updateCampaignFilters,
+  resetCampaign,
+  updateCampaignPriorities,
 } from "../controllers/campaign.controller";
 
 // Create router
@@ -54,17 +59,52 @@ router.delete("/:id", authorizeJwt, deleteCampaign);
 
 /**
  * @route   POST /campaign/:id/start
- * @desc    Manually start campaign execution (placeholder)
+ * @desc    Manually start campaign execution
  * @access  Private
  */
 router.post("/:id/start", authorizeJwt, startCampaign);
 
 /**
  * @route   POST /campaign/:id/stop
- * @desc    Manually stop campaign execution (placeholder)
+ * @desc    Manually stop campaign execution
  * @access  Private
  */
 router.post("/:id/stop", authorizeJwt, stopCampaign);
+
+/**
+ * @route   GET /campaign/:id/logs
+ * @desc    Get campaign execution logs
+ * @access  Private
+ */
+router.get("/:id/logs", authorizeJwt, getCampaignLogs);
+
+/**
+ * @route   GET /campaign/:id/stats
+ * @desc    Get campaign execution statistics
+ * @access  Private
+ */
+router.get("/:id/stats", authorizeJwt, getCampaignStats);
+
+/**
+ * @route   PUT /campaign/:id/filters
+ * @desc    Update campaign search filters
+ * @access  Private
+ */
+router.put("/:id/filters", authorizeJwt, updateCampaignFilters);
+
+/**
+ * @route   POST /campaign/:id/reset
+ * @desc    Reset campaign to allow for new execution
+ * @access  Private
+ */
+router.post("/:id/reset", authorizeJwt, resetCampaign);
+
+/**
+ * @route   PUT /campaign/priorities
+ * @desc    Bulk update campaign priorities
+ * @access  Private
+ */
+router.put("/priorities", authorizeJwt, updateCampaignPriorities);
 
 /**
  * @route   POST /campaign/auth/login

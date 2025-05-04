@@ -50,6 +50,11 @@ export const authorizeJwt = (
 };
 
 /**
+ * Alternative name for authorizeJwt middleware - used for backward compatibility
+ */
+export const verifyToken = authorizeJwt;
+
+/**
  * Middleware to check if user has admin role
  */
 export const isAdmin = (

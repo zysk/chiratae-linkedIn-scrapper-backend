@@ -16,6 +16,13 @@ import {
 import { processLeadScrapingQueue } from "./linkedInProfileScraper.service"; // Import the profile scraper
 import { sendCampaignCompletionEmail } from "../services/email.service"; // Import email service
 import Logger from "../helpers/Logger";
+import { until } from 'selenium-webdriver';
+import { webDriverFactory } from './webDriverFactory.service';
+import { browserSessionManager } from './browserSession.service';
+import linkedInAuthService from './linkedInAuth.service';
+import AntiDetectionUtils from '../helpers/antiDetection';
+import { linkedInProfileScraper, LinkedInProfile } from './linkedInProfileScraper.service';
+import { config } from '../config/config';
 
 // Create a dedicated logger for LinkedIn search
 const logger = new Logger({ context: "linkedin-search" });
@@ -44,268 +51,513 @@ const PROFILE_LINK = By.css('a.app-aware-link[href*="/in/"]'); // Link within th
 const NEXT_BUTTON = By.xpath("//button[@aria-label='Next']");
 const TOTAL_RESULTS_INDICATOR = By.css(".search-results-container h2"); // Example for total results
 
-// --- Helper Functions ---
+/**
+ * Search filter parameters for LinkedIn
+ */
+export interface LinkedInSearchFilters {
+  keywords?: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
+  company?: string;
+  school?: string;
+  location?: string;
+  industry?: string[];
+  connectionDegree?: number[];
+  currentCompany?: string[];
+  pastCompany?: string[];
+  profileLanguage?: string;
+  openToWork?: boolean;
+  currentRole?: string[];
+  yearsOfExperience?: {
+    min?: number;
+    max?: number;
+  };
+  dateRange?: {
+    start?: Date;
+    end?: Date;
+  };
+}
 
 /**
- * Extracts LinkedIn profile ID from a profile URL.
- * Example: https://www.linkedin.com/in/williamhgates/ -> williamhgates
+ * Search result interface
  */
-const extractProfileId = (url: string): string | null => {
-  if (!url) return null;
-  try {
-    const parsedUrl = new URL(url);
-    if (parsedUrl.pathname.startsWith("/in/")) {
-      // Split by '/', filter empty parts, take the last part
-      const parts = parsedUrl.pathname.split("/").filter((part) => part !== "");
-      if (parts.length > 0 && parts[0] === "in") {
-        // Return the part after '/in/', removing potential query params
-        return parts[1].split("?")[0];
-      }
-    }
-  } catch (e) {
-    logger.error(`Error parsing URL ${url}:`, e);
+export interface SearchResult {
+  profileId: string;
+  publicUrl: string;
+  name: string;
+  headline?: string;
+  location?: string;
+  connectionDegree?: string;
+  profileImageUrl?: string;
+  profileData?: LinkedInProfile;
+}
+
+/**
+ * Search results with pagination
+ */
+export interface SearchResults {
+  results: SearchResult[];
+  totalResults: number;
+  page: number;
+  pageSize: number;
+  hasNextPage: boolean;
+  executionTimeMs: number;
+  searchQuery: string;
+  filters: LinkedInSearchFilters;
+}
+
+/**
+ * LinkedIn Search Service
+ */
+export class LinkedInSearchService {
+  private static instance: LinkedInSearchService;
+  private logger: Logger;
+  private readonly MAX_RETRY_COUNT = 3;
+  private readonly LINKEDIN_SEARCH_BASE_URL = 'https://www.linkedin.com/search/results/people/';
+
+  private constructor() {
+    this.logger = new Logger('LinkedInSearchService');
   }
-  return null;
-};
 
-// --- Main Search Function ---
-
-/**
- * Performs the LinkedIn search based on campaign criteria.
- *
- * @param driver WebDriver instance, assumed to be logged in.
- * @param campaign The campaign document to process.
- * @returns Promise resolving when the search part is complete.
- */
-export const performSearch = async (
-  driver: WebDriver,
-  campaign: ICampaignDocument,
-): Promise<void> => {
-  logger.info(
-    `Starting search for campaign: ${campaign.name} (ID: ${campaign._id})`,
-  );
-  let leadsFoundInThisRun = 0;
-
-  try {
-    // 1. Mark campaign as processing
-    campaign.processing = true;
-    await campaign.save();
-
-    // 2. Navigate to search results page
-    const searchUrl = `${SEARCH_URL_BASE}${encodeURIComponent(campaign.searchQuery)}`;
-    await navigateTo(driver, searchUrl);
-    await randomDelay(3000, 5000);
-
-    // 3. Apply People Filter (usually default, but good to ensure)
-    // await clickElementSafe(driver, PEOPLE_FILTER_BUTTON); // May not be needed if people is default
-    // await randomDelay(1500, 3000);
-
-    // 4. Apply Advanced Filters if present
-    let filtersApplied = false;
-    if (campaign.company || campaign.pastCompany || campaign.school) {
-      if (!(await clickElementSafe(driver, ALL_FILTERS_BUTTON))) {
-        logger.warn(
-          "Could not find/click All Filters button. Proceeding without advanced filters.",
-        );
-      } else {
-        await randomDelay(2000, 4000);
-        // Apply filters (add error handling for each)
-        if (campaign.company)
-          await sendKeysSafe(
-            driver,
-            CURRENT_COMPANY_INPUT,
-            campaign.company + "\n",
-          ); // + Enter
-        if (campaign.pastCompany)
-          await sendKeysSafe(
-            driver,
-            PAST_COMPANY_INPUT,
-            campaign.pastCompany + "\n",
-          );
-        if (campaign.school)
-          await sendKeysSafe(driver, SCHOOL_INPUT, campaign.school + "\n");
-        await randomDelay(1500, 3000);
-
-        if (!(await clickElementSafe(driver, APPLY_FILTERS_BUTTON))) {
-          logger.warn("Could not apply filters. Proceeding with basic search.");
-        } else {
-          filtersApplied = true;
-          logger.info("Applied advanced filters.");
-          await randomDelay(4000, 6000);
-        }
-      }
+  /**
+   * Get the singleton instance
+   */
+  public static getInstance(): LinkedInSearchService {
+    if (!LinkedInSearchService.instance) {
+      LinkedInSearchService.instance = new LinkedInSearchService();
     }
+    return LinkedInSearchService.instance;
+  }
 
-    // 5. Extract Total Results (optional, can be inaccurate)
-    try {
-      const totalText = await getTextSafe(
-        driver,
-        TOTAL_RESULTS_INDICATOR,
-        5000,
-      );
-      if (totalText) {
-        const match = totalText.match(/(\d+)/); // Basic number extraction
-        if (match && match[1]) {
-          campaign.totalResults = parseInt(match[1], 10);
-          logger.info(`Estimated total results: ${campaign.totalResults}`);
-        }
-      }
-    } catch (e) {
-      logger.warn("Could not extract total results indicator.", e);
-    }
+  /**
+   * Execute a search on LinkedIn with the given filters
+   *
+   * @param searchQuery Main search query
+   * @param filters Additional search filters
+   * @param sessionId Optional existing session ID
+   * @param accountId Optional LinkedIn account ID to use
+   * @param proxyId Optional proxy ID to use
+   * @param page Page number (1-based)
+   * @param pageSize Number of results per page
+   * @param scrapeProfiles Whether to scrape complete profile data
+   * @returns Search results
+   */
+  public async search(
+    searchQuery: string,
+    filters: LinkedInSearchFilters = {},
+    sessionId?: string,
+    accountId?: string,
+    proxyId?: string,
+    page: number = 1,
+    pageSize: number = 10,
+    scrapeProfiles: boolean = false
+  ): Promise<SearchResults> {
+    const startTime = Date.now();
+    let driver: WebDriver | null = null;
+    let retryCount = 0;
 
-    // 6. Paginate through results
-    let currentPage = 1;
-    const maxPages = 100; // LinkedIn limit
-    while (currentPage <= maxPages) {
-      logger.info(
-        `Processing page ${currentPage} for campaign ${campaign.name}`,
-      );
-      await scrollDownGradually(driver, 5, 600);
-      await randomDelay(2000, 4000);
+    while (retryCount < this.MAX_RETRY_COUNT) {
+      try {
+        // Create a new WebDriver instance
+        const options = {
+          proxy: proxyId,
+          headless: config.SELENIUM_HEADLESS !== 'false',
+          timeout: parseInt(config.SELENIUM_TIMEOUT),
+        };
 
-      const resultItems = await driver.findElements(SEARCH_RESULT_LIST);
-      logger.info(
-        `Found ${resultItems.length} potential profiles on page ${currentPage}.`,
-      );
+        driver = await webDriverFactory.createDriver(options);
 
-      if (resultItems.length === 0 && currentPage > 1) {
-        logger.info(
-          "No more results found on this page, likely end of search.",
-        );
-        break; // Exit if empty page after first page
-      }
-
-      for (const item of resultItems) {
-        let profileUrl: string | null = null;
-        try {
-          const linkElement = await item.findElement(PROFILE_LINK);
-          profileUrl = await linkElement.getAttribute("href");
-        } catch (e) {
-          continue;
+        // Try to use an existing session
+        let authenticated = false;
+        if (sessionId && browserSessionManager.isSessionValid(sessionId)) {
+          this.logger.info(`Using existing session: ${sessionId}`);
+          authenticated = await browserSessionManager.loadSession(driver, sessionId);
         }
 
-        // Ensure profileUrl is not null before processing
-        if (!profileUrl) {
-          logger.warn("Skipping item with null profile URL");
-          continue;
-        }
+        // If no valid session, authenticate with account
+        if (!authenticated && accountId) {
+          this.logger.info(`No valid session, authenticating with account: ${accountId}`);
+          const authResult = await linkedInAuthService.authenticate(accountId, proxyId);
 
-        const profileId = extractProfileId(profileUrl); // Now guaranteed to pass a string
-        if (!profileId) {
-          logger.warn(`Could not extract profile ID from URL: ${profileUrl}`);
-          continue;
-        }
-
-        // Check for duplicates
-        const alreadyExists = await PreviousLead.findOne({ profileId });
-        if (alreadyExists) {
-          // console.log(`Skipping duplicate profile: ${profileId}`);
-          continue;
-        }
-
-        // Create Lead and PreviousLead documents
-        try {
-          const newLead = new Lead({
-            clientId: profileId,
-            campaignId: campaign._id,
-            status: leadStatusObj.CREATED,
-            isSearched: false,
-            createdBy: campaign.createdBy,
-          });
-          await newLead.save();
-
-          const newPreviousLead = new PreviousLead({
-            profileId: profileId,
-            campaignId: campaign._id,
-            timestamp: new Date(),
-          });
-          await newPreviousLead.save();
-
-          // Ensure resultsArr exists before pushing
-          if (!campaign.resultsArr) {
-            campaign.resultsArr = [];
-          }
-          campaign.resultsArr.push(newLead._id);
-          leadsFoundInThisRun++;
-          // console.log(`New lead created: ${profileId}`);
-        } catch (dbError: any) {
-          if (dbError.code === 11000) {
-            // Handle rare race condition for duplicates
-            // console.log(`Duplicate profile (race condition): ${profileId}`);
+          if (authResult.success && authResult.sessionId) {
+            sessionId = authResult.sessionId;
+            authenticated = await browserSessionManager.loadSession(driver, sessionId);
           } else {
-            logger.error(
-              `Error saving lead/previousLead for ${profileId}:`,
-              dbError,
-            );
+            throw new Error(`Authentication failed: ${authResult.errorMessage}`);
           }
         }
-      } // End loop through items on page
 
-      logger.info(
-        `Finished processing page ${currentPage}. Leads found in this run: ${leadsFoundInThisRun}`,
-      );
+        if (!authenticated) {
+          throw new Error('Failed to authenticate with LinkedIn');
+        }
 
-      // Check for and click the Next button
-      const nextButton = await findElementSafe(driver, NEXT_BUTTON, 3000);
-      if (nextButton && (await nextButton.isEnabled())) {
-        await clickElementSafe(driver, NEXT_BUTTON);
-        currentPage++;
-        await randomDelay(3000, 6000); // Wait for next page load
-      } else {
-        logger.info("Next button not found or disabled. End of results.");
-        break; // Exit pagination loop
+        // Apply anti-detection measures
+        await AntiDetectionUtils.applyAllMeasures(driver);
+
+        // Construct and navigate to the search URL
+        const searchUrl = this.buildSearchUrl(searchQuery, filters, page);
+        this.logger.info(`Executing search: ${searchUrl}`);
+        await driver.get(searchUrl);
+
+        // Wait for search results to load
+        await driver.wait(until.elementLocated(By.css('.search-results-container')), parseInt(config.SELENIUM_TIMEOUT));
+
+        // Add random delay to mimic human behavior
+        await randomDelay(
+          parseInt(config.LINKEDIN_SEARCH_DELAY_MIN),
+          parseInt(config.LINKEDIN_SEARCH_DELAY_MAX)
+        );
+
+        // Extract search results
+        const results = await this.extractSearchResults(driver, pageSize);
+
+        // Get pagination info
+        const paginationInfo = await this.extractPaginationInfo(driver);
+
+        // If requested, scrape full profiles
+        if (scrapeProfiles && sessionId) {
+          for (let i = 0; i < results.length; i++) {
+            try {
+              const profileData = await linkedInProfileScraper.scrapeProfile(
+                results[i].publicUrl,
+                sessionId,
+                accountId,
+                proxyId
+              );
+
+              if (profileData) {
+                results[i].profileData = profileData;
+              }
+
+              // Add delay between profile scrapes to avoid rate limiting
+              await randomDelay(
+                parseInt(config.LINKEDIN_SEARCH_DELAY_MIN),
+                parseInt(config.LINKEDIN_SEARCH_DELAY_MAX)
+              );
+            } catch (profileError) {
+              this.logger.error(`Error scraping profile ${results[i].publicUrl}:`, profileError);
+            }
+          }
+        }
+
+        // Close the driver
+        if (driver) {
+          try {
+            await driver.quit();
+          } catch (quitError) {
+            this.logger.warn('Error closing WebDriver:', quitError);
+          }
+        }
+
+        const executionTimeMs = Date.now() - startTime;
+
+        // Return structured search results
+        return {
+          results,
+          totalResults: paginationInfo.totalResults,
+          page,
+          pageSize,
+          hasNextPage: paginationInfo.hasNextPage,
+          executionTimeMs,
+          searchQuery,
+          filters
+        };
+      } catch (error: any) {
+        retryCount++;
+        this.logger.error(`Error executing search (attempt ${retryCount}/${this.MAX_RETRY_COUNT}):`, error);
+
+        // Close the driver if it exists
+        if (driver) {
+          try {
+            await driver.quit();
+          } catch (quitError) {
+            // Ignore quit errors
+          }
+          driver = null;
+        }
+
+        // Sleep before retry
+        if (retryCount < this.MAX_RETRY_COUNT) {
+          const delay = parseInt(config.LINKEDIN_LOGIN_RETRY_DELAY) * retryCount;
+          this.logger.info(`Retrying in ${delay/1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Return empty results after max retries
+          return {
+            results: [],
+            totalResults: 0,
+            page,
+            pageSize,
+            hasNextPage: false,
+            executionTimeMs: Date.now() - startTime,
+            searchQuery,
+            filters
+          };
+        }
       }
-    } // End pagination loop
-
-    // 7. Update campaign status after search phase
-    campaign.isSearched = true;
-    campaign.status = campaignStatusObj.COMPLETED; // Mark search as done
-    campaign.processing = false; // No longer processing search
-    campaign.lastRun = new Date();
-    campaign.runCount = (campaign.runCount || 0) + 1;
-    await campaign.save();
-    logger.info(
-      `Search phase completed for campaign: ${campaign.name}. Total new leads found: ${leadsFoundInThisRun}`,
-    );
-
-    // 8. Trigger Profile Scraping for the newly found leads
-    if (leadsFoundInThisRun > 0) {
-      logger.info(`Triggering profile scraping for campaign: ${campaign.name}`);
-      // Run this asynchronously in the background
-      processLeadScrapingQueue(driver, campaign._id, 100) // Process up to 100 profiles
-        .then(() => {
-          logger.info(
-            `Background profile scraping queue processing finished for campaign: ${campaign.name}`,
-          );
-          // Optionally update campaign status again after scraping?
-        })
-        .catch((scrapeError) => {
-          logger.error(
-            `Background profile scraping failed for campaign ${campaign.name}:`,
-            scrapeError,
-          );
-          // Optionally update campaign status to indicate scraping error?
-        });
     }
 
-    // Send email notification about campaign completion
-    sendCampaignCompletionEmail(
-      campaign._id.toString(),
-      leadsFoundInThisRun,
-    ).catch((err) =>
-      logger.error("Failed to send campaign completion email:", err),
-    );
-  } catch (error: any) {
-    logger.error(
-      `Error processing search for campaign ${campaign._id}:`,
-      error,
-    );
-    // Mark campaign as failed or potentially retry?
-    campaign.status = campaignStatusObj.FAILED;
-    campaign.processing = false;
-    campaign.lastRun = new Date();
-    await campaign.save();
-    // TODO: Log error details appropriately (e.g., UserLog or specific CampaignLog)
+    // This should not be reached, but TypeScript requires a return
+    return {
+      results: [],
+      totalResults: 0,
+      page,
+      pageSize,
+      hasNextPage: false,
+      executionTimeMs: Date.now() - startTime,
+      searchQuery,
+      filters
+    };
   }
-};
+
+  /**
+   * Build LinkedIn search URL with filters
+   *
+   * @param searchQuery Main search query
+   * @param filters Search filters
+   * @param page Page number (1-based)
+   * @returns Search URL
+   */
+  private buildSearchUrl(
+    searchQuery: string,
+    filters: LinkedInSearchFilters,
+    page: number = 1
+  ): string {
+    // Start with base URL
+    let url = this.LINKEDIN_SEARCH_BASE_URL;
+
+    // Add query parameters
+    const params = new URLSearchParams();
+
+    // Main search query (keywords)
+    if (searchQuery) {
+      params.append('keywords', searchQuery);
+    }
+
+    // First name filter
+    if (filters.firstName) {
+      params.append('firstName', filters.firstName);
+    }
+
+    // Last name filter
+    if (filters.lastName) {
+      params.append('lastName', filters.lastName);
+    }
+
+    // Title filter
+    if (filters.title) {
+      params.append('title', filters.title);
+    }
+
+    // Company filter
+    if (filters.company) {
+      params.append('company', filters.company);
+    }
+
+    // School filter
+    if (filters.school) {
+      params.append('school', filters.school);
+    }
+
+    // Location filter
+    if (filters.location) {
+      params.append('geoUrn', `["${filters.location}"]`);
+    }
+
+    // Connection degree filters
+    if (filters.connectionDegree && filters.connectionDegree.length > 0) {
+      const degrees = filters.connectionDegree.map(d => `"${d}"`).join(',');
+      params.append('network', `["${degrees}"]`);
+    }
+
+    // Current company filters
+    if (filters.currentCompany && filters.currentCompany.length > 0) {
+      const companies = filters.currentCompany.map(c => `"${c}"`).join(',');
+      params.append('currentCompany', `[${companies}]`);
+    }
+
+    // Industry filters
+    if (filters.industry && filters.industry.length > 0) {
+      const industries = filters.industry.map(i => `"${i}"`).join(',');
+      params.append('industry', `[${industries}]`);
+    }
+
+    // Past company filters
+    if (filters.pastCompany && filters.pastCompany.length > 0) {
+      const companies = filters.pastCompany.map(c => `"${c}"`).join(',');
+      params.append('pastCompany', `[${companies}]`);
+    }
+
+    // Profile language filter
+    if (filters.profileLanguage) {
+      params.append('profileLanguage', `["${filters.profileLanguage}"]`);
+    }
+
+    // Open to work filter
+    if (filters.openToWork) {
+      params.append('serviceCategory', '["OPEN_TO_WORK"]');
+    }
+
+    // Set page size (origin=FACETED_SEARCH)
+    params.append('origin', 'FACETED_SEARCH');
+
+    // Pagination
+    if (page > 1) {
+      const start = (page - 1) * 10; // LinkedIn uses 10 results per page
+      params.append('start', start.toString());
+    }
+
+    // Add params to URL
+    url += `?${params.toString()}`;
+
+    return url;
+  }
+
+  /**
+   * Extract search results from the page
+   *
+   * @param driver WebDriver instance
+   * @param pageSize Number of results to extract
+   * @returns Array of search results
+   */
+  private async extractSearchResults(
+    driver: WebDriver,
+    pageSize: number
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+
+    try {
+      // Look for search result items
+      const resultElements = await driver.findElements(By.css('.reusable-search__result-container'));
+
+      // Process up to pageSize results
+      const elementsToProcess = Math.min(resultElements.length, pageSize);
+
+      for (let i = 0; i < elementsToProcess; i++) {
+        try {
+          const resultElement = resultElements[i];
+
+          // Extract profile URL
+          const profileLinkElement = await resultElement.findElement(By.css('a.app-aware-link[href*="/in/"]'));
+          const profileUrl = await profileLinkElement.getAttribute('href');
+
+          // Extract profileId from URL
+          const profileId = this.extractProfileIdFromUrl(profileUrl);
+
+          // Extract name
+          const nameElement = await resultElement.findElement(By.css('.entity-result__title-text a'));
+          const name = await nameElement.getText();
+
+          // Initialize result object
+          const result: SearchResult = {
+            profileId,
+            publicUrl: profileUrl,
+            name: name.replace('• 1st', '').replace('• 2nd', '').replace('• 3rd+', '').trim(),
+          };
+
+          // Extract headline (if available)
+          try {
+            const headlineElement = await resultElement.findElement(By.css('.entity-result__primary-subtitle'));
+            result.headline = await headlineElement.getText();
+          } catch (e) {
+            // Headline is optional
+          }
+
+          // Extract location (if available)
+          try {
+            const locationElement = await resultElement.findElement(By.css('.entity-result__secondary-subtitle'));
+            result.location = await locationElement.getText();
+          } catch (e) {
+            // Location is optional
+          }
+
+          // Extract connection degree (if available)
+          try {
+            const degreeElement = await resultElement.findElement(By.css('.dist-value'));
+            result.connectionDegree = await degreeElement.getText();
+          } catch (e) {
+            // Try alternate method - look in the name text
+            if (name.includes('• 1st')) {
+              result.connectionDegree = '1st';
+            } else if (name.includes('• 2nd')) {
+              result.connectionDegree = '2nd';
+            } else if (name.includes('• 3rd+')) {
+              result.connectionDegree = '3rd+';
+            }
+          }
+
+          // Extract profile image (if available)
+          try {
+            const imgElement = await resultElement.findElement(By.css('.presence-entity__image'));
+            result.profileImageUrl = await imgElement.getAttribute('src');
+          } catch (e) {
+            // Profile image is optional
+          }
+
+          results.push(result);
+        } catch (resultError) {
+          this.logger.debug(`Error extracting search result ${i}:`, resultError);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error extracting search results:', error);
+    }
+
+    return results;
+  }
+
+  /**
+   * Extract pagination information
+   *
+   * @param driver WebDriver instance
+   * @returns Pagination information
+   */
+  private async extractPaginationInfo(driver: WebDriver): Promise<{ totalResults: number; hasNextPage: boolean }> {
+    try {
+      // Get total results count
+      const paginationElement = await driver.findElement(By.css('.search-results-container .pb2'));
+      const paginationText = await paginationElement.getText();
+
+      // Extract the number from text like "Showing 1-10 of 1,234 results"
+      const match = paginationText.match(/of ([\d,]+) results/i);
+      const totalResults = match ? parseInt(match[1].replace(/,/g, '')) : 0;
+
+      // Check if there's a next page button
+      let hasNextPage = false;
+      try {
+        const nextButton = await driver.findElement(By.css('button[aria-label="Next"]'));
+        const isDisabled = await nextButton.getAttribute('disabled');
+        hasNextPage = isDisabled !== 'true';
+      } catch (e) {
+        // No next button means there's no next page
+        hasNextPage = false;
+      }
+
+      return { totalResults, hasNextPage };
+    } catch (error) {
+      this.logger.error('Error extracting pagination info:', error);
+      return { totalResults: 0, hasNextPage: false };
+    }
+  }
+
+  /**
+   * Extract profile ID from LinkedIn profile URL
+   *
+   * @param profileUrl LinkedIn profile URL
+   * @returns Profile ID
+   */
+  private extractProfileIdFromUrl(profileUrl: string): string {
+    try {
+      // Match the profile ID from /in/username pattern
+      const match = profileUrl.match(/linkedin\.com\/in\/([^/?&]+)/i);
+      return match ? match[1] : profileUrl;
+    } catch (error) {
+      return profileUrl;
+    }
+  }
+}
+
+// Singleton instance for easy import
+export const linkedInSearchService = LinkedInSearchService.getInstance();
+export default linkedInSearchService;

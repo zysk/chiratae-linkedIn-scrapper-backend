@@ -7,9 +7,12 @@ import {
   TimeoutError,
 } from "selenium-webdriver";
 import Logger from "./Logger";
+import { Builder } from 'selenium-webdriver';
+import chrome from 'selenium-webdriver/chrome';
+import ProxyService from '../services/proxy.service';
 
 // Create a dedicated logger for selenium utils
-const logger = new Logger({ context: "selenium" });
+const logger = new Logger({ context: "selenium-utils" });
 
 /**
  * Safely navigates to a URL.
@@ -222,6 +225,155 @@ export const getCurrentUrlSafe = async (
   }
 };
 
+/**
+ * Configure and return a new Selenium WebDriver instance
+ *
+ * @param proxyValue Optional proxy to use with the driver
+ * @returns Configured WebDriver instance
+ */
+export async function getSeleniumDriver(proxyValue?: string): Promise<WebDriver> {
+  try {
+    const options = new chrome.Options();
+    options.addArguments('--headless');
+    options.addArguments('--disable-gpu');
+    options.addArguments('--no-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--window-size=1920,1080');
+    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36');
+
+    // Add proxy if provided
+    if (proxyValue) {
+      const parsedProxy = ProxyService.parseProxyValue(proxyValue);
+      if (parsedProxy) {
+        if (parsedProxy.username && parsedProxy.password) {
+          // For proxies that require authentication
+          logger.info(`Using authenticated proxy: ${parsedProxy.host}:${parsedProxy.port}`);
+          options.addArguments(`--proxy-server=${parsedProxy.host}:${parsedProxy.port}`);
+          // Add extension for proxy auth (in a real implementation)
+        } else {
+          // For regular proxies
+          logger.info(`Using proxy: ${parsedProxy.host}:${parsedProxy.port}`);
+          options.addArguments(`--proxy-server=${parsedProxy.host}:${parsedProxy.port}`);
+        }
+      }
+    }
+
+    const driver = await new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options)
+      .build();
+
+    return driver;
+  } catch (error) {
+    logger.error('Error creating Selenium WebDriver:', error);
+    throw error;
+  }
+}
+
+/**
+ * Attempt to log in to LinkedIn and check if account is valid
+ *
+ * @param driver WebDriver instance
+ * @param username LinkedIn username/email
+ * @param password LinkedIn password
+ * @returns Object with login result status and message
+ */
+export async function isLoggedIn(
+  driver: WebDriver,
+  username: string,
+  password: string
+): Promise<{ success: boolean; blocked: boolean; message: string }> {
+  try {
+    // Navigate to LinkedIn login page
+    await driver.get('https://www.linkedin.com/login');
+
+    // Wait for the page to load
+    await driver.wait(until.elementLocated(By.id('username')), 10000);
+
+    // Enter username and password
+    await driver.findElement(By.id('username')).sendKeys(username);
+    await driver.findElement(By.id('password')).sendKeys(password);
+
+    // Click login button
+    await driver.findElement(By.css('button[type="submit"]')).click();
+
+    // Wait a bit for the login process
+    await driver.sleep(5000);
+
+    // Check for success (feed page or home page)
+    const currentUrl = await driver.getCurrentUrl();
+
+    if (currentUrl.includes('feed') || currentUrl.includes('checkpoint/challenge')) {
+      return { success: true, blocked: false, message: 'Login successful' };
+    }
+
+    // Check for common error scenarios
+    try {
+      // Check for password error
+      const passwordError = await driver.findElement(By.id('error-for-password'));
+      const errorText = await passwordError.getText();
+      if (errorText) {
+        return { success: false, blocked: false, message: `Invalid password: ${errorText}` };
+      }
+    } catch (e) {
+      // Element not found, continue checking
+    }
+
+    try {
+      // Check for username/email error
+      const usernameError = await driver.findElement(By.id('error-for-username'));
+      const errorText = await usernameError.getText();
+      if (errorText) {
+        return { success: false, blocked: false, message: `Invalid username: ${errorText}` };
+      }
+    } catch (e) {
+      // Element not found, continue checking
+    }
+
+    // Check for security challenge (this would mean account may be valid but restricted)
+    if (currentUrl.includes('challenge')) {
+      return {
+        success: false,
+        blocked: true,
+        message: 'Account requires security verification or is temporarily restricted'
+      };
+    }
+
+    // Default case - something went wrong but we don't know what
+    return {
+      success: false,
+      blocked: false,
+      message: `Login failed with unknown error. Current URL: ${currentUrl}`
+    };
+  } catch (error) {
+    logger.error('Error during LinkedIn login test:', error);
+    return {
+      success: false,
+      blocked: false,
+      message: `Error during login verification: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Check if we're already logged in to LinkedIn
+ *
+ * @param driver WebDriver instance
+ * @returns boolean indicating if already logged in
+ */
+export async function checkAlreadyLoggedIn(driver: WebDriver): Promise<boolean> {
+  try {
+    await driver.get('https://www.linkedin.com');
+    await driver.sleep(3000);
+
+    const currentUrl = await driver.getCurrentUrl();
+    return currentUrl.includes('feed') || currentUrl.includes('/in/');
+  } catch (error) {
+    logger.error('Error checking if already logged in:', error);
+    return false;
+  }
+}
+
 // Export all utility functions
 export default {
   navigateTo,
@@ -233,4 +385,7 @@ export default {
   randomDelay,
   scrollDownGradually,
   getCurrentUrlSafe,
+  getSeleniumDriver,
+  isLoggedIn,
+  checkAlreadyLoggedIn,
 };

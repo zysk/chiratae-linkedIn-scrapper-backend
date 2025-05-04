@@ -82,10 +82,17 @@ export const SuccessMessages = {
   LINKEDIN_ACCOUNT_CREATED: "LinkedIn account created successfully",
   LINKEDIN_ACCOUNT_UPDATED: "LinkedIn account updated successfully",
   LINKEDIN_ACCOUNT_DELETED: "LinkedIn account deleted successfully",
+  LINKEDIN_ACCOUNT_VERIFIED: "LinkedIn account verified successfully",
+  LINKEDIN_ACCOUNT_VERIFICATION_FAILED: "LinkedIn account verification failed",
+  LINKEDIN_ACCOUNTS_VERIFICATION_STARTED: "LinkedIn accounts verification started",
   // Proxy
   PROXY_CREATED: "Proxy created successfully",
   PROXY_UPDATED: "Proxy updated successfully",
   PROXY_DELETED: "Proxy deleted successfully",
+  PROXY_VERIFIED: "Proxy verified successfully",
+  PROXY_VERIFICATION_FAILED: "Proxy verification failed",
+  PROXIES_VERIFICATION_STARTED: "Proxies verification started",
+  PROXIES_IMPORTED: "Proxies imported successfully",
   // Email Settings
   EMAIL_SETTINGS_CREATED: "Email settings created successfully",
   EMAIL_SETTINGS_UPDATED: "Email settings updated successfully",
@@ -121,9 +128,14 @@ export const ErrorMessages = {
   LINKEDIN_ACCOUNT_EXISTS:
     "LinkedIn account with this name/email already exists",
   LINKEDIN_DECRYPT_FAILED: "Failed to decrypt LinkedIn password",
+  LINKEDIN_VERIFICATION_FAILED: "LinkedIn account verification failed",
+  LINKEDIN_NO_VALID_ACCOUNTS: "No valid LinkedIn accounts available",
   // Proxy
   PROXY_NOT_FOUND: "Proxy not found",
   PROXY_EXISTS: "Proxy with this value already exists",
+  PROXY_VERIFICATION_FAILED: "Proxy verification failed",
+  PROXY_NO_VALID_PROXIES: "No valid proxies available",
+  PROXY_INVALID_FORMAT: "Invalid proxy format",
   // Comment
   COMMENT_NOT_FOUND: "Comment not found",
   // Email Settings

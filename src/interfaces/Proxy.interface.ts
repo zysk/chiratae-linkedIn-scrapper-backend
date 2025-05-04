@@ -10,3 +10,12 @@ export interface IProxy {
   createdBy?: mongoose.Types.ObjectId;
   updatedBy?: mongoose.Types.ObjectId;
 }
+
+/**
+ * Enum for proxy status reporting
+ */
+export enum ProxyStatus {
+  SUCCESS = 'success',
+  BLOCKED = 'blocked',
+  ERROR = 'error'
+}

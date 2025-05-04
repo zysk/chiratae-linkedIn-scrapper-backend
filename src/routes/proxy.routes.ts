@@ -8,6 +8,7 @@ import {
   deleteProxy,
   verifyProxy,
   importProxies,
+  verifyAllProxies
 } from "../controllers/proxy.controller";
 
 // Create router
@@ -54,6 +55,13 @@ router.delete("/:id", authorizeJwt, isAdmin, deleteProxy);
  * @access  Private/Admin
  */
 router.post("/:id/verify", authorizeJwt, isAdmin, verifyProxy);
+
+/**
+ * @route   POST /proxies/verify/all
+ * @desc    Verify all proxies in batches
+ * @access  Private/Admin
+ */
+router.post("/verify/all", authorizeJwt, isAdmin, verifyAllProxies);
 
 /**
  * @route   POST /proxies/import
