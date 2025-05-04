@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Authentication System Implementation
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Implement the User model, JWT authentication, password encryption, and role-based authorization system.
@@ -23,7 +23,7 @@
 5. Integration tests for authentication endpoints
 
 # Subtasks:
-## 1. Implement User Model and Password Hashing [pending]
+## 1. Implement User Model and Password Hashing [done]
 ### Dependencies: None
 ### Description: Create the User model using Mongoose, define the required fields, and implement password hashing using bcrypt.
 ### Details:
@@ -32,7 +32,7 @@
 3. Ensure that the password is hashed before saving the user to the database.
 4. Write unit tests to verify the User model and password hashing functionality.
 
-## 2. Implement JWT Authentication Middleware [pending]
+## 2. Implement JWT Authentication Middleware [done]
 ### Dependencies: 2.1
 ### Description: Create the JWT authentication middleware to handle user login, registration, and token refresh.
 ### Details:
@@ -41,7 +41,7 @@
 3. Implement the token refresh mechanism to allow users to obtain a new token without re-authenticating.
 4. Write integration tests to verify the authentication and token refresh functionality.
 
-## 3. Implement Role-Based Authorization Middleware [pending]
+## 3. Implement Role-Based Authorization Middleware [done]
 ### Dependencies: 2.2
 ### Description: Create the role-based authorization middleware to handle access control for different user roles.
 ### Details:
@@ -50,7 +50,7 @@
 3. Implement the user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id) with role-based access control.
 4. Write integration tests to verify the role-based authorization functionality.
 
-## 4. Implement User Profile Management [pending]
+## 4. Implement User Profile Management [done]
 ### Dependencies: 2.3
 ### Description: Implement the user profile management functionality, allowing users to view and update their profile information.
 ### Details:
@@ -59,7 +59,7 @@
 3. Ensure that users can only access and update their own profile, not other users' profiles.
 4. Write integration tests to verify the user profile management functionality.
 
-## 5. Implement User Rating System [pending]
+## 5. Implement User Rating System [done]
 ### Dependencies: 2.4
 ### Description: Implement the user rating system for CLIENT role users.
 ### Details:

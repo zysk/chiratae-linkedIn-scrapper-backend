@@ -84,7 +84,7 @@
       "id": 2,
       "title": "Authentication System Implementation",
       "description": "Implement the User model, JWT authentication, password encryption, and role-based authorization system.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -98,7 +98,7 @@
           "description": "Create the User model using Mongoose, define the required fields, and implement password hashing using bcrypt.",
           "dependencies": [],
           "details": "1. Define the User schema with fields like email, password, role, name, etc.\n2. Implement password hashing using bcrypt to securely store user passwords.\n3. Ensure that the password is hashed before saving the user to the database.\n4. Write unit tests to verify the User model and password hashing functionality.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         },
         {
@@ -109,7 +109,7 @@
             1
           ],
           "details": "1. Implement the login and registration endpoints (/users/login, /users/register) that generate and return a JWT token.\n2. Create the JWT authentication middleware to verify the token in incoming requests.\n3. Implement the token refresh mechanism to allow users to obtain a new token without re-authenticating.\n4. Write integration tests to verify the authentication and token refresh functionality.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         },
         {
@@ -120,7 +120,7 @@
             2
           ],
           "details": "1. Implement the role-based authorization middleware to check the user's role and grant or deny access to specific endpoints.\n2. Create the /users/loginAdmin and /users/registerAdmin endpoints for admin users.\n3. Implement the user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id) with role-based access control.\n4. Write integration tests to verify the role-based authorization functionality.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         },
         {
@@ -131,7 +131,7 @@
             3
           ],
           "details": "1. Create the user profile management endpoints (/users/me, /users/me/update).\n2. Implement the logic to retrieve and update the user's profile information.\n3. Ensure that users can only access and update their own profile, not other users' profiles.\n4. Write integration tests to verify the user profile management functionality.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         },
         {
@@ -142,7 +142,7 @@
             4
           ],
           "details": "1. Create the user rating model and schema to store ratings and comments.\n2. Implement the endpoints to allow CLIENT role users to rate and comment on other users' profiles.\n3. Ensure that users can only rate other users, not themselves.\n4. Display the average rating and number of ratings on each user's profile.\n5. Write integration tests to verify the user rating system functionality.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         }
       ]
@@ -151,7 +151,7 @@
       "id": 3,
       "title": "LinkedIn Account and Proxy Management",
       "description": "Implement models and API endpoints for managing LinkedIn accounts and proxy servers with secure credential storage.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -163,7 +163,7 @@
           "id": 1,
           "title": "Create LinkedIn Account Model",
           "description": "Implement the LinkedIn Account model with encrypted password storage using a secure encryption library (e.g., crypto)",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "details": "1. Define the LinkedIn Account model with fields like username, encrypted_password, and other relevant details.\n2. Implement the encryption/decryption utilities using a secure library like crypto to handle password storage securely.\n3. Ensure the password is encrypted before storing in the database."
         },
@@ -171,7 +171,7 @@
           "id": 2,
           "title": "Implement CRUD API Endpoints for LinkedIn Accounts",
           "description": "Create API endpoints for managing LinkedIn accounts (Create, Read, Update, Delete)",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1
           ],
@@ -181,7 +181,7 @@
           "id": 3,
           "title": "Create Proxy Model and CRUD API Endpoints",
           "description": "Implement the Proxy model and API endpoints for managing proxy servers",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "details": "1. Define the Proxy model with fields like host, port, username, encrypted_password, and other relevant details.\n2. Implement the CRUD API endpoints (e.g., /proxies, /proxies/{id}) to manage the Proxy model."
         },
@@ -189,7 +189,7 @@
           "id": 4,
           "title": "Implement Proxy Validation and Authentication",
           "description": "Add validation for proxy formats and authentication",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             3
           ],
@@ -199,7 +199,7 @@
           "id": 5,
           "title": "Implement Proxy Rotation Logic",
           "description": "Develop the logic for rotating proxy servers",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             4
           ],
@@ -209,7 +209,7 @@
           "id": 6,
           "title": "Implement Usage Tracking",
           "description": "Add usage tracking for LinkedIn accounts and proxies",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             2,
             3
@@ -220,7 +220,7 @@
           "id": 7,
           "title": "Implement Admin-only Access",
           "description": "Create middleware to restrict the API endpoints to admin users only",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             2,
             3,
