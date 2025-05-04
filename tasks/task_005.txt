@@ -1,62 +1,84 @@
 # Task ID: 5
-# Title: Selenium Integration and LinkedIn Authentication
+# Title: Selenium Integration and Browser Automation
 # Status: pending
 # Dependencies: 3
-# Priority: high
-# Description: Integrate Selenium WebDriver with proxy support, headless mode, and robust error handling to implement a comprehensive LinkedIn authentication solution with advanced security measures and multi-account management.
+# Priority: medium
+# Description: Set up Selenium WebDriver with proxy support, implement LinkedIn authentication handling, and create browser automation utilities.
 # Details:
-Set up Selenium WebDriver with TypeScript bindings, including support for headless mode operation. Implement a WebDriver factory with proxy integration and error handling for network issues and LinkedIn UI changes. Develop a LinkedIn authentication service that can handle login flow, CAPTCHA challenges, phone verification, and unusual login detection. Create a session management system for maintaining authenticated state across multiple LinkedIn accounts. Build anti-detection measures including random delays and browser fingerprint masking. Implement recovery mechanisms for handling authentication failures and monitoring account health to prevent account restrictions.
+1. Create a Selenium service for WebDriver initialization
+2. Implement platform detection for appropriate chromedriver selection
+3. Add proxy integration with Selenium
+4. Create headless browser configuration
+5. Implement LinkedIn login flow
+6. Add CAPTCHA detection and handling
+7. Implement OTP verification flow
+8. Create session management utilities
+9. Add random delays and anti-detection measures
+10. Implement browser cleanup and resource management
+11. Create API endpoints for handling login challenges (/campaign/linkedInLogin, /campaign/checkLinkedInLogin, /campaign/getLinkedInCaptcha, etc.)
 
 # Test Strategy:
-Test WebDriver initialization with different proxy configurations and in headless mode. Verify LinkedIn authentication process with comprehensive error handling. Validate CAPTCHA, phone verification, and unusual login detection handling. Test session management and cookie handling for multiple accounts. Ensure anti-detection measures and recovery mechanisms work as expected.
+1. Test WebDriver initialization with different configurations
+2. Verify proxy integration works correctly
+3. Test login flow with test accounts
+4. Verify CAPTCHA detection
+5. Test browser cleanup and resource management
 
 # Subtasks:
-## 1. Set up Selenium WebDriver with TypeScript support and headless mode [pending]
+## 1. Set up Selenium WebDriver [pending]
 ### Dependencies: None
-### Description: Integrate Selenium WebDriver into the project, setting up the necessary TypeScript bindings and configuration to enable headless mode operation.
+### Description: Create a Selenium service for WebDriver initialization and implement platform detection for appropriate chromedriver selection.
 ### Details:
-1. Install Selenium WebDriver and TypeScript dependencies in the project.
-2. Create a WebDriver configuration file that sets up the WebDriver instance with options for headless mode, browser selection, and other necessary settings.
-3. Implement a WebDriver factory function that returns a configured WebDriver instance based on the settings in the configuration file.
-4. Write unit tests to ensure the WebDriver factory is working as expected, including verifying headless mode operation.
+1. Install Selenium WebDriver and chromedriver libraries in the project.
+2. Create a Selenium service class to handle WebDriver initialization.
+3. Implement logic to detect the operating system and select the appropriate chromedriver executable.
 
-## 2. Implement a WebDriver factory with proxy integration and error handling [pending]
+## 2. Integrate Proxy Support [pending]
 ### Dependencies: 5.1
-### Description: Develop a WebDriver factory that can handle proxy configurations and robust error handling for network issues and LinkedIn UI changes.
+### Description: Add proxy integration with Selenium WebDriver.
 ### Details:
-1. Extend the WebDriver factory to accept proxy configuration options, such as host, port, and authentication credentials.
-2. Implement logic to configure the WebDriver instance with the provided proxy settings.
-3. Add error handling mechanisms to the WebDriver factory to gracefully handle network errors, such as connection timeouts and SSL/TLS issues.
-4. Implement a system to monitor LinkedIn UI changes and update the WebDriver factory accordingly to handle any breaking changes.
-5. Write integration tests to validate the WebDriver factory's proxy integration and error handling capabilities.
+1. Identify the proxy server details (host, port, username, password).
+2. Modify the Selenium service to accept proxy configurations.
+3. Set the proxy settings in the WebDriver instance.
 
-## 3. Develop a LinkedIn authentication service [pending]
-### Dependencies: 5.2
-### Description: Create a LinkedIn authentication service that can handle the login flow, CAPTCHA challenges, phone verification, and unusual login detection.
+## 3. Implement Headless Browser Configuration [pending]
+### Dependencies: 5.1
+### Description: Create a headless browser configuration for Selenium WebDriver.
 ### Details:
-1. Implement a LinkedIn authentication service that encapsulates the login flow, including username and password submission, CAPTCHA handling, and phone verification.
-2. Develop mechanisms to detect and handle unusual login attempts, such as IP address changes or suspicious activity, and trigger appropriate actions (e.g., account lockout, email notification).
-3. Integrate the authentication service with the WebDriver factory to leverage the configured WebDriver instance for performing login operations.
-4. Implement recovery mechanisms to handle authentication failures, such as retrying the login process or providing alternative authentication methods.
-5. Write integration tests to validate the LinkedIn authentication service's functionality, including successful logins, CAPTCHA handling, and unusual login detection.
+1. Investigate the headless mode capabilities of the chromedriver.
+2. Modify the Selenium service to create a headless WebDriver instance.
+3. Ensure the headless configuration works as expected.
 
-## 4. Implement a session management system for multi-account support [pending]
-### Dependencies: 5.3
-### Description: Create a session management system that can maintain authenticated state across multiple LinkedIn accounts.
+## 4. Implement LinkedIn Authentication [pending]
+### Dependencies: 5.1, 5.2, 5.3
+### Description: Implement the LinkedIn login flow using Selenium WebDriver.
 ### Details:
-1. Design a session management system that can store and retrieve authenticated session data for multiple LinkedIn accounts.
-2. Implement mechanisms to securely store and retrieve session data, such as using encrypted storage or a secure database.
-3. Develop methods to initialize a new session, load an existing session, and invalidate a session when necessary.
-4. Integrate the session management system with the LinkedIn authentication service to seamlessly handle account switching and session restoration.
-5. Write integration tests to validate the session management system's functionality, including successful session creation, loading, and invalidation.
+1. Identify the LinkedIn login page elements (username, password, submit button).
+2. Write the login flow logic to enter the credentials and submit the form.
+3. Handle any potential challenges like CAPTCHA or OTP verification.
 
-## 5. Implement anti-detection measures and account health monitoring [pending]
+## 5. Implement CAPTCHA Detection and Handling [pending]
 ### Dependencies: 5.4
-### Description: Develop anti-detection measures, including random delays and browser fingerprint masking, and implement account health monitoring to prevent account restrictions.
+### Description: Add CAPTCHA detection and handling capabilities to the LinkedIn authentication flow.
 ### Details:
-1. Implement random delay mechanisms to introduce natural-looking pauses between actions, mimicking human-like behavior and reducing the risk of detection.
-2. Develop browser fingerprint masking techniques to obfuscate the WebDriver instance's unique characteristics, making it appear more like a regular browser.
-3. Implement an account health monitoring system that tracks key metrics, such as login success rate, CAPTCHA challenges, and unusual activity flags, to proactively detect and prevent account restrictions.
-4. Integrate the anti-detection measures and account health monitoring system with the overall LinkedIn authentication and session management components.
-5. Write integration tests to validate the effectiveness of the anti-detection measures and the account health monitoring system, ensuring they work as expected and do not interfere with the core functionality.
+1. Detect the presence of a CAPTCHA challenge on the LinkedIn login page.
+2. Implement a mechanism to capture the CAPTCHA image and present it to the user for manual solving.
+3. Update the login flow to handle the CAPTCHA response and proceed with the authentication.
+
+## 6. Implement OTP Verification Flow [pending]
+### Dependencies: 5.4
+### Description: Implement the OTP verification flow for LinkedIn authentication.
+### Details:
+1. Detect the presence of an OTP verification step during the LinkedIn login.
+2. Prompt the user to enter the OTP code received on their registered device.
+3. Integrate the OTP verification into the overall LinkedIn authentication flow.
+
+## 7. Implement Browser Automation Utilities [pending]
+### Dependencies: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6
+### Description: Create session management utilities, add random delays and anti-detection measures, and implement browser cleanup and resource management.
+### Details:
+1. Implement session management utilities to maintain and reuse WebDriver instances.
+2. Add random delays at appropriate points in the automation flow to mimic human-like behavior.
+3. Implement anti-detection measures like user-agent rotation, IP rotation, and other techniques to avoid triggering bot detection.
+4. Ensure proper cleanup of WebDriver instances and release of resources upon completion of the automation tasks.
 

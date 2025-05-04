@@ -1,87 +1,77 @@
 # Task ID: 7
-# Title: Profile Data Scraping and Processing
+# Title: Redis Integration and Scheduling System
 # Status: pending
 # Dependencies: 6
 # Priority: medium
-# Description: Develop comprehensive profile data extraction, normalization, and storage functionality with de-duplication, connection degree determination, and handling of premium/restricted profiles.
+# Description: Implement Redis for distributed locking, set up the scheduling system for automated campaign execution, and create the cron job infrastructure.
 # Details:
-1. Create profile scraping service that extracts detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.
-2. Implement support for determining connection degree (1st, 2nd, 3rd) for each profile.
-3. Develop advanced data normalization to ensure consistent formatting across different profiles.
-4. Add support for extracting data from both public and private profiles (when logged in).
-5. Implement rate limiting and anti-detection measures specifically for profile viewing.
-6. Add mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.
-7. Implement robust error handling for various profile states (incomplete, restricted, etc.).
-8. Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.
-9. Create a service for tracking scraping progress and results.
+1. Set up Redis client connection
+2. Implement distributed locking mechanism using Redis
+3. Create concurrency control for scraping operations
+4. Implement node-schedule for cron-based execution
+5. Create scheduling service for campaign automation
+6. Add campaign queue management
+7. Implement error recovery for failed scheduled jobs
+8. Create API endpoint for scheduling campaigns (/campaign/addScheduledCampaign)
+9. Add state management for running campaigns
+10. Implement system for handling campaign execution limits
 
 # Test Strategy:
-1. Test comprehensive profile data extraction with various profile types, including public and private profiles.
-2. Verify data normalization and consistency across different profile formats.
-3. Test de-duplication logic with existing profiles.
-4. Validate connection degree determination for different profile relationships.
-5. Test error handling for different failure scenarios during scraping, including incomplete and restricted profiles.
-6. Verify rate limiting and anti-detection measures for profile viewing.
+1. Test Redis connection and locking mechanism
+2. Verify scheduled jobs execute correctly
+3. Test concurrency control with multiple campaigns
+4. Verify error recovery works as expected
+5. Test campaign scheduling API
 
 # Subtasks:
-## 1. Implement Profile Scraping Service [pending]
+## 1. Set up Redis client connection [pending]
 ### Dependencies: None
-### Description: Develop a service that can extract detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.
+### Description: Establish a connection to the Redis server and create a client instance that can be used throughout the application.
 ### Details:
-1. Research and select the appropriate web scraping library or tool to use for extracting data from LinkedIn profiles.
-2. Implement the scraping logic to fetch the required data fields from public LinkedIn profiles.
-3. Ensure the scraping process is efficient and does not violate LinkedIn's terms of service.
-4. Implement error handling to gracefully handle various profile states (incomplete, restricted, etc.).
-5. Test the scraping service thoroughly to ensure it can handle a wide range of profile scenarios.
+1. Install the necessary Redis client library for the programming language being used (e.g., ioredis for Node.js, redis-py for Python).
+2. Configure the Redis connection details (host, port, password, etc.) in the application's environment or configuration file.
+3. Create a Redis client instance and test the connection to ensure it's working correctly.
 
-## 2. Determine Connection Degree [pending]
+## 2. Implement distributed locking mechanism using Redis [pending]
 ### Dependencies: 7.1
-### Description: Implement functionality to determine the connection degree (1st, 2nd, 3rd) for each profile.
+### Description: Develop a locking mechanism that uses Redis to ensure mutual exclusion for critical sections of the application.
 ### Details:
-1. Analyze the data extracted from the profiles to identify the connection degree for each profile.
-2. Implement logic to determine the connection degree based on the available information, such as shared connections, mutual followers, etc.
-3. Ensure the connection degree determination is accurate and consistent across all profiles.
+1. Research and understand the concept of distributed locking and how it can be implemented using Redis.
+2. Implement a locking function that uses the Redis `SET` command with the `NX` option to acquire a lock.
+3. Implement a function to release the lock by using the Redis `DEL` command.
+4. Ensure that the locking mechanism is robust and can handle edge cases, such as locks not being released due to application crashes or other failures.
 
-## 3. Implement Data Normalization [pending]
+## 3. Create concurrency control for scraping operations [pending]
+### Dependencies: 7.2
+### Description: Implement a concurrency control system that uses the distributed locking mechanism to ensure that only one instance of a scraping operation is running at a time.
+### Details:
+1. Identify the critical sections of the scraping operations that need to be protected by the locking mechanism.
+2. Implement a function that acquires a lock before executing a scraping operation and releases the lock when the operation is complete.
+3. Ensure that the locking mechanism is integrated with the scraping logic to prevent race conditions and data inconsistencies.
+
+## 4. Implement node-schedule for cron-based execution [pending]
 ### Dependencies: 7.1
-### Description: Develop advanced data normalization to ensure consistent formatting across different profiles.
+### Description: Set up a scheduling system using the node-schedule library to execute tasks on a recurring basis.
 ### Details:
-1. Analyze the data fields extracted from the profiles and identify any inconsistencies in formatting, capitalization, abbreviations, etc.
-2. Implement normalization rules to standardize the data format across all profiles.
-3. Ensure the normalization process is robust and can handle a wide range of variations in the input data.
+1. Install the node-schedule library and add it to the project dependencies.
+2. Create a function that uses the `schedule` method to schedule a task to run at a specific interval (e.g., every hour, every day).
+3. Ensure that the scheduled tasks can be easily added, modified, and removed as needed.
 
-## 4. Handle Premium/Restricted Profiles [pending]
-### Dependencies: 7.1
-### Description: Add support for extracting data from both public and private (premium/Sales Navigator) profiles.
+## 5. Create scheduling service for campaign automation [pending]
+### Dependencies: 7.4
+### Description: Develop a service that manages the scheduling and execution of automated campaigns.
 ### Details:
-1. Investigate the differences in data availability between public and private LinkedIn profiles.
-2. Implement logic to detect if a profile is public or private and adjust the scraping process accordingly.
-3. Develop mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.
-4. Ensure the handling of premium/restricted profiles is seamless and does not impact the overall data extraction process.
+1. Design the data model and storage mechanism for campaign schedules and execution details.
+2. Implement the logic to create, update, and delete campaign schedules.
+3. Integrate the scheduling service with the node-schedule library to execute the campaigns at the specified intervals.
+4. Ensure that the scheduling service can handle errors and retries for failed campaign executions.
 
-## 5. Implement Rate Limiting and Anti-Detection Measures [pending]
-### Dependencies: 7.1
-### Description: Add rate limiting and anti-detection measures specifically for profile viewing.
+## 6. Implement error recovery for failed scheduled jobs [pending]
+### Dependencies: 7.5
+### Description: Develop a system to handle and recover from errors that occur during the execution of scheduled jobs.
 ### Details:
-1. Research and implement rate limiting strategies to prevent overloading LinkedIn's servers and avoid detection.
-2. Develop anti-detection mechanisms, such as rotating proxy servers, user-agent randomization, and IP address rotation, to ensure the scraping process is not flagged as suspicious activity.
-3. Continuously monitor the scraping process and adjust the rate limiting and anti-detection measures as needed to maintain a stable and uninterrupted data extraction.
-
-## 6. Implement Structured Data Storage [pending]
-### Dependencies: 7.1, 7.2, 7.3, 7.4, 7.5
-### Description: Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.
-### Details:
-1. Design a database schema to store the extracted profile data in a structured format.
-2. Implement de-duplication logic to ensure that profiles are not re-scraped and stored multiple times.
-3. Develop mechanisms to update existing profile data when new information is available.
-4. Ensure the data storage process is efficient and can handle a large volume of profiles without performance issues.
-
-## 7. Implement Scraping Progress Tracking [pending]
-### Dependencies: 7.1, 7.6
-### Description: Create a service for tracking scraping progress and results.
-### Details:
-1. Develop a service that can monitor the progress of the profile scraping process.
-2. Implement mechanisms to track the number of profiles scraped, the success rate, and any errors encountered.
-3. Provide a way to visualize the scraping progress and generate reports on the data extraction process.
-4. Ensure the progress tracking service is integrated with the overall profile data management system.
+1. Implement a logging mechanism to capture detailed information about scheduled job executions, including any errors or failures.
+2. Create a retry mechanism that automatically attempts to re-run failed jobs after a specified delay.
+3. Implement a dead-letter queue or similar mechanism to store and process jobs that fail repeatedly and cannot be automatically recovered.
+4. Develop a monitoring and alerting system to notify the team about recurring job failures or other issues with the scheduling system.
 

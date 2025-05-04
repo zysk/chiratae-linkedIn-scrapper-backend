@@ -1,87 +1,68 @@
 # Task ID: 9
-# Title: Scheduling System with Redis Integration
+# Title: Email Integration and Notification System
 # Status: pending
-# Dependencies: 6, 7
-# Priority: medium
-# Description: Implement a comprehensive campaign scheduling system with Redis integration, supporting distributed locking, cron-based scheduling, error recovery, job monitoring, and integration with LinkedIn search and email campaigns.
+# Dependencies: 7, 8
+# Priority: low
+# Description: Implement email settings configuration, SMTP integration, and automated alerts for system events.
 # Details:
-1. Set up Redis integration for distributed locking to prevent concurrent execution of the same campaign.
-2. Implement detailed cron-based scheduling for different campaign components, including LinkedIn search and email campaigns.
-3. Develop robust error recovery and retry mechanisms to handle failed jobs.
-4. Add job monitoring and status reporting capabilities to the scheduling system.
-5. Ensure the scheduling system integrates seamlessly with both LinkedIn search and email campaign workflows.
-6. Implement configurable rate limiting to prevent detection by platforms.
-7. Add support for scheduling based on various factors like time zones, account usage, and other relevant parameters.
+1. Create EmailSettings model for SMTP configuration
+2. Implement CRUD API endpoints for email settings
+3. Set up Nodemailer integration
+4. Create email service for sending notifications
+5. Implement automated alerts for critical system events (login failures, etc.)
+6. Add email templates for different notification types
+7. Create campaign data export via email functionality
+8. Implement email sending queue for reliability
+9. Add error handling for email sending failures
+10. Create test endpoint for email configuration verification
 
 # Test Strategy:
-1. Verify distributed locking with Redis under concurrent campaign execution scenarios.
-2. Test cron-based scheduling with various timing configurations for different campaign components.
-3. Validate error recovery mechanisms by simulating job failures and ensuring successful retries.
-4. Inspect job monitoring and status reporting to ensure accurate and timely information.
-5. End-to-end test the integration with LinkedIn search and email campaign systems.
-6. Confirm rate limiting is working as expected and does not impact campaign execution.
-7. Test scheduling based on different parameters like time zones and account usage.
+1. Test EmailSettings model validation
+2. Verify CRUD operations for email settings
+3. Test email sending with different templates
+4. Verify automated alerts trigger correctly
+5. Test error handling for email failures
 
 # Subtasks:
-## 1. Set up Redis Integration [pending]
+## 1. Create EmailSettings Model [pending]
 ### Dependencies: None
-### Description: Integrate Redis into the application to enable distributed locking and caching capabilities.
+### Description: Define the data model for email settings, including SMTP server details, authentication credentials, and other configuration parameters.
 ### Details:
-1. Install and configure Redis on the server.
-2. Integrate Redis client library into the application code.
-3. Implement distributed locking mechanism using Redis to prevent concurrent execution of the same campaign.
-4. Utilize Redis for caching campaign data and job status information to improve performance.
+1. Create a new model class called `EmailSettings` with properties for SMTP host, port, username, password, and other relevant settings.
+2. Ensure the model has appropriate data validation and default values.
+3. Persist the email settings data to the database using an ORM or data access layer.
 
-## 2. Implement Cron-based Scheduling [pending]
+## 2. Implement Email Settings CRUD API [pending]
 ### Dependencies: 9.1
-### Description: Develop a cron-based scheduling system to manage the execution of different campaign components.
+### Description: Create the necessary API endpoints to allow users to manage the email settings.
 ### Details:
-1. Design a scheduling engine that can handle cron-based scheduling for LinkedIn search and email campaigns.
-2. Implement a scheduling service that can parse cron expressions and trigger the execution of campaign tasks at the appropriate times.
-3. Ensure the scheduling service can handle time zone differences and other relevant scheduling parameters.
+1. Implement GET, POST, PUT, and DELETE endpoints for the `EmailSettings` model.
+2. Ensure the API is secured and only accessible to authorized users.
+3. Integrate the email settings CRUD operations with the `EmailSettings` model created in the previous subtask.
 
-## 3. Implement Error Recovery and Retry Mechanism [pending]
-### Dependencies: 9.1, 9.2
-### Description: Develop a robust error recovery and retry mechanism to handle failed campaign jobs.
+## 3. Integrate Nodemailer for Email Sending [pending]
+### Dependencies: 9.1
+### Description: Set up the Nodemailer library to enable sending emails from the application.
 ### Details:
-1. Implement a job execution monitoring system to track the status of campaign tasks.
-2. Develop a retry mechanism that can automatically re-execute failed jobs after a configurable delay.
-3. Implement error handling and logging to capture detailed information about job failures.
-4. Ensure the retry mechanism can handle different types of errors and gracefully recover from failures.
+1. Install the Nodemailer package and set up the necessary configuration.
+2. Create a reusable email service that can be used to send emails using the Nodemailer transport.
+3. Ensure the email service can handle different types of email templates and content.
 
-## 4. Implement Job Monitoring and Reporting [pending]
-### Dependencies: 9.1, 9.2, 9.3
-### Description: Add job monitoring and status reporting capabilities to the scheduling system.
+## 4. Implement Automated Alerts [pending]
+### Dependencies: 9.1, 9.3
+### Description: Develop the functionality to automatically send email notifications for critical system events.
 ### Details:
-1. Develop a dashboard or reporting interface to display the status of scheduled campaigns and their individual tasks.
-2. Implement real-time job monitoring to track the progress and execution of campaign tasks.
-3. Provide detailed job logs and error reports to help identify and troubleshoot issues.
-4. Allow users to view the execution history and performance metrics of past campaigns.
+1. Identify the critical system events that require email notifications (e.g., login failures, system errors).
+2. Implement event listeners or hooks to capture these events.
+3. Trigger the email service to send notifications when the critical events occur.
+4. Ensure the email content is informative and includes relevant details about the event.
 
-## 5. Integrate with LinkedIn Search and Email Campaigns [pending]
-### Dependencies: 9.1, 9.2, 9.3, 9.4
-### Description: Ensure the scheduling system seamlessly integrates with LinkedIn search and email campaign workflows.
+## 5. Add Email Sending Queue [pending]
+### Dependencies: 9.3
+### Description: Implement a reliable email sending queue to handle email delivery failures and ensure message delivery.
 ### Details:
-1. Develop API integrations with LinkedIn's search and campaign management platforms.
-2. Implement data synchronization mechanisms to keep the scheduling system up-to-date with campaign data from LinkedIn.
-3. Ensure the scheduling system can trigger and monitor the execution of LinkedIn search and email campaigns.
-4. Provide a unified interface for managing all campaign components within the scheduling system.
-
-## 6. Implement Rate Limiting [pending]
-### Dependencies: 9.1, 9.2, 9.3, 9.4, 9.5
-### Description: Add configurable rate limiting to prevent detection by platforms.
-### Details:
-1. Analyze the rate limits and usage policies of the integrated platforms (LinkedIn, email providers).
-2. Develop a rate limiting mechanism that can dynamically adjust the execution rate of campaign tasks based on platform policies.
-3. Implement throttling and backoff strategies to ensure the scheduling system stays within the allowed usage limits.
-4. Provide configuration options to allow users to customize the rate limiting parameters.
-
-## 7. Implement Advanced Scheduling Options [pending]
-### Dependencies: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6
-### Description: Add support for scheduling based on various factors like time zones, account usage, and other relevant parameters.
-### Details:
-1. Develop a scheduling engine that can handle time zone-based scheduling for campaigns.
-2. Implement account-level usage tracking and scheduling policies to ensure fair distribution of campaign execution across user accounts.
-3. Allow users to configure custom scheduling parameters, such as start/end times, recurrence patterns, and priority levels.
-4. Integrate the scheduling system with other relevant data sources (e.g., user profiles, account usage) to enable more advanced scheduling logic.
+1. Integrate a message queue system (e.g., RabbitMQ, Apache Kafka) to handle email sending requests.
+2. Modify the email service to enqueue email messages instead of sending them directly.
+3. Implement a background worker process to dequeue and send the email messages.
+4. Implement retry logic and error handling for failed email deliveries.
 

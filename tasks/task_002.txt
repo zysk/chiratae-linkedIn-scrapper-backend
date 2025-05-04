@@ -1,11 +1,71 @@
 # Task ID: 2
 # Title: Authentication System Implementation
-# Status: done
+# Status: pending
 # Dependencies: 1
 # Priority: high
-# Description: Develop a JWT-based authentication system with role-based access control for admin, standard user, and client roles.
+# Description: Implement the User model, JWT authentication, password encryption, and role-based authorization system.
 # Details:
-Create User model with Mongoose including fields for authentication details, role, profile information, and activity metrics. Implement password hashing using bcrypt. Develop JWT authentication middleware for token generation, validation, and refresh. Build registration, login, and token refresh endpoints. Implement role-based authorization middleware to restrict access based on user roles. Create user profile management endpoints for updating user information. Design and implement the user rating system based on lead quality metrics.
+1. Create User model with Mongoose schema (fields: email, password, role, name, etc.)
+2. Implement password hashing with bcrypt
+3. Create JWT authentication middleware
+4. Implement login and registration endpoints (/users/login, /users/register, /users/loginAdmin, /users/registerAdmin)
+5. Add role-based authorization middleware
+6. Implement token refresh mechanism
+7. Create user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id)
+8. Add user profile management functionality
+9. Implement user rating system for CLIENT role users
 
 # Test Strategy:
-Write unit tests for password hashing, JWT token generation and validation. Create integration tests for authentication flow including registration, login, and protected routes. Test role-based access control for different user types.
+1. Unit test User model validation
+2. Test password hashing and comparison
+3. Verify JWT generation and validation
+4. Test role-based access control
+5. Integration tests for authentication endpoints
+
+# Subtasks:
+## 1. Implement User Model and Password Hashing [pending]
+### Dependencies: None
+### Description: Create the User model using Mongoose, define the required fields, and implement password hashing using bcrypt.
+### Details:
+1. Define the User schema with fields like email, password, role, name, etc.
+2. Implement password hashing using bcrypt to securely store user passwords.
+3. Ensure that the password is hashed before saving the user to the database.
+4. Write unit tests to verify the User model and password hashing functionality.
+
+## 2. Implement JWT Authentication Middleware [pending]
+### Dependencies: 2.1
+### Description: Create the JWT authentication middleware to handle user login, registration, and token refresh.
+### Details:
+1. Implement the login and registration endpoints (/users/login, /users/register) that generate and return a JWT token.
+2. Create the JWT authentication middleware to verify the token in incoming requests.
+3. Implement the token refresh mechanism to allow users to obtain a new token without re-authenticating.
+4. Write integration tests to verify the authentication and token refresh functionality.
+
+## 3. Implement Role-Based Authorization Middleware [pending]
+### Dependencies: 2.2
+### Description: Create the role-based authorization middleware to handle access control for different user roles.
+### Details:
+1. Implement the role-based authorization middleware to check the user's role and grant or deny access to specific endpoints.
+2. Create the /users/loginAdmin and /users/registerAdmin endpoints for admin users.
+3. Implement the user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id) with role-based access control.
+4. Write integration tests to verify the role-based authorization functionality.
+
+## 4. Implement User Profile Management [pending]
+### Dependencies: 2.3
+### Description: Implement the user profile management functionality, allowing users to view and update their profile information.
+### Details:
+1. Create the user profile management endpoints (/users/me, /users/me/update).
+2. Implement the logic to retrieve and update the user's profile information.
+3. Ensure that users can only access and update their own profile, not other users' profiles.
+4. Write integration tests to verify the user profile management functionality.
+
+## 5. Implement User Rating System [pending]
+### Dependencies: 2.4
+### Description: Implement the user rating system for CLIENT role users.
+### Details:
+1. Create the user rating model and schema to store ratings and comments.
+2. Implement the endpoints to allow CLIENT role users to rate and comment on other users' profiles.
+3. Ensure that users can only rate other users, not themselves.
+4. Display the average rating and number of ratings on each user's profile.
+5. Write integration tests to verify the user rating system functionality.
+

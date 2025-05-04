@@ -1,178 +1,24 @@
 # Task ID: 4
-# Title: Campaign Management System
-# Status: done
+# Title: Campaign Model and Management API
+# Status: pending
 # Dependencies: 3
 # Priority: high
-# Description: Develop a comprehensive campaign creation, configuration, and management system with advanced search parameters, filters, and result tracking.
+# Description: Implement the Campaign model and API endpoints for creating, retrieving, updating, and deleting search campaigns.
 # Details:
-The campaign management system will provide end-to-end functionality for creating, executing, and monitoring marketing campaigns. Key features include:
-
-- Robust Campaign data model with search parameters, filters, execution status, and result tracking
-- CRUD API endpoints for campaign management, including validation and configuration updates
-- Campaign execution service with status tracking, error handling, and integration with LinkedIn accounts and proxy servers
-- Search parameter processor for validating, translating, and optimizing LinkedIn-compatible parameters
-- Campaign monitoring dashboard with real-time status updates, result analytics, and diagnostics
-- Flexible campaign filtering and pagination for efficient listing and search
-- Relationship management between campaigns, LinkedIn accounts, and resulting leads
+1. Create Campaign model with Mongoose schema (search parameters, filters, status fields, etc.)
+2. Implement CRUD API endpoints for campaigns
+3. Add validation for campaign parameters
+4. Create relationships between campaigns and LinkedIn accounts/proxies
+5. Implement campaign status tracking (isSearched, processing, etc.)
+6. Add campaign filtering and pagination
+7. Create endpoint for adding campaigns to the execution queue
+8. Implement campaign result storage (totalResults, resultsArr)
+9. Add campaign reporting endpoints
+10. Ensure no plain text passwords are stored in campaign data
 
 # Test Strategy:
-Comprehensive testing of the campaign management system, including:
-
-- Validation of campaign creation and configuration
-- End-to-end testing of campaign execution flow, including status updates and error handling
-- Verification of search parameter processing and optimization
-- Validation of campaign monitoring dashboard functionality
-- Testing of campaign filtering, sorting, and pagination
-- Validation of relationship management between campaigns, accounts, and leads
-
-# Subtasks:
-## 1. Design Campaign Data Model [done]
-### Dependencies: None
-### Description: Create the Campaign data model with the following key features:
-- Fields for search parameters and filters (company, school, past company, etc.)
-- Execution status tracking (created, running, completed, failed)
-- Relationships to LinkedIn accounts and proxy servers
-- Result storage and statistics
-### Details:
-
-
-<info added on 2025-05-03T17:18:07.467Z>
-Here are the additional details to enhance the Campaign data model:
-
-1. **Detailed Search Filter Interface**:
-   - Implemented `ILinkedInSearchFilters` interface with comprehensive filter options, including:
-     - Basic profile filters: company, school, industry, etc.
-     - Position filters: title, seniority, years of experience
-     - Geography filters: location, region, country
-     - Connection filters: connection degree, network
-     - Additional filters: keywords, company size, etc.
-     - Boolean filters: open to work, recent activity, etc.
-     - Advanced filters: skills, groups, languages
-
-2. **Comprehensive Campaign Execution Tracking**:
-   - Implemented `ICampaignStats` interface to track detailed execution metrics
-   - Created `ICampaignExecutionLog` interface for comprehensive logging of campaign activities
-   - Added support for targeting parameters, such as lead count and completion date
-
-3. **Enhanced Campaign Model Relationships**:
-   - Established associations between campaigns and LinkedIn accounts
-   - Linked campaigns to proxy servers used for execution
-   - Tracked the results of campaigns, including the number of leads generated
-
-4. **Advanced Scheduling Features**:
-   - Implemented cron-based scheduling for campaigns
-   - Added support for run limits (maximum profiles, maximum run time)
-   - Incorporated rate limiting (requests per minute, delay between profiles)
-
-5. **API-friendly Enhancements**:
-   - Indexed the campaign data for efficient querying
-   - Added static methods to find campaigns by status and schedule
-   - Implemented instance methods for logging and updating campaign statistics
-
-6. **Notification Support**:
-   - Added support for completion and failure notifications
-   - Implemented email validation for notification delivery
-</info added on 2025-05-03T17:18:07.467Z>
-
-## 2. Implement Campaign Management API [done]
-### Dependencies: None
-### Description: Build CRUD API endpoints for campaign management:
-- Create/configure new campaigns with validation
-- Retrieve campaign details and status
-- Update campaign configuration
-- Delete campaigns with proper cleanup
-### Details:
-
-
-<info added on 2025-05-03T17:21:57.737Z>
-Here are the additional details to enhance the subtask:
-
-1. **Enhanced Campaign Data Model**:
-   - Added support for advanced search filters, including date ranges, priority levels, and processing state.
-   - Implemented validation for complex input fields like start/end dates, budget, and targeting parameters.
-   - Added relationships to LinkedIn accounts and proxy configurations to support campaign execution on different platforms.
-
-2. **New API Endpoints**:
-   - `GET /campaign/:id/logs`: Retrieve detailed execution logs for a specific campaign, including status updates, errors, and performance metrics.
-   - `GET /campaign/:id/stats`: Get aggregated statistics and reporting for a campaign, such as impressions, clicks, conversions, and ROI.
-   - `PUT /campaign/:id/filters`: Update the search filters and targeting parameters for an existing campaign.
-   - `POST /campaign/:id/reset`: Reset a campaign to its initial state, clearing execution history and allowing for a fresh start.
-   - `PUT /campaign/priorities`: Perform bulk updates to the priority levels of multiple campaigns.
-
-3. **Improved Existing Endpoints**:
-   - Enhanced the campaign listing endpoint with advanced filtering options, including status, processing state, scheduled state, name (partial match), priority range, and date range.
-   - Implemented detailed validation and type safety to ensure data integrity and provide clear error messages.
-   - Improved error handling to provide more specific and actionable error responses.
-
-4. **Execution Tracking and Reporting**:
-   - Implemented comprehensive campaign status updates to track the progress and state of each campaign.
-   - Integrated detailed execution logging to capture all relevant events, errors, and performance data.
-   - Developed statistical reporting capabilities to generate insights and analytics for campaign performance.
-   - Enabled the ability to stop and reset campaigns, allowing for better control and flexibility in campaign management.
-</info added on 2025-05-03T17:21:57.737Z>
-
-## 3. Develop Campaign Execution Service [done]
-### Dependencies: None
-### Description: Implement the campaign execution service with the following capabilities:
-- Status tracking and updates
-- Error handling and recovery
-- Integration with LinkedIn account and proxy rotation
-### Details:
-
-
-<info added on 2025-05-03T17:25:48.028Z>
-Here is the additional information to enhance the subtask:
-
-2. Implemented a worker-based execution model:
-   - Established a message-based communication protocol between the main app and workers using RxJS Observables for efficient, asynchronous communication.
-   - Implemented a load-balancing strategy to distribute campaigns across available worker threads, ensuring optimal resource utilization.
-   - Added support for worker auto-scaling to dynamically adjust the number of worker threads based on campaign volume and system load.
-
-3. Added campaign model enhancements:
-   - Incorporated advanced campaign status tracking, including "queued", "in-progress", "completed", "failed", and "paused" states.
-   - Created methods to calculate campaign performance metrics, such as success rate, average profile visits, and conversion rate.
-   - Implemented a campaign deduplication mechanism to avoid executing the same campaign multiple times.
-
-4. Built a complete execution management system:
-   - Integrated a real-time dashboard to visualize campaign execution progress, status, and performance metrics.
-   - Implemented a campaign prioritization algorithm to ensure high-priority campaigns are executed first.
-   - Added support for campaign retries, with configurable retry limits and backoff strategies.
-   - Incorporated advanced error handling, including the ability to automatically retry failed campaigns with different LinkedIn accounts or proxies.
-</info added on 2025-05-03T17:25:48.028Z>
-
-## 4. Build Search Parameter Processor [done]
-### Dependencies: None
-### Description: Develop the search parameter processor with the following features:
-- Validation of LinkedIn search parameters
-- Translation of user-friendly parameters to LinkedIn-compatible format
-- Parameter normalization and optimization
-### Details:
-
-
-## 5. Create Campaign Monitoring Dashboard [done]
-### Dependencies: None
-### Description: Implement the campaign monitoring dashboard with the following capabilities:
-- Real-time campaign status updates
-- Result tracking and statistics
-- Error reporting and diagnostics
-### Details:
-
-
-## 6. Implement Campaign Filtering and Pagination [done]
-### Dependencies: None
-### Description: Develop the campaign filtering and pagination functionality:
-- Search campaigns by various criteria
-- Sort campaigns by status, creation date, etc.
-- Efficient pagination for large campaign lists
-### Details:
-
-
-## 7. Implement Relationship Management [done]
-### Dependencies: None
-### Description: Add relationship management capabilities:
-- Associate campaigns with specific LinkedIn accounts
-- Link campaigns to proxies
-- Connect campaigns to resulting leads
-### Details:
-
-
+1. Test Campaign model validation
+2. Verify CRUD operations work correctly
+3. Test relationship management with LinkedIn accounts and proxies
+4. Verify status tracking functionality
+5. Test campaign filtering and pagination

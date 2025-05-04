@@ -2,409 +2,73 @@
   "tasks": [
     {
       "id": 1,
-      "title": "Project Foundation Setup",
-      "description": "Set up the TypeScript project structure with Express server, MongoDB connection, and basic middleware configuration.",
-      "status": "done",
+      "title": "Project Setup with TypeScript and Express",
+      "description": "Initialize the project with TypeScript configuration, set up the Express server, establish MongoDB connection, and implement global error handling.",
+      "status": "pending",
       "dependencies": [],
       "priority": "high",
-      "details": "Initialize a TypeScript Node.js project with Express.js framework. Configure tsconfig.json for strict type checking. Set up MongoDB connection using Mongoose ODM with proper error handling. Implement global error middleware with specialized error types and consistent error responses. Create a configuration service for environment variables management. Establish project folder structure following MVC pattern with separate directories for models, controllers, routes, services, middleware, utils, and types.",
-      "testStrategy": "Write unit tests for database connection, configuration loading, and error handling middleware. Implement integration tests for basic server functionality. Verify proper TypeScript compilation and project structure.",
-      "subtasks": []
-    },
-    {
-      "id": 2,
-      "title": "Authentication System Implementation",
-      "description": "Develop a JWT-based authentication system with role-based access control for admin, standard user, and client roles.",
-      "status": "done",
-      "dependencies": [
-        1
-      ],
-      "priority": "high",
-      "details": "Create User model with Mongoose including fields for authentication details, role, profile information, and activity metrics. Implement password hashing using bcrypt. Develop JWT authentication middleware for token generation, validation, and refresh. Build registration, login, and token refresh endpoints. Implement role-based authorization middleware to restrict access based on user roles. Create user profile management endpoints for updating user information. Design and implement the user rating system based on lead quality metrics.",
-      "testStrategy": "Write unit tests for password hashing, JWT token generation and validation. Create integration tests for authentication flow including registration, login, and protected routes. Test role-based access control for different user types."
-    },
-    {
-      "id": 3,
-      "title": "LinkedIn Account and Proxy Management",
-      "description": "Implement secure storage and management of LinkedIn credentials and proxy servers with rotation capabilities.",
-      "status": "done",
-      "dependencies": [
-        2
-      ],
-      "priority": "high",
-      "details": "Create LinkedIn Account model with secure credential storage using encryption. Implement CRUD operations for LinkedIn accounts with proper validation. Develop usage tracking and status monitoring for accounts. Create Proxy model for storing proxy server details with support for authenticated and non-authenticated proxies. Implement CRUD operations for proxies with validation. Build a proxy rotation service that selects appropriate proxies based on usage patterns. Implement access control to ensure only admins can manage these resources.",
-      "testStrategy": "Test secure storage of credentials with encryption. Verify CRUD operations for both LinkedIn accounts and proxies. Test proxy validation functionality. Ensure proper access control for admin-only operations.",
+      "details": "1. Initialize a new Node.js project with npm\n2. Install TypeScript and required dependencies (express, mongoose, etc.)\n3. Configure tsconfig.json with appropriate settings\n4. Set up project structure (controllers, models, routes, services, middleware, utils)\n5. Create Express server with basic middleware (cors, body-parser, etc.)\n6. Implement MongoDB connection with Mongoose\n7. Create global error handling middleware\n8. Set up environment variable configuration with dotenv\n9. Implement logging with Winston or similar\n10. Create health check endpoint",
+      "testStrategy": "1. Write unit tests for configuration loading\n2. Test MongoDB connection with a test database\n3. Verify error handling middleware catches and formats errors correctly\n4. Ensure server starts and responds to health check endpoint",
       "subtasks": [
         {
           "id": 1,
-          "title": "Design LinkedIn Account Model",
-          "description": "Design the data model for storing LinkedIn account details, including secure credential storage using encryption. Identify the necessary fields and their validation requirements.",
+          "title": "Initialize Node.js Project",
+          "description": "Set up a new Node.js project with npm and install required dependencies.",
+          "status": "pending",
           "dependencies": [],
-          "details": "1. Identify the required fields for the LinkedIn Account model, such as username, password, account status, last login time, etc.\n2. Determine the appropriate data types and validation rules for each field (e.g., username length, password complexity).\n3. Implement secure credential storage using encryption techniques like AES or RSA to protect sensitive information.\n4. Ensure the model adheres to best practices for data modeling and security.",
-          "status": "done",
-          "parentTaskId": 3
+          "details": "1. Initialize a new Node.js project using `npm init -y`.\n2. Install TypeScript, Express, Mongoose, and other required dependencies using `npm install --save-dev typescript express mongoose`."
         },
         {
           "id": 2,
-          "title": "Implement CRUD Operations for LinkedIn Accounts",
-          "description": "Develop the backend API to perform Create, Read, Update, and Delete operations on the LinkedIn Account model, with proper validation and error handling.",
+          "title": "Configure TypeScript",
+          "description": "Set up the TypeScript configuration file (tsconfig.json) with appropriate settings.",
+          "status": "pending",
           "dependencies": [
             1
           ],
-          "details": "1. Implement the necessary controller, service, and repository layers to handle CRUD operations for the LinkedIn Account model.\n2. Ensure all operations validate the input data according to the model's requirements.\n3. Implement error handling to provide meaningful responses for invalid requests.\n4. Thoroughly test the CRUD operations to ensure they function as expected.",
-          "status": "done",
-          "parentTaskId": 3
+          "details": "1. Create a `tsconfig.json` file in the project root.\n2. Configure the TypeScript options, such as `target`, `module`, `outDir`, `strict`, etc., to match the project requirements."
         },
         {
           "id": 3,
-          "title": "Develop LinkedIn Account Usage Tracking and Monitoring",
-          "description": "Implement a system to track the usage and status of LinkedIn accounts, including login attempts, successful logins, and account lockouts.",
+          "title": "Organize Project Structure",
+          "description": "Set up the project directory structure with appropriate folders for controllers, models, routes, services, middleware, and utilities.",
+          "status": "pending",
           "dependencies": [
+            1,
             2
           ],
-          "details": "1. Design a usage tracking model to store information about each account's login attempts, successful logins, and account lockouts.\n2. Integrate the usage tracking functionality into the LinkedIn Account service to capture the necessary data.\n3. Implement a monitoring dashboard or reporting system to visualize the usage patterns and status of the LinkedIn accounts.\n4. Ensure the usage data is stored securely and can be accessed by authorized users only.",
-          "status": "done",
-          "parentTaskId": 3
+          "details": "1. Create the following directories in the project root: `src/controllers`, `src/models`, `src/routes`, `src/services`, `src/middleware`, `src/utils`.\n2. Ensure the project structure follows a logical and maintainable organization."
         },
         {
           "id": 4,
-          "title": "Design Proxy Server Model",
-          "description": "Design the data model for storing proxy server details, including support for authenticated and non-authenticated proxies.",
-          "dependencies": [],
-          "details": "1. Identify the required fields for the Proxy Server model, such as host, port, username, password, authentication type, and status.\n2. Determine the appropriate data types and validation rules for each field (e.g., host and port format, username and password length).\n3. Ensure the model can handle both authenticated and non-authenticated proxy servers.\n4. Implement the Proxy Server model, adhering to best practices for data modeling and security.",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 5,
-          "title": "Implement CRUD Operations for Proxy Servers",
-          "description": "Develop the backend API to perform Create, Read, Update, and Delete operations on the Proxy Server model, with proper validation and error handling.",
+          "title": "Set up Express Server",
+          "description": "Create the Express server, configure basic middleware, and establish the MongoDB connection.",
+          "status": "pending",
           "dependencies": [
-            4
-          ],
-          "details": "1. Implement the necessary controller, service, and repository layers to handle CRUD operations for the Proxy Server model.\n2. Ensure all operations validate the input data according to the model's requirements.\n3. Implement error handling to provide meaningful responses for invalid requests.\n4. Thoroughly test the CRUD operations to ensure they function as expected.",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 6,
-          "title": "Implement Proxy Rotation Service",
-          "description": "Develop a service that selects appropriate proxies based on usage patterns and rotates them to ensure optimal performance and reliability.",
-          "dependencies": [
-            3,
-            5
-          ],
-          "details": "1. Analyze the usage data collected for the LinkedIn accounts and proxy servers to identify patterns and trends.\n2. Implement a proxy selection algorithm that considers factors like proxy availability, performance, and usage history to select the most appropriate proxy for a given request.\n3. Develop a proxy rotation mechanism that automatically switches to a different proxy when the current one becomes unavailable or underperforms.\n4. Ensure the proxy rotation service is integrated with the LinkedIn Account service to seamlessly handle proxy selection and rotation.",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 7,
-          "title": "Implement Access Control for LinkedIn Accounts and Proxies",
-          "description": "Develop an access control system to ensure only authorized users (e.g., admins) can manage the LinkedIn accounts and proxy servers.",
-          "dependencies": [
+            1,
             2,
-            5
-          ],
-          "details": "1. Implement a user management system with roles and permissions.\n2. Ensure only users with the appropriate permissions can perform CRUD operations on the LinkedIn Accounts and Proxy Servers.\n3. Implement access control checks in the backend API to enforce the permission rules.\n4. Provide a user interface for administrators to manage user accounts and their permissions.",
-          "status": "done",
-          "parentTaskId": 3
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "title": "Campaign Management System",
-      "description": "Develop a comprehensive campaign creation, configuration, and management system with advanced search parameters, filters, and result tracking.",
-      "status": "done",
-      "dependencies": [
-        3
-      ],
-      "priority": "high",
-      "details": "The campaign management system will provide end-to-end functionality for creating, executing, and monitoring marketing campaigns. Key features include:\n\n- Robust Campaign data model with search parameters, filters, execution status, and result tracking\n- CRUD API endpoints for campaign management, including validation and configuration updates\n- Campaign execution service with status tracking, error handling, and integration with LinkedIn accounts and proxy servers\n- Search parameter processor for validating, translating, and optimizing LinkedIn-compatible parameters\n- Campaign monitoring dashboard with real-time status updates, result analytics, and diagnostics\n- Flexible campaign filtering and pagination for efficient listing and search\n- Relationship management between campaigns, LinkedIn accounts, and resulting leads",
-      "testStrategy": "Comprehensive testing of the campaign management system, including:\n\n- Validation of campaign creation and configuration\n- End-to-end testing of campaign execution flow, including status updates and error handling\n- Verification of search parameter processing and optimization\n- Validation of campaign monitoring dashboard functionality\n- Testing of campaign filtering, sorting, and pagination\n- Validation of relationship management between campaigns, accounts, and leads",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Design Campaign Data Model",
-          "description": "Create the Campaign data model with the following key features:\n- Fields for search parameters and filters (company, school, past company, etc.)\n- Execution status tracking (created, running, completed, failed)\n- Relationships to LinkedIn accounts and proxy servers\n- Result storage and statistics",
-          "status": "done",
-          "assignee": "John Doe",
-          "details": "\n\n<info added on 2025-05-03T17:18:07.467Z>\nHere are the additional details to enhance the Campaign data model:\n\n1. **Detailed Search Filter Interface**:\n   - Implemented `ILinkedInSearchFilters` interface with comprehensive filter options, including:\n     - Basic profile filters: company, school, industry, etc.\n     - Position filters: title, seniority, years of experience\n     - Geography filters: location, region, country\n     - Connection filters: connection degree, network\n     - Additional filters: keywords, company size, etc.\n     - Boolean filters: open to work, recent activity, etc.\n     - Advanced filters: skills, groups, languages\n\n2. **Comprehensive Campaign Execution Tracking**:\n   - Implemented `ICampaignStats` interface to track detailed execution metrics\n   - Created `ICampaignExecutionLog` interface for comprehensive logging of campaign activities\n   - Added support for targeting parameters, such as lead count and completion date\n\n3. **Enhanced Campaign Model Relationships**:\n   - Established associations between campaigns and LinkedIn accounts\n   - Linked campaigns to proxy servers used for execution\n   - Tracked the results of campaigns, including the number of leads generated\n\n4. **Advanced Scheduling Features**:\n   - Implemented cron-based scheduling for campaigns\n   - Added support for run limits (maximum profiles, maximum run time)\n   - Incorporated rate limiting (requests per minute, delay between profiles)\n\n5. **API-friendly Enhancements**:\n   - Indexed the campaign data for efficient querying\n   - Added static methods to find campaigns by status and schedule\n   - Implemented instance methods for logging and updating campaign statistics\n\n6. **Notification Support**:\n   - Added support for completion and failure notifications\n   - Implemented email validation for notification delivery\n</info added on 2025-05-03T17:18:07.467Z>"
-        },
-        {
-          "id": 2,
-          "title": "Implement Campaign Management API",
-          "description": "Build CRUD API endpoints for campaign management:\n- Create/configure new campaigns with validation\n- Retrieve campaign details and status\n- Update campaign configuration\n- Delete campaigns with proper cleanup",
-          "status": "done",
-          "assignee": "Jane Smith",
-          "details": "\n\n<info added on 2025-05-03T17:21:57.737Z>\nHere are the additional details to enhance the subtask:\n\n1. **Enhanced Campaign Data Model**:\n   - Added support for advanced search filters, including date ranges, priority levels, and processing state.\n   - Implemented validation for complex input fields like start/end dates, budget, and targeting parameters.\n   - Added relationships to LinkedIn accounts and proxy configurations to support campaign execution on different platforms.\n\n2. **New API Endpoints**:\n   - `GET /campaign/:id/logs`: Retrieve detailed execution logs for a specific campaign, including status updates, errors, and performance metrics.\n   - `GET /campaign/:id/stats`: Get aggregated statistics and reporting for a campaign, such as impressions, clicks, conversions, and ROI.\n   - `PUT /campaign/:id/filters`: Update the search filters and targeting parameters for an existing campaign.\n   - `POST /campaign/:id/reset`: Reset a campaign to its initial state, clearing execution history and allowing for a fresh start.\n   - `PUT /campaign/priorities`: Perform bulk updates to the priority levels of multiple campaigns.\n\n3. **Improved Existing Endpoints**:\n   - Enhanced the campaign listing endpoint with advanced filtering options, including status, processing state, scheduled state, name (partial match), priority range, and date range.\n   - Implemented detailed validation and type safety to ensure data integrity and provide clear error messages.\n   - Improved error handling to provide more specific and actionable error responses.\n\n4. **Execution Tracking and Reporting**:\n   - Implemented comprehensive campaign status updates to track the progress and state of each campaign.\n   - Integrated detailed execution logging to capture all relevant events, errors, and performance data.\n   - Developed statistical reporting capabilities to generate insights and analytics for campaign performance.\n   - Enabled the ability to stop and reset campaigns, allowing for better control and flexibility in campaign management.\n</info added on 2025-05-03T17:21:57.737Z>"
-        },
-        {
-          "id": 3,
-          "title": "Develop Campaign Execution Service",
-          "description": "Implement the campaign execution service with the following capabilities:\n- Status tracking and updates\n- Error handling and recovery\n- Integration with LinkedIn account and proxy rotation",
-          "status": "done",
-          "assignee": "Bob Johnson",
-          "details": "\n\n<info added on 2025-05-03T17:25:48.028Z>\nHere is the additional information to enhance the subtask:\n\n2. Implemented a worker-based execution model:\n   - Established a message-based communication protocol between the main app and workers using RxJS Observables for efficient, asynchronous communication.\n   - Implemented a load-balancing strategy to distribute campaigns across available worker threads, ensuring optimal resource utilization.\n   - Added support for worker auto-scaling to dynamically adjust the number of worker threads based on campaign volume and system load.\n\n3. Added campaign model enhancements:\n   - Incorporated advanced campaign status tracking, including \"queued\", \"in-progress\", \"completed\", \"failed\", and \"paused\" states.\n   - Created methods to calculate campaign performance metrics, such as success rate, average profile visits, and conversion rate.\n   - Implemented a campaign deduplication mechanism to avoid executing the same campaign multiple times.\n\n4. Built a complete execution management system:\n   - Integrated a real-time dashboard to visualize campaign execution progress, status, and performance metrics.\n   - Implemented a campaign prioritization algorithm to ensure high-priority campaigns are executed first.\n   - Added support for campaign retries, with configurable retry limits and backoff strategies.\n   - Incorporated advanced error handling, including the ability to automatically retry failed campaigns with different LinkedIn accounts or proxies.\n</info added on 2025-05-03T17:25:48.028Z>"
-        },
-        {
-          "id": 4,
-          "title": "Build Search Parameter Processor",
-          "description": "Develop the search parameter processor with the following features:\n- Validation of LinkedIn search parameters\n- Translation of user-friendly parameters to LinkedIn-compatible format\n- Parameter normalization and optimization",
-          "status": "done",
-          "assignee": "Sarah Lee"
-        },
-        {
-          "id": 5,
-          "title": "Create Campaign Monitoring Dashboard",
-          "description": "Implement the campaign monitoring dashboard with the following capabilities:\n- Real-time campaign status updates\n- Result tracking and statistics\n- Error reporting and diagnostics",
-          "status": "done",
-          "assignee": "Tom Wilson"
-        },
-        {
-          "id": 6,
-          "title": "Implement Campaign Filtering and Pagination",
-          "description": "Develop the campaign filtering and pagination functionality:\n- Search campaigns by various criteria\n- Sort campaigns by status, creation date, etc.\n- Efficient pagination for large campaign lists",
-          "status": "done",
-          "assignee": "Emily Davis"
-        },
-        {
-          "id": 7,
-          "title": "Implement Relationship Management",
-          "description": "Add relationship management capabilities:\n- Associate campaigns with specific LinkedIn accounts\n- Link campaigns to proxies\n- Connect campaigns to resulting leads",
-          "status": "done",
-          "assignee": "Michael Chen"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "Selenium Integration and LinkedIn Authentication",
-      "description": "Integrate Selenium WebDriver with proxy support, headless mode, and robust error handling to implement a comprehensive LinkedIn authentication solution with advanced security measures and multi-account management.",
-      "status": "pending",
-      "dependencies": [
-        3
-      ],
-      "priority": "high",
-      "details": "Set up Selenium WebDriver with TypeScript bindings, including support for headless mode operation. Implement a WebDriver factory with proxy integration and error handling for network issues and LinkedIn UI changes. Develop a LinkedIn authentication service that can handle login flow, CAPTCHA challenges, phone verification, and unusual login detection. Create a session management system for maintaining authenticated state across multiple LinkedIn accounts. Build anti-detection measures including random delays and browser fingerprint masking. Implement recovery mechanisms for handling authentication failures and monitoring account health to prevent account restrictions.",
-      "testStrategy": "Test WebDriver initialization with different proxy configurations and in headless mode. Verify LinkedIn authentication process with comprehensive error handling. Validate CAPTCHA, phone verification, and unusual login detection handling. Test session management and cookie handling for multiple accounts. Ensure anti-detection measures and recovery mechanisms work as expected.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Set up Selenium WebDriver with TypeScript support and headless mode",
-          "description": "Integrate Selenium WebDriver into the project, setting up the necessary TypeScript bindings and configuration to enable headless mode operation.",
-          "dependencies": [],
-          "details": "1. Install Selenium WebDriver and TypeScript dependencies in the project.\n2. Create a WebDriver configuration file that sets up the WebDriver instance with options for headless mode, browser selection, and other necessary settings.\n3. Implement a WebDriver factory function that returns a configured WebDriver instance based on the settings in the configuration file.\n4. Write unit tests to ensure the WebDriver factory is working as expected, including verifying headless mode operation.",
-          "status": "pending",
-          "parentTaskId": 5
-        },
-        {
-          "id": 2,
-          "title": "Implement a WebDriver factory with proxy integration and error handling",
-          "description": "Develop a WebDriver factory that can handle proxy configurations and robust error handling for network issues and LinkedIn UI changes.",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Extend the WebDriver factory to accept proxy configuration options, such as host, port, and authentication credentials.\n2. Implement logic to configure the WebDriver instance with the provided proxy settings.\n3. Add error handling mechanisms to the WebDriver factory to gracefully handle network errors, such as connection timeouts and SSL/TLS issues.\n4. Implement a system to monitor LinkedIn UI changes and update the WebDriver factory accordingly to handle any breaking changes.\n5. Write integration tests to validate the WebDriver factory's proxy integration and error handling capabilities.",
-          "status": "pending",
-          "parentTaskId": 5
-        },
-        {
-          "id": 3,
-          "title": "Develop a LinkedIn authentication service",
-          "description": "Create a LinkedIn authentication service that can handle the login flow, CAPTCHA challenges, phone verification, and unusual login detection.",
-          "dependencies": [
-            2
-          ],
-          "details": "1. Implement a LinkedIn authentication service that encapsulates the login flow, including username and password submission, CAPTCHA handling, and phone verification.\n2. Develop mechanisms to detect and handle unusual login attempts, such as IP address changes or suspicious activity, and trigger appropriate actions (e.g., account lockout, email notification).\n3. Integrate the authentication service with the WebDriver factory to leverage the configured WebDriver instance for performing login operations.\n4. Implement recovery mechanisms to handle authentication failures, such as retrying the login process or providing alternative authentication methods.\n5. Write integration tests to validate the LinkedIn authentication service's functionality, including successful logins, CAPTCHA handling, and unusual login detection.",
-          "status": "pending",
-          "parentTaskId": 5
-        },
-        {
-          "id": 4,
-          "title": "Implement a session management system for multi-account support",
-          "description": "Create a session management system that can maintain authenticated state across multiple LinkedIn accounts.",
-          "dependencies": [
             3
           ],
-          "details": "1. Design a session management system that can store and retrieve authenticated session data for multiple LinkedIn accounts.\n2. Implement mechanisms to securely store and retrieve session data, such as using encrypted storage or a secure database.\n3. Develop methods to initialize a new session, load an existing session, and invalidate a session when necessary.\n4. Integrate the session management system with the LinkedIn authentication service to seamlessly handle account switching and session restoration.\n5. Write integration tests to validate the session management system's functionality, including successful session creation, loading, and invalidation.",
-          "status": "pending",
-          "parentTaskId": 5
+          "details": "1. Create an `app.ts` file in the `src` directory and set up the Express server.\n2. Configure basic middleware, such as `cors`, `body-parser`, and `morgan` (for logging).\n3. Establish the MongoDB connection using Mongoose."
         },
         {
           "id": 5,
-          "title": "Implement anti-detection measures and account health monitoring",
-          "description": "Develop anti-detection measures, including random delays and browser fingerprint masking, and implement account health monitoring to prevent account restrictions.",
+          "title": "Implement Global Error Handling",
+          "description": "Create a global error handling middleware to handle and log errors across the application.",
+          "status": "pending",
           "dependencies": [
+            1,
+            2,
+            3,
             4
           ],
-          "details": "1. Implement random delay mechanisms to introduce natural-looking pauses between actions, mimicking human-like behavior and reducing the risk of detection.\n2. Develop browser fingerprint masking techniques to obfuscate the WebDriver instance's unique characteristics, making it appear more like a regular browser.\n3. Implement an account health monitoring system that tracks key metrics, such as login success rate, CAPTCHA challenges, and unusual activity flags, to proactively detect and prevent account restrictions.\n4. Integrate the anti-detection measures and account health monitoring system with the overall LinkedIn authentication and session management components.\n5. Write integration tests to validate the effectiveness of the anti-detection measures and the account health monitoring system, ensuring they work as expected and do not interfere with the core functionality.",
-          "status": "pending",
-          "parentTaskId": 5
-        }
-      ]
-    },
-    {
-      "id": 6,
-      "title": "LinkedIn Search Automation",
-      "description": "Implement advanced LinkedIn search functionality with intelligent navigation, comprehensive filtering, and robust error handling.",
-      "status": "pending",
-      "dependencies": [
-        4,
-        5
-      ],
-      "priority": "medium",
-      "details": "1. Develop a search execution service that supports all required search filters, including company size, industry, job title, location, years of experience, and more, as specified in the PRD.\n2. Implement a feature to save search filters and create reusable search templates for efficient future use.\n3. Ensure the search automation can handle LinkedIn's search result limits and pagination properly, with seamless navigation through all available results.\n4. Incorporate error recovery mechanisms to gracefully handle interrupted searches, allowing users to resume from the last successful step.\n5. Implement a metrics tracking system to gather insights on search operations, such as success rates, time taken, and any errors encountered.\n6. Integrate the search automation with the multi-account system from Task 5 to enable cross-account search capabilities.",
-      "testStrategy": "1. Verify the search execution service supports all required filters and that search results accurately reflect the applied filters.\n2. Test the search filter saving and template creation functionality, ensuring users can easily reuse and modify their preferred search configurations.\n3. Validate the pagination handling by executing searches with varying result sizes and verifying that all results are properly retrieved.\n4. Simulate interrupted searches and ensure the error recovery mechanism allows users to resume from the last successful step.\n5. Monitor the metrics tracking system and validate the accuracy and completeness of the collected data.\n6. Integrate the search automation with the multi-account system and verify seamless cross-account search capabilities.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implement comprehensive search parameter and filter handling",
-          "description": "Create a system to manage LinkedIn search parameters and filters including company size, industry, job title, location, years of experience and more.",
-          "details": "1. Design and implement a SearchParameters class that encapsulates all possible LinkedIn search filters and parameters.\\n2. Create mapping functions to translate API parameters to LinkedIn URL search parameters.\\n3. Implement validation for search parameters to ensure they conform to LinkedIn's requirements.\\n4. Create unit tests to verify parameter mapping and validation functionality.\\n5. Document the available search parameters and their expected format for API users.",
-          "status": "pending",
-          "dependencies": [],
-          "parentTaskId": 6
-        },
-        {
-          "id": 2,
-          "title": "Develop search execution service with pagination handling",
-          "description": "Implement a service that executes LinkedIn searches, handles pagination, and manages search result limits.",
-          "details": "1. Create a SearchExecutionService that performs searches based on provided parameters.\\n2. Implement pagination logic to navigate through search results beyond the first page.\\n3. Handle LinkedIn's search result limits by tracking remaining searches and implementing appropriate waiting periods.\\n4. Add intelligent waiting between actions to mimic human behavior and avoid detection.\\n5. Implement error handling for various search-related failures like network issues or LinkedIn UI changes.",
-          "status": "pending",
-          "dependencies": [
-            1
-          ],
-          "parentTaskId": 6
-        },
-        {
-          "id": 3,
-          "title": "Build result extraction and profile URL storage system",
-          "description": "Create a system to extract profile information from search results and store profile URLs for later processing.",
-          "details": "1. Implement selectors with fallbacks for extracting profile information from LinkedIn search results.\\n2. Create a ProfileUrlExtractor class that extracts profile URLs from search results.\\n3. Implement a storage mechanism for saving extracted profile URLs with their associated campaign.\\n4. Add deduplication logic to avoid extracting previously processed profiles.\\n5. Create a queue system for scheduling profile URL processing based on priority and campaign settings.",
-          "status": "pending",
-          "dependencies": [
-            2
-          ],
-          "parentTaskId": 6
-        },
-        {
-          "id": 4,
-          "title": "Implement error recovery for interrupted searches",
-          "description": "Develop mechanisms to handle and recover from interrupted LinkedIn searches, including session expiration and network issues.",
-          "details": "1. Create a search state persistence system that regularly saves the current search state.\\n2. Implement recovery mechanisms to resume searches from the last known state after interruptions.\\n3. Add logic to detect session expiration and automatically re-authenticate when needed.\\n4. Develop retry mechanisms with exponential backoff for handling transient network errors.\\n5. Implement logging for search interruptions to facilitate debugging and monitoring.",
-          "status": "pending",
-          "dependencies": [
-            3
-          ],
-          "parentTaskId": 6
-        },
-        {
-          "id": 5,
-          "title": "Create search templates and reusable filters",
-          "description": "Build functionality to save search filters as templates and create reusable search configurations.",
-          "details": "1. Design and implement a SearchTemplate model to store reusable search configurations.\\n2. Create CRUD operations for managing search templates.\\n3. Implement a template selection mechanism in the search execution service.\\n4. Add UI endpoints for template management and selection.\\n5. Develop template inheritance or composition to allow building new templates from existing ones.",
-          "status": "pending",
-          "dependencies": [
-            1
-          ],
-          "parentTaskId": 6
+          "details": "1. Create an `error.ts` file in the `src/middleware` directory.\n2. Implement a global error handling middleware that catches and logs all errors.\n3. Ensure the middleware is properly integrated into the Express application."
         },
         {
           "id": 6,
-          "title": "Implement search metrics and tracking",
-          "description": "Create a system to track and report on search operations, including performance, results, and rate limits.",
-          "details": "1. Design and implement a SearchMetrics model to store information about search operations.\\n2. Track key metrics including search duration, results count, success rate, and rate limit usage.\\n3. Create aggregation functions to generate reports on search performance by campaign, account, or time period.\\n4. Implement real-time monitoring for search operations to detect issues early.\\n5. Add endpoints for retrieving search metrics and generating reports.",
+          "title": "Set up Environment Variables",
+          "description": "Implement environment variable configuration using the `dotenv` library and set up a health check endpoint.",
           "status": "pending",
-          "dependencies": [
-            2
-          ],
-          "parentTaskId": 6
-        },
-        {
-          "id": 7,
-          "title": "Build multi-account search coordination",
-          "description": "Develop functionality to coordinate searches across multiple LinkedIn accounts to maximize efficiency and respect account limits.",
-          "details": "1. Integrate with the multi-account system from Task 5 to access and manage multiple LinkedIn accounts.\\n2. Implement an account selection algorithm that chooses the optimal account for each search based on usage, health, and other factors.\\n3. Create a load balancing system to distribute search operations across available accounts.\\n4. Develop rate limiting mechanisms to ensure each account stays within LinkedIn's usage limits.\\n5. Implement fallback logic to handle scenarios where an account becomes unavailable during a search operation.",
-          "status": "pending",
-          "dependencies": [
-            6,
-            4
-          ],
-          "parentTaskId": 6
-        }
-      ]
-    },
-    {
-      "id": 7,
-      "title": "Profile Data Scraping and Processing",
-      "description": "Develop comprehensive profile data extraction, normalization, and storage functionality with de-duplication, connection degree determination, and handling of premium/restricted profiles.",
-      "status": "pending",
-      "dependencies": [
-        6
-      ],
-      "priority": "medium",
-      "details": "1. Create profile scraping service that extracts detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.\n2. Implement support for determining connection degree (1st, 2nd, 3rd) for each profile.\n3. Develop advanced data normalization to ensure consistent formatting across different profiles.\n4. Add support for extracting data from both public and private profiles (when logged in).\n5. Implement rate limiting and anti-detection measures specifically for profile viewing.\n6. Add mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.\n7. Implement robust error handling for various profile states (incomplete, restricted, etc.).\n8. Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.\n9. Create a service for tracking scraping progress and results.",
-      "testStrategy": "1. Test comprehensive profile data extraction with various profile types, including public and private profiles.\n2. Verify data normalization and consistency across different profile formats.\n3. Test de-duplication logic with existing profiles.\n4. Validate connection degree determination for different profile relationships.\n5. Test error handling for different failure scenarios during scraping, including incomplete and restricted profiles.\n6. Verify rate limiting and anti-detection measures for profile viewing.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implement Profile Scraping Service",
-          "description": "Develop a service that can extract detailed information from LinkedIn profiles, including name, title, company, company size, industry, location, education, experience, skills, and contact information.",
-          "dependencies": [],
-          "details": "1. Research and select the appropriate web scraping library or tool to use for extracting data from LinkedIn profiles.\n2. Implement the scraping logic to fetch the required data fields from public LinkedIn profiles.\n3. Ensure the scraping process is efficient and does not violate LinkedIn's terms of service.\n4. Implement error handling to gracefully handle various profile states (incomplete, restricted, etc.).\n5. Test the scraping service thoroughly to ensure it can handle a wide range of profile scenarios.",
-          "status": "pending",
-          "parentTaskId": 7
-        },
-        {
-          "id": 2,
-          "title": "Determine Connection Degree",
-          "description": "Implement functionality to determine the connection degree (1st, 2nd, 3rd) for each profile.",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Analyze the data extracted from the profiles to identify the connection degree for each profile.\n2. Implement logic to determine the connection degree based on the available information, such as shared connections, mutual followers, etc.\n3. Ensure the connection degree determination is accurate and consistent across all profiles.",
-          "status": "pending",
-          "parentTaskId": 7
-        },
-        {
-          "id": 3,
-          "title": "Implement Data Normalization",
-          "description": "Develop advanced data normalization to ensure consistent formatting across different profiles.",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Analyze the data fields extracted from the profiles and identify any inconsistencies in formatting, capitalization, abbreviations, etc.\n2. Implement normalization rules to standardize the data format across all profiles.\n3. Ensure the normalization process is robust and can handle a wide range of variations in the input data.",
-          "status": "pending",
-          "parentTaskId": 7
-        },
-        {
-          "id": 4,
-          "title": "Handle Premium/Restricted Profiles",
-          "description": "Add support for extracting data from both public and private (premium/Sales Navigator) profiles.",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Investigate the differences in data availability between public and private LinkedIn profiles.\n2. Implement logic to detect if a profile is public or private and adjust the scraping process accordingly.\n3. Develop mechanisms to mark profiles as premium/Sales Navigator only when certain data can't be accessed.\n4. Ensure the handling of premium/restricted profiles is seamless and does not impact the overall data extraction process.",
-          "status": "pending",
-          "parentTaskId": 7
-        },
-        {
-          "id": 5,
-          "title": "Implement Rate Limiting and Anti-Detection Measures",
-          "description": "Add rate limiting and anti-detection measures specifically for profile viewing.",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Research and implement rate limiting strategies to prevent overloading LinkedIn's servers and avoid detection.\n2. Develop anti-detection mechanisms, such as rotating proxy servers, user-agent randomization, and IP address rotation, to ensure the scraping process is not flagged as suspicious activity.\n3. Continuously monitor the scraping process and adjust the rate limiting and anti-detection measures as needed to maintain a stable and uninterrupted data extraction.",
-          "status": "pending",
-          "parentTaskId": 7
-        },
-        {
-          "id": 6,
-          "title": "Implement Structured Data Storage",
-          "description": "Develop structured storage of profile data in the database with de-duplication logic to prevent re-scraping of profiles.",
           "dependencies": [
             1,
             2,
@@ -412,298 +76,508 @@
             4,
             5
           ],
-          "details": "1. Design a database schema to store the extracted profile data in a structured format.\n2. Implement de-duplication logic to ensure that profiles are not re-scraped and stored multiple times.\n3. Develop mechanisms to update existing profile data when new information is available.\n4. Ensure the data storage process is efficient and can handle a large volume of profiles without performance issues.",
+          "details": "1. Install the `dotenv` library using `npm install --save dotenv`.\n2. Create a `.env` file in the project root and define the required environment variables.\n3. Implement the environment variable configuration in the application.\n4. Create a health check endpoint to verify the application's status."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Authentication System Implementation",
+      "description": "Implement the User model, JWT authentication, password encryption, and role-based authorization system.",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "1. Create User model with Mongoose schema (fields: email, password, role, name, etc.)\n2. Implement password hashing with bcrypt\n3. Create JWT authentication middleware\n4. Implement login and registration endpoints (/users/login, /users/register, /users/loginAdmin, /users/registerAdmin)\n5. Add role-based authorization middleware\n6. Implement token refresh mechanism\n7. Create user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id)\n8. Add user profile management functionality\n9. Implement user rating system for CLIENT role users",
+      "testStrategy": "1. Unit test User model validation\n2. Test password hashing and comparison\n3. Verify JWT generation and validation\n4. Test role-based access control\n5. Integration tests for authentication endpoints",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement User Model and Password Hashing",
+          "description": "Create the User model using Mongoose, define the required fields, and implement password hashing using bcrypt.",
+          "dependencies": [],
+          "details": "1. Define the User schema with fields like email, password, role, name, etc.\n2. Implement password hashing using bcrypt to securely store user passwords.\n3. Ensure that the password is hashed before saving the user to the database.\n4. Write unit tests to verify the User model and password hashing functionality.",
           "status": "pending",
-          "parentTaskId": 7
+          "parentTaskId": 2
+        },
+        {
+          "id": 2,
+          "title": "Implement JWT Authentication Middleware",
+          "description": "Create the JWT authentication middleware to handle user login, registration, and token refresh.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Implement the login and registration endpoints (/users/login, /users/register) that generate and return a JWT token.\n2. Create the JWT authentication middleware to verify the token in incoming requests.\n3. Implement the token refresh mechanism to allow users to obtain a new token without re-authenticating.\n4. Write integration tests to verify the authentication and token refresh functionality.",
+          "status": "pending",
+          "parentTaskId": 2
+        },
+        {
+          "id": 3,
+          "title": "Implement Role-Based Authorization Middleware",
+          "description": "Create the role-based authorization middleware to handle access control for different user roles.",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Implement the role-based authorization middleware to check the user's role and grant or deny access to specific endpoints.\n2. Create the /users/loginAdmin and /users/registerAdmin endpoints for admin users.\n3. Implement the user CRUD endpoints (/users/getUsers, /users/getById/:id, /users/updateById/:id, /users/deleteById/:id) with role-based access control.\n4. Write integration tests to verify the role-based authorization functionality.",
+          "status": "pending",
+          "parentTaskId": 2
+        },
+        {
+          "id": 4,
+          "title": "Implement User Profile Management",
+          "description": "Implement the user profile management functionality, allowing users to view and update their profile information.",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Create the user profile management endpoints (/users/me, /users/me/update).\n2. Implement the logic to retrieve and update the user's profile information.\n3. Ensure that users can only access and update their own profile, not other users' profiles.\n4. Write integration tests to verify the user profile management functionality.",
+          "status": "pending",
+          "parentTaskId": 2
+        },
+        {
+          "id": 5,
+          "title": "Implement User Rating System",
+          "description": "Implement the user rating system for CLIENT role users.",
+          "dependencies": [
+            4
+          ],
+          "details": "1. Create the user rating model and schema to store ratings and comments.\n2. Implement the endpoints to allow CLIENT role users to rate and comment on other users' profiles.\n3. Ensure that users can only rate other users, not themselves.\n4. Display the average rating and number of ratings on each user's profile.\n5. Write integration tests to verify the user rating system functionality.",
+          "status": "pending",
+          "parentTaskId": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "LinkedIn Account and Proxy Management",
+      "description": "Implement models and API endpoints for managing LinkedIn accounts and proxy servers with secure credential storage.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "1. Create LinkedIn Account model with encrypted password storage\n2. Implement encryption/decryption utilities using a secure library (crypto)\n3. Create CRUD API endpoints for LinkedIn accounts\n4. Implement Proxy model for storing proxy server details\n5. Create CRUD API endpoints for proxy management\n6. Add validation for proxy formats and authentication\n7. Implement proxy rotation logic\n8. Add usage tracking for both LinkedIn accounts and proxies\n9. Create middleware to restrict these endpoints to admin users only\n10. Implement secure retrieval of decrypted credentials for internal use",
+      "testStrategy": "1. Test encryption/decryption of credentials\n2. Verify CRUD operations for both models\n3. Test proxy validation logic\n4. Verify admin-only access to endpoints\n5. Test proxy rotation functionality",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create LinkedIn Account Model",
+          "description": "Implement the LinkedIn Account model with encrypted password storage using a secure encryption library (e.g., crypto)",
+          "status": "pending",
+          "dependencies": [],
+          "details": "1. Define the LinkedIn Account model with fields like username, encrypted_password, and other relevant details.\n2. Implement the encryption/decryption utilities using a secure library like crypto to handle password storage securely.\n3. Ensure the password is encrypted before storing in the database."
+        },
+        {
+          "id": 2,
+          "title": "Implement CRUD API Endpoints for LinkedIn Accounts",
+          "description": "Create API endpoints for managing LinkedIn accounts (Create, Read, Update, Delete)",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Implement the necessary API endpoints (e.g., /linkedin-accounts, /linkedin-accounts/{id}) to perform CRUD operations on the LinkedIn Account model.\n2. Ensure the API endpoints are properly secured and only accessible to authorized users."
+        },
+        {
+          "id": 3,
+          "title": "Create Proxy Model and CRUD API Endpoints",
+          "description": "Implement the Proxy model and API endpoints for managing proxy servers",
+          "status": "pending",
+          "dependencies": [],
+          "details": "1. Define the Proxy model with fields like host, port, username, encrypted_password, and other relevant details.\n2. Implement the CRUD API endpoints (e.g., /proxies, /proxies/{id}) to manage the Proxy model."
+        },
+        {
+          "id": 4,
+          "title": "Implement Proxy Validation and Authentication",
+          "description": "Add validation for proxy formats and authentication",
+          "status": "pending",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Implement validation logic to ensure the proxy details (host, port, username, password) are in the correct format.\n2. Integrate proxy authentication mechanisms (e.g., basic authentication, API keys) to secure the proxy management endpoints."
+        },
+        {
+          "id": 5,
+          "title": "Implement Proxy Rotation Logic",
+          "description": "Develop the logic for rotating proxy servers",
+          "status": "pending",
+          "dependencies": [
+            4
+          ],
+          "details": "1. Implement the proxy rotation logic to automatically switch between available proxies based on usage, performance, or other criteria.\n2. Ensure the proxy rotation is transparent to the client applications using the API."
+        },
+        {
+          "id": 6,
+          "title": "Implement Usage Tracking",
+          "description": "Add usage tracking for LinkedIn accounts and proxies",
+          "status": "pending",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "1. Implement usage tracking mechanisms to monitor the utilization of LinkedIn accounts and proxy servers.\n2. Store the usage data (e.g., timestamp, account/proxy used, request details) for reporting and analysis purposes."
         },
         {
           "id": 7,
-          "title": "Implement Scraping Progress Tracking",
-          "description": "Create a service for tracking scraping progress and results.",
+          "title": "Implement Admin-only Access",
+          "description": "Create middleware to restrict the API endpoints to admin users only",
+          "status": "pending",
           "dependencies": [
-            1,
+            2,
+            3,
             6
           ],
-          "details": "1. Develop a service that can monitor the progress of the profile scraping process.\n2. Implement mechanisms to track the number of profiles scraped, the success rate, and any errors encountered.\n3. Provide a way to visualize the scraping progress and generate reports on the data extraction process.\n4. Ensure the progress tracking service is integrated with the overall profile data management system.",
+          "details": "1. Implement middleware to authenticate and authorize users accessing the LinkedIn account and proxy management API endpoints.\n2. Ensure only authorized admin users can perform CRUD operations and access the usage tracking data."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Campaign Model and Management API",
+      "description": "Implement the Campaign model and API endpoints for creating, retrieving, updating, and deleting search campaigns.",
+      "status": "pending",
+      "dependencies": [
+        3
+      ],
+      "priority": "high",
+      "details": "1. Create Campaign model with Mongoose schema (search parameters, filters, status fields, etc.)\n2. Implement CRUD API endpoints for campaigns\n3. Add validation for campaign parameters\n4. Create relationships between campaigns and LinkedIn accounts/proxies\n5. Implement campaign status tracking (isSearched, processing, etc.)\n6. Add campaign filtering and pagination\n7. Create endpoint for adding campaigns to the execution queue\n8. Implement campaign result storage (totalResults, resultsArr)\n9. Add campaign reporting endpoints\n10. Ensure no plain text passwords are stored in campaign data",
+      "testStrategy": "1. Test Campaign model validation\n2. Verify CRUD operations work correctly\n3. Test relationship management with LinkedIn accounts and proxies\n4. Verify status tracking functionality\n5. Test campaign filtering and pagination",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Selenium Integration and Browser Automation",
+      "description": "Set up Selenium WebDriver with proxy support, implement LinkedIn authentication handling, and create browser automation utilities.",
+      "status": "pending",
+      "dependencies": [
+        3
+      ],
+      "priority": "medium",
+      "details": "1. Create a Selenium service for WebDriver initialization\n2. Implement platform detection for appropriate chromedriver selection\n3. Add proxy integration with Selenium\n4. Create headless browser configuration\n5. Implement LinkedIn login flow\n6. Add CAPTCHA detection and handling\n7. Implement OTP verification flow\n8. Create session management utilities\n9. Add random delays and anti-detection measures\n10. Implement browser cleanup and resource management\n11. Create API endpoints for handling login challenges (/campaign/linkedInLogin, /campaign/checkLinkedInLogin, /campaign/getLinkedInCaptcha, etc.)",
+      "testStrategy": "1. Test WebDriver initialization with different configurations\n2. Verify proxy integration works correctly\n3. Test login flow with test accounts\n4. Verify CAPTCHA detection\n5. Test browser cleanup and resource management",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up Selenium WebDriver",
+          "description": "Create a Selenium service for WebDriver initialization and implement platform detection for appropriate chromedriver selection.",
           "status": "pending",
-          "parentTaskId": 7
+          "dependencies": [],
+          "details": "1. Install Selenium WebDriver and chromedriver libraries in the project.\n2. Create a Selenium service class to handle WebDriver initialization.\n3. Implement logic to detect the operating system and select the appropriate chromedriver executable."
+        },
+        {
+          "id": 2,
+          "title": "Integrate Proxy Support",
+          "description": "Add proxy integration with Selenium WebDriver.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Identify the proxy server details (host, port, username, password).\n2. Modify the Selenium service to accept proxy configurations.\n3. Set the proxy settings in the WebDriver instance."
+        },
+        {
+          "id": 3,
+          "title": "Implement Headless Browser Configuration",
+          "description": "Create a headless browser configuration for Selenium WebDriver.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Investigate the headless mode capabilities of the chromedriver.\n2. Modify the Selenium service to create a headless WebDriver instance.\n3. Ensure the headless configuration works as expected."
+        },
+        {
+          "id": 4,
+          "title": "Implement LinkedIn Authentication",
+          "description": "Implement the LinkedIn login flow using Selenium WebDriver.",
+          "status": "pending",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "1. Identify the LinkedIn login page elements (username, password, submit button).\n2. Write the login flow logic to enter the credentials and submit the form.\n3. Handle any potential challenges like CAPTCHA or OTP verification."
+        },
+        {
+          "id": 5,
+          "title": "Implement CAPTCHA Detection and Handling",
+          "description": "Add CAPTCHA detection and handling capabilities to the LinkedIn authentication flow.",
+          "status": "pending",
+          "dependencies": [
+            4
+          ],
+          "details": "1. Detect the presence of a CAPTCHA challenge on the LinkedIn login page.\n2. Implement a mechanism to capture the CAPTCHA image and present it to the user for manual solving.\n3. Update the login flow to handle the CAPTCHA response and proceed with the authentication."
+        },
+        {
+          "id": 6,
+          "title": "Implement OTP Verification Flow",
+          "description": "Implement the OTP verification flow for LinkedIn authentication.",
+          "status": "pending",
+          "dependencies": [
+            4
+          ],
+          "details": "1. Detect the presence of an OTP verification step during the LinkedIn login.\n2. Prompt the user to enter the OTP code received on their registered device.\n3. Integrate the OTP verification into the overall LinkedIn authentication flow."
+        },
+        {
+          "id": 7,
+          "title": "Implement Browser Automation Utilities",
+          "description": "Create session management utilities, add random delays and anti-detection measures, and implement browser cleanup and resource management.",
+          "status": "pending",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "details": "1. Implement session management utilities to maintain and reuse WebDriver instances.\n2. Add random delays at appropriate points in the automation flow to mimic human-like behavior.\n3. Implement anti-detection measures like user-agent rotation, IP rotation, and other techniques to avoid triggering bot detection.\n4. Ensure proper cleanup of WebDriver instances and release of resources upon completion of the automation tasks."
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "LinkedIn Search and Profile Scraping",
+      "description": "Implement LinkedIn search automation, profile data extraction, and de-duplication logic.",
+      "status": "pending",
+      "dependencies": [
+        4,
+        5
+      ],
+      "priority": "medium",
+      "details": "1. Create search automation service using Selenium\n2. Implement filter application (company, school, past company)\n3. Add results pagination handling\n4. Create profile URL extraction logic\n5. Implement profile data scraping (name, title, experience, education, etc.)\n6. Create PreviousLeads model for de-duplication\n7. Implement data normalization and cleaning\n8. Add error handling and recovery for scraping failures\n9. Create API endpoints for triggering searches (/campaign/searchLinkedin, /campaign/linkedInProfileScrappingReq)\n10. Implement storage of scraped profiles as User entities with CLIENT role",
+      "testStrategy": "1. Test search automation with different filters\n2. Verify profile data extraction accuracy\n3. Test de-duplication logic\n4. Verify error handling and recovery\n5. Test API endpoints for search triggering",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Redis Integration and Scheduling System",
+      "description": "Implement Redis for distributed locking, set up the scheduling system for automated campaign execution, and create the cron job infrastructure.",
+      "status": "pending",
+      "dependencies": [
+        6
+      ],
+      "priority": "medium",
+      "details": "1. Set up Redis client connection\n2. Implement distributed locking mechanism using Redis\n3. Create concurrency control for scraping operations\n4. Implement node-schedule for cron-based execution\n5. Create scheduling service for campaign automation\n6. Add campaign queue management\n7. Implement error recovery for failed scheduled jobs\n8. Create API endpoint for scheduling campaigns (/campaign/addScheduledCampaign)\n9. Add state management for running campaigns\n10. Implement system for handling campaign execution limits",
+      "testStrategy": "1. Test Redis connection and locking mechanism\n2. Verify scheduled jobs execute correctly\n3. Test concurrency control with multiple campaigns\n4. Verify error recovery works as expected\n5. Test campaign scheduling API",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up Redis client connection",
+          "description": "Establish a connection to the Redis server and create a client instance that can be used throughout the application.",
+          "status": "pending",
+          "dependencies": [],
+          "details": "1. Install the necessary Redis client library for the programming language being used (e.g., ioredis for Node.js, redis-py for Python).\n2. Configure the Redis connection details (host, port, password, etc.) in the application's environment or configuration file.\n3. Create a Redis client instance and test the connection to ensure it's working correctly."
+        },
+        {
+          "id": 2,
+          "title": "Implement distributed locking mechanism using Redis",
+          "description": "Develop a locking mechanism that uses Redis to ensure mutual exclusion for critical sections of the application.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Research and understand the concept of distributed locking and how it can be implemented using Redis.\n2. Implement a locking function that uses the Redis `SET` command with the `NX` option to acquire a lock.\n3. Implement a function to release the lock by using the Redis `DEL` command.\n4. Ensure that the locking mechanism is robust and can handle edge cases, such as locks not being released due to application crashes or other failures."
+        },
+        {
+          "id": 3,
+          "title": "Create concurrency control for scraping operations",
+          "description": "Implement a concurrency control system that uses the distributed locking mechanism to ensure that only one instance of a scraping operation is running at a time.",
+          "status": "pending",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Identify the critical sections of the scraping operations that need to be protected by the locking mechanism.\n2. Implement a function that acquires a lock before executing a scraping operation and releases the lock when the operation is complete.\n3. Ensure that the locking mechanism is integrated with the scraping logic to prevent race conditions and data inconsistencies."
+        },
+        {
+          "id": 4,
+          "title": "Implement node-schedule for cron-based execution",
+          "description": "Set up a scheduling system using the node-schedule library to execute tasks on a recurring basis.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Install the node-schedule library and add it to the project dependencies.\n2. Create a function that uses the `schedule` method to schedule a task to run at a specific interval (e.g., every hour, every day).\n3. Ensure that the scheduled tasks can be easily added, modified, and removed as needed."
+        },
+        {
+          "id": 5,
+          "title": "Create scheduling service for campaign automation",
+          "description": "Develop a service that manages the scheduling and execution of automated campaigns.",
+          "status": "pending",
+          "dependencies": [
+            4
+          ],
+          "details": "1. Design the data model and storage mechanism for campaign schedules and execution details.\n2. Implement the logic to create, update, and delete campaign schedules.\n3. Integrate the scheduling service with the node-schedule library to execute the campaigns at the specified intervals.\n4. Ensure that the scheduling service can handle errors and retries for failed campaign executions."
+        },
+        {
+          "id": 6,
+          "title": "Implement error recovery for failed scheduled jobs",
+          "description": "Develop a system to handle and recover from errors that occur during the execution of scheduled jobs.",
+          "status": "pending",
+          "dependencies": [
+            5
+          ],
+          "details": "1. Implement a logging mechanism to capture detailed information about scheduled job executions, including any errors or failures.\n2. Create a retry mechanism that automatically attempts to re-run failed jobs after a specified delay.\n3. Implement a dead-letter queue or similar mechanism to store and process jobs that fail repeatedly and cannot be automatically recovered.\n4. Develop a monitoring and alerting system to notify the team about recurring job failures or other issues with the scheduling system."
         }
       ]
     },
     {
       "id": 8,
       "title": "Lead Management and Annotation System",
-      "description": "Implement a comprehensive lead management system with support for custom statuses, assignment, filtering, annotation, activity logging, bulk operations, prioritization, and export/merge capabilities.",
+      "description": "Implement Lead model, status tracking, assignment functionality, comments, and activity logging.",
       "status": "pending",
       "dependencies": [
-        7
+        6
       ],
       "priority": "medium",
-      "details": "1. Create Lead model with fields for scraped profile data, custom status, assignment, and relationship to campaigns.\n2. Implement Lead Status model for defining and managing custom status definitions aligned with sales workflows.\n3. Develop CRUD operations for leads with validation, including support for bulk lead creation, update, and deletion.\n4. Build lead assignment functionality to assign leads to users for follow-up actions.\n5. Create lead filtering and sorting capabilities based on various criteria such as status, assigned user, campaign, and custom fields.\n6. Implement Lead Comments model and functionality for adding notes and annotations to leads.\n7. Develop activity logging to track all interactions and status changes for each lead.\n8. Implement lead prioritization mechanisms based on configurable criteria such as lead score, engagement, or custom business rules.\n9. Build lead export functionality to allow users to export lead data in various formats (CSV, Excel, etc.).\n10. Implement lead merging capabilities to handle duplicate lead entries.",
-      "testStrategy": "1. Test lead creation from scraped profile data and bulk lead management operations.\n2. Verify custom status tracking and transitions aligned with sales workflows.\n3. Test lead assignment functionality and ensure proper follow-up actions.\n4. Validate lead filtering, sorting, and prioritization capabilities.\n5. Test the lead annotation system and activity logging for all interactions.\n6. Ensure lead export functionality works as expected in various formats.\n7. Test lead merging capabilities to handle duplicate entries.",
+      "details": "1. Create Lead model as a link between Campaign, User (CLIENT), and User (standard)\n2. Implement LeadStatus model for custom status definitions\n3. Create CRUD API endpoints for leads\n4. Implement lead assignment functionality\n5. Add lead filtering and sorting capabilities\n6. Create LeadComment model for annotations\n7. Implement CRUD API endpoints for comments\n8. Create LeadLogs model for activity tracking\n9. Implement automated log creation during key events\n10. Add API endpoint for retrieving lead logs\n11. Create lead export functionality (/lead/exportLeadsToExcel)",
+      "testStrategy": "1. Test Lead model relationships\n2. Verify CRUD operations for leads, comments, and statuses\n3. Test lead assignment functionality\n4. Verify activity logging works correctly\n5. Test lead export functionality",
       "subtasks": [
         {
           "id": 1,
-          "title": "Implement Lead Model and CRUD Operations",
-          "description": "Create a comprehensive Lead model and implement CRUD operations with validation.",
-          "details": "1. Design the Lead model schema with fields for scraped profile data, status, assignment, and relationship to campaigns.\\n2. Implement validation for required fields and data types.\\n3. Create REST API endpoints for lead creation, retrieval, update, and deletion.\\n4. Add middleware for request validation and error handling.\\n5. Implement unit and integration tests for the Lead model and CRUD operations.",
+          "title": "Create Lead Model",
+          "description": "Implement the Lead model as a link between Campaign, User (CLIENT), and User (standard)",
           "status": "pending",
           "dependencies": [],
-          "parentTaskId": 8
+          "details": "1. Define the Lead model with fields like id, campaign_id, client_user_id, assigned_user_id, status_id, created_at, updated_at.\n2. Establish the relationships between Lead, Campaign, and User models.\n3. Implement the Lead model in the codebase."
         },
         {
           "id": 2,
-          "title": "Develop Custom Lead Status Management",
-          "description": "Implement Lead Status model and management functionality to support custom status definitions aligned with sales workflows.",
-          "details": "1. Create a LeadStatus model to define custom lead statuses with names, descriptions, and ordering.\\n2. Implement CRUD operations for lead status management.\\n3. Build a status workflow engine to define valid status transitions.\\n4. Create API endpoints for managing lead statuses and transitions.\\n5. Implement status validation to ensure leads only transition to valid statuses.",
+          "title": "Implement LeadStatus Model",
+          "description": "Create the LeadStatus model for custom status definitions",
           "status": "pending",
           "dependencies": [
             1
           ],
-          "parentTaskId": 8
+          "details": "1. Define the LeadStatus model with fields like id, name, description.\n2. Implement the LeadStatus model in the codebase.\n3. Ensure the Lead model has a foreign key relationship with the LeadStatus model."
         },
         {
           "id": 3,
-          "title": "Implement Lead Assignment Functionality",
-          "description": "Build lead assignment functionality that allows leads to be assigned to users for follow-up actions.",
-          "details": "1. Update the Lead model to include assignment information (assigned user, assignment date, etc.).\\n2. Create API endpoints for assigning leads to users and for users to claim leads.\\n3. Implement automatic assignment features based on configurable rules (round-robin, skill-based, etc.).\\n4. Add notification mechanisms for users when leads are assigned to them.\\n5. Implement reporting on lead assignment statistics (assignments per user, response times, etc.).",
+          "title": "Implement Lead CRUD API",
+          "description": "Create CRUD API endpoints for leads",
           "status": "pending",
           "dependencies": [
-            1
+            1,
+            2
           ],
-          "parentTaskId": 8
+          "details": "1. Implement the create, read, update, and delete API endpoints for the Lead model.\n2. Ensure the API endpoints handle the relationships with Campaign and User models.\n3. Implement input validation and error handling for the API endpoints."
         },
         {
           "id": 4,
-          "title": "Create Lead Filtering and Sorting Capabilities",
-          "description": "Implement comprehensive filtering and sorting capabilities for leads based on various criteria.",
-          "details": "1. Design and implement a query builder for complex lead filtering based on multiple criteria.\\n2. Create API endpoints that support filtering leads by status, assignment, campaign, date ranges, and profile attributes.\\n3. Implement sorting functionality by various fields (name, date added, status, priority, etc.).\\n4. Add pagination support for large result sets.\\n5. Create a saved filter feature allowing users to save and reuse common filters.",
+          "title": "Implement Lead Assignment",
+          "description": "Implement lead assignment functionality",
           "status": "pending",
           "dependencies": [
-            1
+            3
           ],
-          "parentTaskId": 8
+          "details": "1. Implement the logic to assign a lead to a user.\n2. Ensure the API endpoint for lead assignment updates the assigned_user_id field in the Lead model.\n3. Implement notifications or events to inform the assigned user about the new lead."
         },
         {
           "id": 5,
-          "title": "Develop Lead Annotation System",
-          "description": "Implement a robust annotation system for adding notes and comments to leads.",
-          "details": "1. Create a LeadComment model for storing notes and comments associated with leads.\\n2. Implement CRUD operations for lead comments with proper validation.\\n3. Add support for rich text formatting in comments.\\n4. Implement comment threading to allow for organized discussions about leads.\\n5. Create API endpoints for managing lead comments and retrieving comment history.",
+          "title": "Implement Lead Filtering and Sorting",
+          "description": "Add lead filtering and sorting capabilities",
           "status": "pending",
           "dependencies": [
-            1
+            3
           ],
-          "parentTaskId": 8
+          "details": "1. Implement the logic to filter leads based on various criteria like status, campaign, assigned user, etc.\n2. Implement the logic to sort leads based on fields like created_at, updated_at, status, etc.\n3. Expose the filtering and sorting capabilities through the Lead API endpoints."
         },
         {
           "id": 6,
-          "title": "Implement Activity Logging",
-          "description": "Develop activity logging functionality to track all interactions and changes to leads.",
-          "details": "1. Create a LeadActivityLog model for tracking all actions and changes related to leads.\\n2. Implement hooks or middleware to automatically log activities when leads are created, updated, or have status changes.\\n3. Record user information, timestamp, and detailed change information for each activity.\\n4. Create API endpoints for retrieving lead activity history with filtering options.\\n5. Implement a dashboard for viewing recent lead activities across the system.",
+          "title": "Implement Lead Comments and Activity Logs",
+          "description": "Create LeadComment model for annotations and LeadLogs model for activity tracking",
           "status": "pending",
           "dependencies": [
-            1,
-            2,
             3
           ],
-          "parentTaskId": 8
-        },
-        {
-          "id": 7,
-          "title": "Build Bulk Lead Management Operations",
-          "description": "Implement functionality for performing operations on multiple leads simultaneously.",
-          "details": "1. Create API endpoints for bulk operations such as status updates, assignments, and deletion.\\n2. Implement a selection mechanism for users to choose multiple leads for bulk operations.\\n3. Add validation to ensure bulk operations are only performed on valid leads and with appropriate user permissions.\\n4. Implement progress tracking for long-running bulk operations.\\n5. Create a transaction system to ensure bulk operations are atomic (all succeed or all fail).",
-          "status": "pending",
-          "dependencies": [
-            1,
-            2,
-            3
-          ],
-          "parentTaskId": 8
-        },
-        {
-          "id": 8,
-          "title": "Implement Lead Export and Merging",
-          "description": "Develop functionality for exporting leads in various formats and merging duplicate lead entries.",
-          "details": "1. Create export functionality for leads in various formats (CSV, Excel, JSON, etc.).\\n2. Implement customizable export templates to control which fields are included in exports.\\n3. Add scheduling capabilities for automated exports.\\n4. Develop duplicate detection logic to identify potential duplicate leads based on configurable criteria.\\n5. Implement lead merging functionality that combines data from duplicate leads while preserving history and relationships.",
-          "status": "pending",
-          "dependencies": [
-            1,
-            4
-          ],
-          "parentTaskId": 8
+          "details": "1. Define the LeadComment model with fields like id, lead_id, user_id, comment, created_at.\n2. Implement the CRUD API endpoints for lead comments.\n3. Define the LeadLogs model with fields like id, lead_id, user_id, action, created_at.\n4. Implement the logic to automatically create lead logs during key events like lead creation, assignment, status change, etc.\n5. Expose the lead logs through a dedicated API endpoint."
         }
       ]
     },
     {
       "id": 9,
-      "title": "Scheduling System with Redis Integration",
-      "description": "Implement a comprehensive campaign scheduling system with Redis integration, supporting distributed locking, cron-based scheduling, error recovery, job monitoring, and integration with LinkedIn search and email campaigns.",
+      "title": "Email Integration and Notification System",
+      "description": "Implement email settings configuration, SMTP integration, and automated alerts for system events.",
       "status": "pending",
       "dependencies": [
-        6,
-        7
+        7,
+        8
       ],
-      "priority": "medium",
-      "details": "1. Set up Redis integration for distributed locking to prevent concurrent execution of the same campaign.\n2. Implement detailed cron-based scheduling for different campaign components, including LinkedIn search and email campaigns.\n3. Develop robust error recovery and retry mechanisms to handle failed jobs.\n4. Add job monitoring and status reporting capabilities to the scheduling system.\n5. Ensure the scheduling system integrates seamlessly with both LinkedIn search and email campaign workflows.\n6. Implement configurable rate limiting to prevent detection by platforms.\n7. Add support for scheduling based on various factors like time zones, account usage, and other relevant parameters.",
-      "testStrategy": "1. Verify distributed locking with Redis under concurrent campaign execution scenarios.\n2. Test cron-based scheduling with various timing configurations for different campaign components.\n3. Validate error recovery mechanisms by simulating job failures and ensuring successful retries.\n4. Inspect job monitoring and status reporting to ensure accurate and timely information.\n5. End-to-end test the integration with LinkedIn search and email campaign systems.\n6. Confirm rate limiting is working as expected and does not impact campaign execution.\n7. Test scheduling based on different parameters like time zones and account usage."
+      "priority": "low",
+      "details": "1. Create EmailSettings model for SMTP configuration\n2. Implement CRUD API endpoints for email settings\n3. Set up Nodemailer integration\n4. Create email service for sending notifications\n5. Implement automated alerts for critical system events (login failures, etc.)\n6. Add email templates for different notification types\n7. Create campaign data export via email functionality\n8. Implement email sending queue for reliability\n9. Add error handling for email sending failures\n10. Create test endpoint for email configuration verification",
+      "testStrategy": "1. Test EmailSettings model validation\n2. Verify CRUD operations for email settings\n3. Test email sending with different templates\n4. Verify automated alerts trigger correctly\n5. Test error handling for email failures",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create EmailSettings Model",
+          "description": "Define the data model for email settings, including SMTP server details, authentication credentials, and other configuration parameters.",
+          "status": "pending",
+          "dependencies": [],
+          "details": "1. Create a new model class called `EmailSettings` with properties for SMTP host, port, username, password, and other relevant settings.\n2. Ensure the model has appropriate data validation and default values.\n3. Persist the email settings data to the database using an ORM or data access layer."
+        },
+        {
+          "id": 2,
+          "title": "Implement Email Settings CRUD API",
+          "description": "Create the necessary API endpoints to allow users to manage the email settings.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Implement GET, POST, PUT, and DELETE endpoints for the `EmailSettings` model.\n2. Ensure the API is secured and only accessible to authorized users.\n3. Integrate the email settings CRUD operations with the `EmailSettings` model created in the previous subtask."
+        },
+        {
+          "id": 3,
+          "title": "Integrate Nodemailer for Email Sending",
+          "description": "Set up the Nodemailer library to enable sending emails from the application.",
+          "status": "pending",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Install the Nodemailer package and set up the necessary configuration.\n2. Create a reusable email service that can be used to send emails using the Nodemailer transport.\n3. Ensure the email service can handle different types of email templates and content."
+        },
+        {
+          "id": 4,
+          "title": "Implement Automated Alerts",
+          "description": "Develop the functionality to automatically send email notifications for critical system events.",
+          "status": "pending",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "1. Identify the critical system events that require email notifications (e.g., login failures, system errors).\n2. Implement event listeners or hooks to capture these events.\n3. Trigger the email service to send notifications when the critical events occur.\n4. Ensure the email content is informative and includes relevant details about the event."
+        },
+        {
+          "id": 5,
+          "title": "Add Email Sending Queue",
+          "description": "Implement a reliable email sending queue to handle email delivery failures and ensure message delivery.",
+          "status": "pending",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Integrate a message queue system (e.g., RabbitMQ, Apache Kafka) to handle email sending requests.\n2. Modify the email service to enqueue email messages instead of sending them directly.\n3. Implement a background worker process to dequeue and send the email messages.\n4. Implement retry logic and error handling for failed email deliveries."
+        }
+      ]
     },
     {
       "id": 10,
-      "title": "Email Integration and System Optimization",
-      "description": "Implement email notification system and optimize overall system performance.",
+      "title": "API Refinement, Documentation, and Performance Optimization",
+      "description": "Standardize API responses, optimize database queries, implement rate limiting, and create comprehensive API documentation.",
       "status": "pending",
       "dependencies": [
+        2,
+        3,
+        4,
+        6,
+        7,
         8,
         9
       ],
       "priority": "low",
-      "details": "Create Email Settings model for configuration. Integrate Nodemailer for email functionality. Implement email template system for various notifications. Build automated alerts for system events (login failures, campaign completion). Develop campaign data export via email. Optimize database queries with proper indexing. Implement caching strategies for frequently accessed data. Add rate limiting for API endpoints. Perform final performance testing and optimization. Create comprehensive API documentation. Implement database archiving strategy for historical data.",
-      "testStrategy": "Test email sending functionality with various templates. Verify notification triggers for system events. Test campaign data export via email. Measure and validate performance improvements from optimizations. Verify API documentation completeness and accuracy."
-    },
-    {
-      "id": 11,
-      "title": "Fix Linting Issues and Implement Consistent Error Logging Strategy",
-      "description": "Address linting issues identified by 'npm run lint:fix' including console statements, unused variables, and explicit any types, while implementing a proper error logging strategy.",
-      "details": "This task involves several steps to improve code quality:\n\n1. ESLint Configuration:\n   - Review and update the existing ESLint configuration in `.eslintrc.js` or create one if it doesn't exist\n   - Configure rules to prohibit console statements (`no-console`)\n   - Enable rules for unused variables (`no-unused-vars`)\n   - Configure TypeScript-specific rules to prevent `any` types (`@typescript-eslint/no-explicit-any`)\n   - Add appropriate exceptions where necessary\n\n2. Fix Identified Issues:\n   - Run `npm run lint:fix` to identify all linting issues\n   - Remove all `console.log`, `console.error`, etc. statements from the codebase\n   - Remove or utilize all unused variables\n   - Replace all explicit `any` types with proper type definitions\n\n3. Implement Error Logging Strategy:\n   - Create a centralized logging service/utility that can be imported throughout the codebase\n   - Implement different log levels (error, warn, info, debug)\n   - Configure the logger to output to appropriate channels based on the environment (development, testing, production)\n   - For production, ensure logs are properly formatted for log aggregation services\n   - Add context information to logs (e.g., timestamp, component/file name, user info if applicable)\n\n4. Replace Console Statements:\n   - Replace all console statements with the new logging utility\n   - Ensure proper log levels are used based on the context\n   - Add meaningful error messages and context information\n\n5. Documentation:\n   - Document the new logging approach in the project README or wiki\n   - Provide examples of proper logging usage for other developers",
-      "testStrategy": "To verify this task has been correctly implemented:\n\n1. Linting Verification:\n   - Run `npm run lint` (without fix) and confirm no linting errors related to console statements, unused variables, or any types\n   - Verify this on a clean build to ensure all files are checked\n   - Run the check in CI pipeline to ensure it passes\n\n2. Code Review:\n   - Perform a thorough code review to ensure all console statements have been replaced with the logging utility\n   - Verify that all previously unused variables are now either used or removed\n   - Check that explicit any types have been replaced with proper types\n\n3. Logging Implementation Testing:\n   - Write unit tests for the logging utility to ensure it functions correctly\n   - Test each log level to verify correct behavior\n   - Mock the output channels to verify logs are sent to the correct destinations\n   - Test environment-specific behavior (dev vs prod logging)\n\n4. Integration Testing:\n   - Trigger various error conditions in the application and verify they are properly logged\n   - Check that log messages contain appropriate context information\n   - Verify that sensitive information is not being logged\n\n5. Performance Testing:\n   - Ensure the logging implementation doesn't significantly impact application performance\n   - Test with high volume of logs to verify performance under load",
-      "status": "in-progress",
-      "dependencies": [
-        1,
-        "14"
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 12,
-      "title": "Implement Cross-Platform ChromeDriver Configuration for Selenium WebDriver",
-      "description": "Create a platform-agnostic ChromeDriver configuration system that automatically detects the operating system and uses the appropriate ChromeDriver binary while allowing for custom path configuration.",
-      "details": "Implement a ChromeDriverManager class that handles cross-platform configuration with the following features:\n\n1. OS Detection:\n   - Use `os.name` or equivalent to detect whether the system is Windows or Linux\n   - Support for macOS should be considered for future implementation\n\n2. Default Path Configuration:\n   - For Windows: Use 'chromedriver/chromedriver-win64/chromedriver.exe'\n   - For Linux: Use 'chromedriver/chromedriver-linux64/chromedriver'\n   - Ensure paths are resolved relative to the project root\n\n3. File Permission Management:\n   - On Linux systems, automatically check and set executable permissions (chmod +x) for the ChromeDriver binary\n   - Implement error handling for permission issues\n\n4. Custom Configuration:\n   - Create a configuration mechanism that allows specifying custom ChromeDriver paths\n   - Support both programmatic configuration and external configuration (e.g., environment variables, config file)\n   - Implement a priority system: custom path > environment variable > default path\n\n5. Integration with WebDriver:\n   - Create a factory method that returns a properly configured WebDriver instance\n   - Ensure the ChromeDriver path is correctly set in the Selenium WebDriver setup\n   - Handle common initialization errors with descriptive messages\n\n6. Logging:\n   - Add appropriate logging to track which ChromeDriver is being used\n   - Log any permission changes or configuration decisions\n\nThe implementation should be modular and follow SOLID principles to allow for easy extension to other platforms in the future.",
-      "testStrategy": "Testing should verify correct functionality across platforms and configurations:\n\n1. Unit Tests:\n   - Test OS detection logic with mocked OS information\n   - Test path resolution for each supported platform\n   - Test permission setting logic (with mocked file system operations)\n   - Test configuration priority logic with various combinations of settings\n\n2. Integration Tests:\n   - Test on Windows: Verify the Windows ChromeDriver is selected and WebDriver initializes\n   - Test on Linux: Verify the Linux ChromeDriver is selected, permissions are set, and WebDriver initializes\n   - Test with custom paths: Set custom path via each configuration method and verify it's used\n   - Test with invalid paths: Verify appropriate error handling and messages\n\n3. Edge Cases:\n   - Test with missing ChromeDriver binaries\n   - Test with non-executable ChromeDriver on Linux\n   - Test with read-only filesystem locations\n   - Test with spaces or special characters in paths\n\n4. CI Integration:\n   - Add test jobs for both Windows and Linux in CI pipeline\n   - Verify cross-platform compatibility in automated builds\n\nAll tests should use a mock browser or headless mode to avoid UI dependencies. Document test results for both platforms to confirm cross-platform functionality.",
-      "status": "done",
-      "dependencies": [
-        5
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 13,
-      "title": "Implement Cross-Platform Compatibility and Docker Containerization",
-      "description": "Refactor codebase to ensure consistent behavior across Windows and Linux platforms, and implement Docker containerization as an alternative deployment option.",
-      "details": "This task involves several key components:\n\n1. **Path Handling**:\n   - Replace all hardcoded path separators with `path.join()` and `path.resolve()`\n   - Use relative paths where appropriate\n   - Implement platform-agnostic file path resolution throughout the codebase\n\n2. **Environment Variables**:\n   - Implement a consistent approach for loading environment variables (e.g., dotenv)\n   - Ensure environment variable paths use proper separators\n   - Handle platform-specific environment variable conventions\n\n3. **Platform-Specific Behavior**:\n   - Identify and address platform-specific APIs and behaviors\n   - Create abstraction layers for OS-specific functionality\n   - Handle differences in file system case sensitivity (Windows vs. Linux)\n\n4. **File Permissions**:\n   - Implement proper file permission handling for both platforms\n   - Use appropriate chmod/chown operations on Linux\n   - Ensure executable scripts have correct permissions\n\n5. **Line Endings**:\n   - Configure Git to normalize line endings (.gitattributes)\n   - Ensure text files use consistent line endings (LF preferred)\n   - Add linting rules to enforce consistent line endings\n\n6. **Docker Support (Alternative Deployment Option)**:\n   - Create a Dockerfile for the application\n   - Implement multi-stage builds if needed\n   - Create docker-compose.yml for local development\n   - Document Docker usage in README\n   - Ensure all application dependencies are properly containerized\n   - Configure appropriate volume mounts for development\n\nIMPORTANT: Changes related to Docker containerization should be implemented in isolation and tested thoroughly. If Selenium/browser automation doesn't work correctly in Docker, we may need to revert Docker-specific changes while keeping the cross-platform path handling improvements. Consider implementing Docker support as an alternative deployment option rather than the primary method, allowing the application to run both with and without containerization.",
-      "testStrategy": "Testing should verify cross-platform compatibility and Docker functionality:\n\n1. **Automated Tests**:\n   - Create unit tests that verify path handling works correctly on both platforms\n   - Test environment variable loading on Windows and Linux\n   - Implement CI pipeline that runs tests on both Windows and Linux environments\n\n2. **Manual Verification**:\n   - Run the application on Windows and Linux to verify identical behavior\n   - Test file operations (read/write/execute) on both platforms\n   - Verify file permissions work as expected\n\n3. **Docker Testing**:\n   - Verify the application builds successfully with Docker\n   - Test Docker container on both Windows and Linux hosts\n   - Validate that containerized application behaves identically to local development\n   - Verify volume mounts work correctly for development workflow\n   - Test Docker Compose setup with all required services\n\n4. **Regression Testing**:\n   - Create a checklist of platform-specific features to verify\n   - Implement automated tests that catch platform-specific regressions\n   - Document any remaining platform-specific behaviors that cannot be eliminated\n\n5. **Performance Testing**:\n   - Compare application performance between platforms\n   - Identify and document any performance differences between containerized and native environments",
-      "status": "done",
-      "dependencies": [
-        1,
-        12
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 14,
-      "title": "Implement Comprehensive Error Handling and Logging System",
-      "description": "Design and implement a robust error handling and logging infrastructure that centralizes error management, provides structured logging, categorizes errors, and integrates with external logging services for production environments.",
-      "details": "Create a modular error handling and logging system with the following components:\n\n1. **Centralized Error Handler**:\n   - Implement a global error middleware for Express that catches all unhandled errors\n   - Create custom error classes that extend the base Error class (e.g., ValidationError, AuthenticationError, DatabaseError)\n   - Include error codes, HTTP status codes, and user-friendly messages\n\n2. **Structured Logging Service**:\n   - Develop a logging service with different log levels (debug, info, warn, error, fatal)\n   - Include contextual information in logs (timestamp, request ID, user ID if available, component/module name)\n   - Implement log rotation and compression for file-based logs\n   - Replace all console.log statements with the new logging service\n\n3. **Error Categorization**:\n   - Distinguish between user errors (400-level HTTP errors) and system errors (500-level HTTP errors)\n   - Add metadata to errors to facilitate troubleshooting (stack traces for system errors)\n   - Implement different handling strategies based on error type\n\n4. **API Error Response Format**:\n   - Define a consistent JSON structure for error responses (e.g., {status, message, code, details})\n   - Include appropriate HTTP status codes\n   - Filter sensitive information from error responses in production\n\n5. **Selenium Error Handling**:\n   - Create specialized error handlers for Selenium operations\n   - Implement retry mechanisms for flaky Selenium tests\n   - Capture screenshots or page HTML on Selenium failures\n\n6. **External Logging Integration**:\n   - Integrate with a production logging service (e.g., Datadog, New Relic, ELK stack)\n   - Configure different logging behaviors based on environment (dev, test, prod)\n   - Implement log sampling for high-volume environments\n\nThe implementation should be configurable and allow for easy extension as new error types or logging requirements emerge.",
-      "testStrategy": "Testing should verify all aspects of the error handling and logging system:\n\n1. **Unit Tests**:\n   - Test each custom error class to ensure proper inheritance and property setting\n   - Verify the logging service correctly formats and outputs logs at different levels\n   - Test error categorization logic with various error scenarios\n\n2. **Integration Tests**:\n   - Verify the Express error middleware correctly catches and processes different types of errors\n   - Test that API endpoints return properly formatted error responses for various error conditions\n   - Confirm that Selenium error handlers properly capture and report failures\n\n3. **End-to-End Tests**:\n   - Simulate various error conditions and verify they are properly logged and reported\n   - Test the complete error flow from occurrence to logging to client response\n\n4. **Manual Verification**:\n   - Review logs in the external logging service to ensure proper formatting and information\n   - Verify log rotation and compression work as expected\n   - Check that sensitive information is properly filtered in production logs\n\n5. **Performance Testing**:\n   - Measure the performance impact of the logging system under high load\n   - Test log sampling to ensure it doesn't miss critical errors\n\nAll tests should be automated where possible and included in the CI/CD pipeline to ensure the error handling system remains robust as the application evolves.",
-      "status": "done",
-      "dependencies": [
-        1
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 15,
-      "title": "Implement Comprehensive Testing Strategy for LinkedIn Scraper",
-      "description": "Develop and implement a multi-layered testing approach for the LinkedIn scraper application that ensures reliability, maintainability, and robustness across all components.",
-      "details": "Create a comprehensive testing infrastructure with the following components:\n\n1. **Unit Tests**:\n   - Write unit tests for all utility functions, data processors, and service classes\n   - Implement tests for error handling and edge cases in the scraping logic\n   - Create isolated tests for LinkedIn API interaction modules\n   - Test data transformation and storage functions\n\n2. **Integration Tests**:\n   - Test API endpoints for correct request/response handling\n   - Verify database operations with MongoDB (create, read, update, delete)\n   - Test the integration between scraping modules and data storage\n   - Validate authentication and authorization flows\n\n3. **End-to-End Tests**:\n   - Create scenarios that test the complete scraping workflow\n   - Implement browser automation tests using tools like Puppeteer or Playwright\n   - Test rate limiting and retry mechanisms\n   - Verify data extraction accuracy with known test profiles\n\n4. **Mocking Strategy**:\n   - Develop mock responses for LinkedIn API to avoid actual network requests\n   - Create MongoDB test fixtures and in-memory database for testing\n   - Mock browser interactions for headless testing\n   - Implement service mocks for any third-party integrations\n\n5. **Asynchronous Testing**:\n   - Implement proper async/await testing patterns\n   - Add timeout handling for long-running operations\n   - Test queue processing and background jobs\n\n6. **Test Coverage**:\n   - Configure Jest to generate coverage reports\n   - Set minimum coverage thresholds (aim for >80%)\n   - Identify critical paths that require 100% coverage\n\n7. **CI/CD Integration**:\n   - Set up test automation in the CI pipeline\n   - Configure test stages in the deployment workflow\n   - Implement test result reporting and notifications\n\nUse the existing Jest configuration as the foundation and extend it as needed for the various test types.",
-      "testStrategy": "The implementation will be verified through:\n\n1. **Code Review**:\n   - Confirm all test files follow proper naming conventions (*.test.js or *.spec.js)\n   - Verify tests are organized in logical test suites\n   - Check that mocks and fixtures are properly implemented\n\n2. **Test Quality Verification**:\n   - Run the complete test suite to ensure all tests pass\n   - Verify that tests fail appropriately when code is broken\n   - Check test isolation (tests don't depend on each other)\n   - Confirm tests run within reasonable time limits\n\n3. **Coverage Analysis**:\n   - Generate and review coverage reports\n   - Ensure critical components meet minimum coverage thresholds\n   - Identify and address any coverage gaps\n\n4. **CI Integration Check**:\n   - Confirm tests run automatically on pull requests\n   - Verify test results are properly reported in the CI environment\n   - Test the pipeline with both passing and failing test scenarios\n\n5. **Documentation Review**:\n   - Check that testing approach is documented\n   - Verify instructions exist for running tests locally\n   - Confirm test fixtures and mocks are explained\n\nThe task is complete when all test types are implemented, the test suite runs successfully in the CI environment, and coverage reports meet the defined thresholds.",
-      "status": "pending",
-      "dependencies": [
-        1,
-        14
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 16,
-      "title": "Implement Comprehensive Security Measures in LinkedIn Scraper Application",
-      "description": "Enhance the LinkedIn scraper application with industry-standard security measures to protect credentials, prevent vulnerabilities, and ensure secure data handling throughout the application lifecycle.",
-      "details": "Implement the following security measures:\n\n1. **Secure Credential Storage**:\n   - Store LinkedIn and proxy credentials using environment variables or a secure vault solution (like HashiCorp Vault or AWS Secrets Manager)\n   - Never hardcode credentials in the codebase\n   - Implement encryption for any credentials stored in configuration files\n\n2. **Input Validation**:\n   - Validate and sanitize all user inputs before processing\n   - Implement strict type checking and format validation\n   - Use parameterized queries for any database operations\n\n3. **Rate Limiting**:\n   - Implement rate limiting to prevent abuse and comply with LinkedIn's terms of service\n   - Add exponential backoff for failed requests\n   - Create a configurable delay between requests\n\n4. **OWASP Top 10 Protection**:\n   - Implement protection against injection attacks\n   - Add Cross-Site Scripting (XSS) protection\n   - Prevent Cross-Site Request Forgery (CSRF)\n   - Secure deserialization of data\n   - Implement proper session management\n\n5. **Security Headers**:\n   - Add Content-Security-Policy headers\n   - Implement X-Content-Type-Options: nosniff\n   - Set X-Frame-Options to prevent clickjacking\n   - Add Strict-Transport-Security headers\n\n6. **Authentication & Authorization**:\n   - Implement proper authentication for accessing the scraper\n   - Add role-based access controls if multiple user types exist\n   - Ensure secure session management with proper timeout settings\n\n7. **Secure Logging**:\n   - Implement structured logging\n   - Ensure no sensitive data (passwords, tokens, personal information) is logged\n   - Add appropriate log levels and rotation policies\n   - Include request IDs for traceability\n\n8. **Dependency Scanning**:\n   - Integrate a dependency vulnerability scanner (e.g., OWASP Dependency-Check, Snyk)\n   - Set up automated scanning in the CI/CD pipeline\n   - Create a process for regular updates of dependencies\n\n9. **Additional Measures**:\n   - Implement HTTPS for all communications\n   - Add request and response data validation\n   - Create a security incident response plan",
-      "testStrategy": "Verify security implementation using the following tests:\n\n1. **Credential Security Tests**:\n   - Verify credentials are not present in the codebase using static code analysis\n   - Test that the application fails securely when credentials are invalid\n   - Confirm credentials are properly encrypted at rest\n\n2. **Input Validation Tests**:\n   - Perform fuzzing tests with malformed inputs\n   - Test boundary conditions with extreme values\n   - Attempt SQL injection and XSS attacks to verify protection\n\n3. **Rate Limiting Tests**:\n   - Verify rate limiting by sending rapid successive requests\n   - Confirm backoff strategy works when LinkedIn returns 429 status codes\n   - Test that configurable delays are respected\n\n4. **Vulnerability Tests**:\n   - Run OWASP ZAP or similar security scanning tools against the application\n   - Perform penetration testing focusing on the OWASP Top 10\n   - Use tools like Burp Suite to identify security issues\n\n5. **Header Security Tests**:\n   - Use tools like SecurityHeaders.com to verify proper header implementation\n   - Test each security header is correctly configured\n\n6. **Authentication Tests**:\n   - Attempt to access protected resources without authentication\n   - Test session timeout functionality\n   - Verify role-based access controls work as expected\n\n7. **Logging Tests**:\n   - Review logs to ensure no sensitive data is recorded\n   - Verify all security events are properly logged\n   - Test log rotation and retention policies\n\n8. **Dependency Tests**:\n   - Run dependency scanners and verify no critical vulnerabilities exist\n   - Test the update process for vulnerable dependencies\n\n9. **Integration Tests**:\n   - Perform end-to-end security testing in a staging environment\n   - Create a security checklist and verify all items are addressed\n   - Document any accepted risks with appropriate mitigations",
-      "status": "pending",
-      "dependencies": [
-        2,
-        3
-      ],
-      "priority": "high"
-    },
-    {
-      "id": 17,
-      "title": "Implement MongoDB Connection Pool Management System",
-      "description": "Design and implement a robust MongoDB connection pool management system that optimizes database access, reduces connection overhead, and improves application scalability.",
-      "details": "The implementation of the MongoDB Connection Pool Management System will be broken down into the following subtasks:",
-      "testStrategy": "Testing should include:\n\n1. Unit tests:\n   - Test connection acquisition and release under normal conditions\n   - Verify connection reuse (connections should be reused rather than recreated)\n   - Test pool size limits are respected (create a test that attempts to exceed max connections)\n   - Test idle connection cleanup works correctly\n   - Verify retry logic functions as expected with simulated connection failures\n   - Test graceful shutdown properly closes all connections\n\n2. Integration tests:\n   - Test with an actual MongoDB instance to verify end-to-end functionality\n   - Measure and verify performance improvements (connection time, resource usage)\n   - Test concurrent access with multiple simultaneous operations\n\n3. Load testing:\n   - Simulate high load scenarios with many concurrent requests\n   - Verify the pool handles connection spikes appropriately\n   - Measure metrics under load to ensure they're accurate\n\n4. Failure scenario testing:\n   - Test behavior when MongoDB is unavailable\n   - Verify application gracefully handles connection failures\n   - Test recovery when MongoDB becomes available again\n\nAll tests should be automated and included in the CI/CD pipeline. Use mocking for MongoDB in unit tests to avoid external dependencies.",
-      "status": "done",
-      "dependencies": [
-        1
-      ],
-      "priority": "high",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Analysis and Research Phase",
-          "description": "Conduct analysis and research to understand MongoDB connection pooling best practices and identify requirements for the connection pool management system.",
-          "status": "done"
-        },
-        {
-          "id": 2,
-          "title": "Design Connection Pool Manager",
-          "description": "Design the architecture and implementation of the ConnectionPoolManager class, including configuration parameters and metrics collection.",
-          "status": "done"
-        },
-        {
-          "id": 3,
-          "title": "Implement Core Connection Pool",
-          "description": "Implement the core functionality of the ConnectionPoolManager, including connection acquisition, release, and reuse.",
-          "status": "done"
-        },
-        {
-          "id": 4,
-          "title": "Add Health Monitoring & Management",
-          "description": "Implement connection health checks, idle connection cleanup, timeout handling, and retry logic with exponential backoff.",
-          "status": "done"
-        },
-        {
-          "id": 5,
-          "title": "Implement Metrics Collection",
-          "description": "Add tracking for active/available connections, peak usage, wait time, acquisition time, and connection failures.",
-          "status": "done"
-        },
-        {
-          "id": 6,
-          "title": "Create Clean Shutdown Process",
-          "description": "Implement a graceful connection termination process and ensure proper resource cleanup during application shutdown.",
-          "status": "done"
-        },
-        {
-          "id": 7,
-          "title": "Integrate with Existing Code",
-          "description": "Update database utility code and MongoDB service classes to use the connection pool, and implement proper error handling.",
-          "status": "done"
-        },
-        {
-          "id": 8,
-          "title": "Testing and Documentation",
-          "description": "Create unit, integration, load, and failure scenario tests, and develop comprehensive documentation on configuration and usage.",
-          "status": "done"
-        }
-      ]
+      "details": "1. Create standardized API response format\n2. Implement pagination for all list endpoints\n3. Add sorting and filtering capabilities\n4. Optimize database queries with proper indexing\n5. Implement caching strategies for frequently accessed data\n6. Add rate limiting for public endpoints\n7. Create comprehensive API documentation using Swagger/OpenAPI\n8. Implement request validation middleware\n9. Add performance monitoring\n10. Create deployment documentation\n11. Implement database backup strategy",
+      "testStrategy": "1. Test API response standardization\n2. Verify pagination works correctly\n3. Test rate limiting functionality\n4. Measure performance improvements from optimizations\n5. Verify API documentation accuracy"
     }
   ],
   "metadata": {
-    "projectName": "LinkedIn Scraper Implementation",
+    "projectName": "LinkedIn Scraper Backend",
     "totalTasks": 10,
     "sourceFile": "C:\\Users\\ArijitSaha\\Projects\\office\\zysk-projects\\ExMyB\\chiratae-ventures\\chiratae-linkedIn-scrapper-backend-ts\\scripts\\prd.txt",
-    "generatedAt": "2023-11-09"
+    "generatedAt": "2023-11-29"
   }
 }
