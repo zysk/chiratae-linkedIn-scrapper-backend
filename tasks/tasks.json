@@ -4,7 +4,7 @@
       "id": 1,
       "title": "Project Setup with TypeScript and Express",
       "description": "Initialize the project with TypeScript configuration, set up the Express server, establish MongoDB connection, and implement global error handling.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "details": "1. Initialize a new Node.js project with npm\n2. Install TypeScript and required dependencies (express, mongoose, etc.)\n3. Configure tsconfig.json with appropriate settings\n4. Set up project structure (controllers, models, routes, services, middleware, utils)\n5. Create Express server with basic middleware (cors, body-parser, etc.)\n6. Implement MongoDB connection with Mongoose\n7. Create global error handling middleware\n8. Set up environment variable configuration with dotenv\n9. Implement logging with Winston or similar\n10. Create health check endpoint",
@@ -14,7 +14,7 @@
           "id": 1,
           "title": "Initialize Node.js Project",
           "description": "Set up a new Node.js project with npm and install required dependencies.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "details": "1. Initialize a new Node.js project using `npm init -y`.\n2. Install TypeScript, Express, Mongoose, and other required dependencies using `npm install --save-dev typescript express mongoose`."
         },
@@ -22,7 +22,7 @@
           "id": 2,
           "title": "Configure TypeScript",
           "description": "Set up the TypeScript configuration file (tsconfig.json) with appropriate settings.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1
           ],
@@ -32,7 +32,7 @@
           "id": 3,
           "title": "Organize Project Structure",
           "description": "Set up the project directory structure with appropriate folders for controllers, models, routes, services, middleware, and utilities.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1,
             2
@@ -43,7 +43,7 @@
           "id": 4,
           "title": "Set up Express Server",
           "description": "Create the Express server, configure basic middleware, and establish the MongoDB connection.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1,
             2,
@@ -55,7 +55,7 @@
           "id": 5,
           "title": "Implement Global Error Handling",
           "description": "Create a global error handling middleware to handle and log errors across the application.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1,
             2,
@@ -68,7 +68,7 @@
           "id": 6,
           "title": "Set up Environment Variables",
           "description": "Implement environment variable configuration using the `dotenv` library and set up a health check endpoint.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             1,
             2,

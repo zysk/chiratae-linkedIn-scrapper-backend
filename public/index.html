@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Scraper API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #0077b5;
+    }
+    .api-status {
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    .api-status h2 {
+      margin-top: 0;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>LinkedIn Scraper API</h1>
+  <p>Welcome to the LinkedIn Scraper API server.</p>
+
+  <div class="api-status">
+    <h2>API Status</h2>
+    <p>You can check the API status at: <a href="/api/health">/api/health</a></p>
+    <pre id="status">Loading...</pre>
+  </div>
+
+  <script>
+    // Fetch API health status
+    fetch('/api/health')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('status').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById('status').textContent = 'Error fetching API status: ' + error.message;
+      });
+  </script>
+</body>
+</html>

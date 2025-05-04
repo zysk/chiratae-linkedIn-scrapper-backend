@@ -158,3 +158,5 @@ out/
 dev-debug.log
 # Environment variables
 .vscode
+
+old-code/*
