@@ -288,7 +288,7 @@ const cleanupResources = async () => {
   }
 };
 
-// Run the tests
+// Main test function to export
 const runTests = async () => {
   try {
     console.log('🚀 Starting LinkedIn Account and Proxy Management Tests');
@@ -308,11 +308,17 @@ const runTests = async () => {
     await cleanupResources();
 
     console.log('\n✅ All tests completed successfully!');
+    return true;
   } catch (error) {
     console.error('\n❌ Tests failed:', error.message);
-    process.exit(1);
+    throw error;
   }
 };
 
-// Run the tests
-runTests();
+// Execute the tests if this file is run directly
+if (require.main === module) {
+  runTests();
+} else {
+  // Otherwise export the test function
+  module.exports = runTests;
+}

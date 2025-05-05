@@ -101,11 +101,17 @@ const testApi = async () => {
     console.log('--------------------------------------------------');
 
     console.log('All tests completed successfully!');
-
+    return true;
   } catch (error) {
     console.error('❌ Test failed:', error.response ? error.response.data : error.message);
+    throw error;
   }
 };
 
-// Run the tests
-testApi();
+// Execute the tests if this file is run directly
+if (require.main === module) {
+  testApi();
+} else {
+  // Otherwise export the test function
+  module.exports = testApi;
+}
