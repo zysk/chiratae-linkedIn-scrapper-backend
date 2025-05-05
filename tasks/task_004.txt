@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Campaign Model and Management API
-# Status: pending
+# Status: done
 # Dependencies: 3
 # Priority: high
 # Description: Implement the Campaign model and API endpoints for creating, retrieving, updating, and deleting search campaigns.

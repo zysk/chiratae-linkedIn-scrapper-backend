@@ -46,6 +46,24 @@ export const generateRefreshToken = async (payload: JwtPayload): Promise<string>
 };
 
 /**
+ * Generate JWT token for testing purposes
+ * @param userId User ID to include in the token
+ * @returns JWT token string
+ */
+export const generateToken = (userId: string): string => {
+  const payload: JwtPayload = {
+    userId,
+    role: 'ADMIN' // Default to admin for testing
+  };
+
+  return jwt.sign(
+    payload,
+    CONFIG.JWT_ACCESS_TOKEN_SECRET,
+    { expiresIn: '1D' }
+  );
+};
+
+/**
  * Verify JWT token
  * @param token Token to verify
  * @param secret Secret used to verify the token

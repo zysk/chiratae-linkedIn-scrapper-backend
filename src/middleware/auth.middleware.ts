@@ -15,6 +15,16 @@ declare global {
 }
 
 /**
+ * Interface extending Express Request with authenticated user
+ */
+export interface IAuthRequest extends Request {
+  user?: JwtPayload & {
+    _id?: string;
+  };
+  userObj?: any;
+}
+
+/**
  * Authentication middleware to verify JWT token
  * This middleware will verify the token and populate req.user with user info
  */

@@ -234,7 +234,7 @@
       "id": 4,
       "title": "Campaign Model and Management API",
       "description": "Implement the Campaign model and API endpoints for creating, retrieving, updating, and deleting search campaigns.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3
       ],
