@@ -13,7 +13,7 @@ const getAdminToken = async () => {
       password: 'adminpass123'
     });
 
-    return response.data.token;
+    return response.data.accessToken;
   } catch (error) {
     console.error('Error getting admin token:', error.response?.data || error.message);
     throw error;
@@ -37,22 +37,50 @@ const testLinkedInAccounts = async () => {
   try {
     // 1. Create a LinkedIn account
     console.log('\n📝 Creating a LinkedIn account...');
-    const createAccountResponse = await axios.post(
-      `${API_URL}/linkedin-accounts`,
-      {
-        username: 'linkedin_test',
-        password: 'securePassword123',
-        email: 'linkedin_test@example.com',
-        description: 'Test LinkedIn account'
-      },
-      {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      }
-    );
-    printResponse('Create LinkedIn Account Response', createAccountResponse);
+    try {
+      const createAccountResponse = await axios.post(
+        `${API_URL}/linkedin-accounts`,
+        {
+          username: 'linkedin_test',
+          password: 'securePassword123',
+          email: 'linkedin_test@example.com',
+          description: 'Test LinkedIn account'
+        },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+      printResponse('Create LinkedIn Account Response', createAccountResponse);
 
-    // Save the account ID for later use
-    linkedinAccountId = createAccountResponse.data.data.id;
+      // Save the account ID for later use
+      linkedinAccountId = createAccountResponse.data.data.id;
+    } catch (error) {
+      if (error.response && error.response.status === 400 &&
+          error.response.data.message.includes('already exists')) {
+        console.log('LinkedIn account already exists, trying to find it in the list...');
+
+        // Get all accounts to find the existing one
+        const allAccountsResponse = await axios.get(
+          `${API_URL}/linkedin-accounts`,
+          {
+            headers: { Authorization: `Bearer ${adminToken}` }
+          }
+        );
+
+        const existingAccount = allAccountsResponse.data.data.find(
+          account => account.username === 'linkedin_test' || account.username === 'linkedin_test_updated'
+        );
+
+        if (existingAccount) {
+          linkedinAccountId = existingAccount._id || existingAccount.id;
+          console.log(`Found existing LinkedIn account with ID: ${linkedinAccountId}`);
+        } else {
+          throw new Error('Could not find the existing LinkedIn account');
+        }
+      } else {
+        throw error;
+      }
+    }
 
     // 2. Get all LinkedIn accounts
     console.log('\n📋 Getting all LinkedIn accounts...');
@@ -119,24 +147,53 @@ const testProxies = async () => {
   try {
     // 1. Create a proxy
     console.log('\n📝 Creating a proxy...');
-    const createProxyResponse = await axios.post(
-      `${API_URL}/proxies`,
-      {
-        host: '192.168.1.100',
-        port: 8080,
-        username: 'proxyuser',
-        password: 'proxypass',
-        protocol: 'http',
-        description: 'Test proxy server'
-      },
-      {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      }
-    );
-    printResponse('Create Proxy Response', createProxyResponse);
+    try {
+      const createProxyResponse = await axios.post(
+        `${API_URL}/proxies`,
+        {
+          host: '192.168.1.100',
+          port: 8080,
+          username: 'proxyuser',
+          password: 'proxypass',
+          protocol: 'http',
+          description: 'Test proxy server'
+        },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+      printResponse('Create Proxy Response', createProxyResponse);
 
-    // Save the proxy ID for later use
-    proxyId = createProxyResponse.data.data.id;
+      // Save the proxy ID for later use
+      proxyId = createProxyResponse.data.data.id;
+    } catch (error) {
+      if (error.response && error.response.status === 400 &&
+          error.response.data.message.includes('already exists')) {
+        console.log('Proxy already exists, trying to find it in the list...');
+
+        // Get all proxies to find the existing one
+        const allProxiesResponse = await axios.get(
+          `${API_URL}/proxies`,
+          {
+            headers: { Authorization: `Bearer ${adminToken}` }
+          }
+        );
+
+        const existingProxy = allProxiesResponse.data.data.find(
+          proxy => (proxy.host === '192.168.1.100' && proxy.port === 8080) ||
+                  (proxy.host === '192.168.1.101' && proxy.port === 8081)
+        );
+
+        if (existingProxy) {
+          proxyId = existingProxy._id || existingProxy.id;
+          console.log(`Found existing proxy with ID: ${proxyId}`);
+        } else {
+          throw new Error('Could not find the existing proxy');
+        }
+      } else {
+        throw error;
+      }
+    }
 
     // 2. Get all proxies
     console.log('\n📋 Getting all proxies...');

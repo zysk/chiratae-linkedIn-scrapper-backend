@@ -1,6 +1,6 @@
 // Testing script for our API
 const axios = require('axios');
-const baseUrl = 'http://localhost:3000';
+const baseUrl = 'http://localhost:4000';
 
 // Store tokens
 let userToken = null;
