@@ -16,6 +16,7 @@ import userRatingRoutes from './routes/userRating.routes';
 import linkedinAccountRoutes from './routes/linkedinAccount.routes';
 import proxyRoutes from './routes/proxy.routes';
 import campaignRoutes from './routes/campaign.routes';
+import linkedInRoutes from './routes/linkedin.routes';
 
 // Create Express app
 const app = express();
@@ -59,6 +60,7 @@ app.use('/api/ratings', userRatingRoutes);
 app.use('/api/linkedin-accounts', linkedinAccountRoutes);
 app.use('/api/proxies', proxyRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/linkedin', linkedInRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

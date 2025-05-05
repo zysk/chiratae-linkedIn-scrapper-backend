@@ -87,3 +87,103 @@ The LinkedIn Scraper API has passed all the test scenarios. The authentication s
 - Consider adding more comprehensive error handling tests
 - Add performance tests for larger datasets
 - Consider adding integration tests with actual LinkedIn scraping
+
+# LinkedIn Selenium Integration Test Report
+
+## Test Summary
+
+**Test Date:** [Current Date]
+**Test Environment:** Local Development
+**Test Type:** API Integration Testing
+**Tester:** [Your Name]
+
+## Test Scope
+
+This report covers the testing of Task #5: Selenium Integration and Browser Automation. The following components were tested:
+
+1. **SeleniumService** - Setup and initialization of WebDriver instances with:
+   - Platform detection for appropriate chromedriver selection
+   - Proxy integration
+   - Headless browser configuration
+
+2. **LinkedInAuthService** - Authentication handling with:
+   - Login flow
+   - CAPTCHA detection
+   - OTP verification
+
+3. **LinkedInSearchService** - Profile search capabilities with:
+   - Search URL building
+   - Applying filters
+   - Extracting search results
+
+4. **API Endpoints**:
+   - POST /api/linkedin/test-login
+   - POST /api/linkedin/search
+   - GET /api/linkedin/accounts/next
+   - GET /api/linkedin/proxies/next
+
+## Test Environment Setup
+
+1. MongoDB instance running locally or in the cloud
+2. Node.js backend running on localhost:3000
+3. LinkedIn account for testing
+4. (Optional) Proxy server for testing proxy integration
+
+## Test Cases & Results
+
+### 1. SeleniumService
+
+| Test Case | Description | Expected Result | Actual Result | Status |
+|-----------|-------------|-----------------|---------------|--------|
+| WebDriver Initialization | Create a new WebDriver instance | WebDriver instance is created successfully | [Fill in after testing] | [Pass/Fail] |
+| Platform Detection | Detect the current platform and select the appropriate chromedriver | Correct chromedriver is selected for the platform | [Fill in after testing] | [Pass/Fail] |
+| Proxy Integration | Initialize WebDriver with proxy settings | WebDriver uses the specified proxy | [Fill in after testing] | [Pass/Fail] |
+| Headless Mode | Create a headless browser instance | Browser runs in headless mode | [Fill in after testing] | [Pass/Fail] |
+| Resource Management | Quit a WebDriver instance and remove from active drivers | Driver is properly closed and resources are released | [Fill in after testing] | [Pass/Fail] |
+
+### 2. LinkedInAuthService
+
+| Test Case | Description | Expected Result | Actual Result | Status |
+|-----------|-------------|-----------------|---------------|--------|
+| LinkedIn Login | Log into LinkedIn with valid credentials | Successful login | [Fill in after testing] | [Pass/Fail] |
+| CAPTCHA Detection | Detect CAPTCHA challenge during login | CAPTCHA is detected and reported | [Fill in after testing] | [Pass/Fail] |
+| OTP Verification | Handle OTP verification flow | OTP verification is detected and reported | [Fill in after testing] | [Pass/Fail] |
+| Login Status Check | Verify if user is logged in | Correct login status is reported | [Fill in after testing] | [Pass/Fail] |
+
+### 3. LinkedInSearchService
+
+| Test Case | Description | Expected Result | Actual Result | Status |
+|-----------|-------------|-----------------|---------------|--------|
+| Build Search URL | Create a search URL with various parameters | Valid search URL is constructed | [Fill in after testing] | [Pass/Fail] |
+| Apply Filters | Apply search filters for job titles, industries, etc. | Filters are correctly applied | [Fill in after testing] | [Pass/Fail] |
+| Extract Results | Extract profile data from search results | Profile data is correctly parsed | [Fill in after testing] | [Pass/Fail] |
+| Pagination | Navigate to the next page of results | Next page is loaded and results extracted | [Fill in after testing] | [Pass/Fail] |
+
+### 4. API Endpoints
+
+| Test Case | Description | Expected Result | Actual Result | Status |
+|-----------|-------------|-----------------|---------------|--------|
+| Test LinkedIn Login | POST /api/linkedin/test-login with valid credentials | Successful login response | [Fill in after testing] | [Pass/Fail] |
+| Search LinkedIn Profiles | POST /api/linkedin/search with search parameters | Search results are returned | [Fill in after testing] | [Pass/Fail] |
+| Get Next LinkedIn Account | GET /api/linkedin/accounts/next | Returns the next available account | [Fill in after testing] | [Pass/Fail] |
+| Get Next Proxy | GET /api/linkedin/proxies/next | Returns the next available proxy | [Fill in after testing] | [Pass/Fail] |
+
+## Issues Identified
+
+1. [Issue #1 description]
+2. [Issue #2 description]
+3. ...
+
+## Recommendations
+
+1. [Recommendation #1]
+2. [Recommendation #2]
+3. ...
+
+## Conclusion
+
+[Summary of the test results and overall assessment of the LinkedIn Selenium Integration]
+
+---
+
+This report was generated as part of Task #5: Selenium Integration and Browser Automation testing.
