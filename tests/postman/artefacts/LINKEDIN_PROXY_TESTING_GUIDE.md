@@ -4,7 +4,7 @@ This guide provides instructions for testing the LinkedIn Account and Proxy Mana
 
 ## Prerequisites
 
-- API server running (default: http://localhost:4000)
+- API server running (default: http://localhost:4001)
 - MongoDB running (default: localhost:27017)
 - Admin user credentials available
 

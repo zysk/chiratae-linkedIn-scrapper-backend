@@ -9,6 +9,7 @@ import { createClient } from 'redis';
 // Import our utilities
 import { CONFIG } from './utils/config';
 import { errorHandler, ApiError } from './middleware/errorHandler';
+import { checkChromeDriver } from './utils/checkChromeDriver';
 
 // Import routes
 import userRoutes from './routes/user.routes';
@@ -29,6 +30,15 @@ mongoose.connect(CONFIG.MONGOURI)
   .catch((err) => {
     console.error('MongoDB connection error:', err);
   });
+
+// Check ChromeDriver installation on startup
+(async () => {
+  try {
+    await checkChromeDriver();
+  } catch (error) {
+    console.warn('ChromeDriver check failed, LinkedIn automation might not work correctly:', error);
+  }
+})();
 
 // Connect to Redis (with proper error handling)
 const redisClient = createClient({

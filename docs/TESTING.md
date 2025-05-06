@@ -50,7 +50,7 @@ We've created Postman collections to simplify testing. Two collections are avail
    - LinkedIn & Proxy: `postman/ChirataeScraper_LinkedIn_Proxy_Tests.postman_collection.json`
 
 3. Verify the `baseUrl` environment variable is set correctly
-   - Default: `http://localhost:4000`
+   - Default: `http://localhost:4001`
    - Update this if your server is running on a different port
 
 ## Testing Flow

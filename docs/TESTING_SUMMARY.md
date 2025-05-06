@@ -5,7 +5,7 @@
 This document summarizes the testing performed on the LinkedIn Account and Proxy Management System.
 
 ### Test Environment
-- **Server URL**: http://localhost:4000/api
+- **Server URL**: http://localhost:4001/api
 - **Admin Credentials**: admin2@example.com / adminpass123
 - **Test Date**: May 4, 2025
 

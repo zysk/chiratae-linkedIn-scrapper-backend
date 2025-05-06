@@ -5,7 +5,7 @@ This guide provides instructions for using the Postman collections to test the C
 ## Prerequisites
 
 1. Install [Postman](https://www.postman.com/downloads/) on your machine
-2. Ensure the backend server is running (default: http://localhost:4000)
+2. Ensure the backend server is running (default: http://localhost:4001)
 3. Import the Postman collections and environment
 
 ## Importing the Collections and Environment
@@ -22,7 +22,7 @@ This guide provides instructions for using the Postman collections to test the C
 
 1. In Postman, click on the **Environments** tab in the left sidebar
 2. Select the imported environment called **Chiratae LinkedIn Scraper Environment**
-3. Make sure the `baseUrl` is set to your server URL (default: http://localhost:4000)
+3. Make sure the `baseUrl` is set to your server URL (default: http://localhost:4001)
 4. Click **Save**
 5. Select this environment from the environment dropdown in the top right
 

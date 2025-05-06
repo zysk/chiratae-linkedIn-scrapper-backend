@@ -6,6 +6,7 @@ import path from 'path';
 import os from 'os';
 import { IProxy } from '../../models/proxy.model';
 import logger from '../../utils/logger';
+import fs from 'fs';
 
 /**
  * SeleniumService provides methods for creating and managing WebDriver instances
@@ -41,17 +42,41 @@ export class SeleniumService {
 	 */
 	private getChromeDriverPath(): string {
 		const platform = this.getPlatform();
-
-		// Path to the chromedriver in the project
 		const baseDriverPath = path.join(process.cwd(), 'chromedriver');
 
 		switch (platform) {
 			case 'win32':
-				return path.join(baseDriverPath, 'chromedriver-win64', 'chromedriver.exe');
+				// Check for win64 directory first, then fall back to win32
+				const win64Path = path.join(baseDriverPath, 'chromedriver-win64', 'chromedriver.exe');
+				const win32Path = path.join(baseDriverPath, 'chromedriver-win32', 'chromedriver.exe');
+
+				if (this.fileExists(win64Path)) {
+					logger.info('Using ChromeDriver from win64 directory');
+					return win64Path;
+				} else if (this.fileExists(win32Path)) {
+					logger.info('Using ChromeDriver from win32 directory');
+					return win32Path;
+				} else {
+					logger.warn('No ChromeDriver found in win64 or win32 directories, defaulting to win64 path');
+					return win64Path;
+				}
 			case 'darwin':
 				return path.join(baseDriverPath, 'chromedriver-mac');
 			default: // linux
-				return path.join(baseDriverPath, 'chromedriver-linux64', 'chromedriver-linux');
+				return path.join(baseDriverPath, 'chromedriver-linux64', 'chromedriver');
+		}
+	}
+
+	/**
+	 * Check if a file exists
+	 * @param filePath Path to check
+	 * @returns True if file exists, false otherwise
+	 */
+	private fileExists(filePath: string): boolean {
+		try {
+			return fs.existsSync(filePath);
+		} catch (err) {
+			return false;
 		}
 	}
 

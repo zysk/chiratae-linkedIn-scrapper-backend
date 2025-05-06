@@ -9,7 +9,7 @@ Before running the tests, ensure you have the following set up:
 1. Node.js (v20.x or later) installed
 2. MongoDB running (default: localhost:27017)
 3. Redis running (if applicable)
-4. The LinkedIn Scraper API running locally (default: http://localhost:4000)
+4. The LinkedIn Scraper API running locally (default: http://localhost:4001)
 5. Postman (if using the GUI interface) or Newman (if running from command line)
 
 ## Environment Setup

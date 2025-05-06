@@ -30,11 +30,11 @@ Validate each change against:
 2. After passing tests, re-analyze the task against the legacy code and update if anything or any scenario got missed.
 3. Until API testing through Postman and MongoDB MCP tools are getting executed successfully and final report is not generating, never mark the current task as `done`.
 4. Store all testing artifacts in `tests/postman/collections/` along with previous onces.
-	- Once done, analyze all the previous files and maintaining a single consolidated up-to-date file.
+	- Once done, analyze all the previous files and maintain a single consolidated up-to-date file.
 5. Store all testing artifacts in `tests/postman/artifacts/` along with previous onces.
-	- Once done, analyze all the previous files and maintaining a single consolidated up-to-date file.
+	- Once done, analyze all the previous files and maintain a single consolidated up-to-date file.
 6. Generate and store test scripts for API endpoints in `tests/test-scripts/` along with previous onces.
-	- Once done, analyze all the previos files and maintaining a single consolidated up-to-date file. Make sure to create `.js` file.
+	- Once done, analyze all the previous files and maintain a single consolidated up-to-date file. Make sure to create `.js` file.
 
 ## Documentation & Status
 1. Store task/project status files in `docs/current-status/`along with previous onces.

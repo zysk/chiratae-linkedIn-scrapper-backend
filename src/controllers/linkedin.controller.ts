@@ -21,6 +21,7 @@ class LinkedInController {
   public testLogin = async (req: Request, res: Response, next: NextFunction) => {
     let loginResult: LoginResult | null = null;
 
+    logger.warn(`Test login request: ${JSON.stringify(req.body)}`);
     try {
       const { accountId, password, proxyId } = req.body;
 

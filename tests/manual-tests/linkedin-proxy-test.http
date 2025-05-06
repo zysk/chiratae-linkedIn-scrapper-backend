@@ -1,5 +1,5 @@
 ### Authentication: Register an admin user
-POST http://localhost:4000/api/users/register
+POST http://localhost:4001/api/users/register
 Content-Type: application/json
 
 {
@@ -10,7 +10,7 @@ Content-Type: application/json
 }
 
 ### Authentication: Login as admin
-POST http://localhost:4000/api/users/login
+POST http://localhost:4001/api/users/login
 Content-Type: application/json
 
 {
@@ -20,7 +20,7 @@ Content-Type: application/json
 
 ### Create LinkedIn Account
 # Replace {{adminToken}} with the access token from the login response
-POST http://localhost:4000/api/linkedin-accounts
+POST http://localhost:4001/api/linkedin-accounts
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -31,17 +31,17 @@ Authorization: Bearer {{adminToken}}
 }
 
 ### Get All LinkedIn Accounts
-GET http://localhost:4000/api/linkedin-accounts
+GET http://localhost:4001/api/linkedin-accounts
 Authorization: Bearer {{adminToken}}
 
 ### Get LinkedIn Account by ID
 # Replace {{accountId}} with an actual account ID
-GET http://localhost:4000/api/linkedin-accounts/{{accountId}}
+GET http://localhost:4001/api/linkedin-accounts/{{accountId}}
 Authorization: Bearer {{adminToken}}
 
 ### Update LinkedIn Account
 # Replace {{accountId}} with an actual account ID
-PUT http://localhost:4000/api/linkedin-accounts/{{accountId}}
+PUT http://localhost:4001/api/linkedin-accounts/{{accountId}}
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -53,15 +53,15 @@ Authorization: Bearer {{adminToken}}
 
 ### Delete LinkedIn Account
 # Replace {{accountId}} with an actual account ID
-DELETE http://localhost:4000/api/linkedin-accounts/{{accountId}}
+DELETE http://localhost:4001/api/linkedin-accounts/{{accountId}}
 Authorization: Bearer {{adminToken}}
 
 ### Get Next LinkedIn Account for Rotation
-GET http://localhost:4000/api/linkedin-accounts/next
+GET http://localhost:4001/api/linkedin-accounts/next
 Authorization: Bearer {{adminToken}}
 
 ### Create Proxy
-POST http://localhost:4000/api/proxies
+POST http://localhost:4001/api/proxies
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -75,17 +75,17 @@ Authorization: Bearer {{adminToken}}
 }
 
 ### Get All Proxies
-GET http://localhost:4000/api/proxies
+GET http://localhost:4001/api/proxies
 Authorization: Bearer {{adminToken}}
 
 ### Get Proxy by ID
 # Replace {{proxyId}} with an actual proxy ID
-GET http://localhost:4000/api/proxies/{{proxyId}}
+GET http://localhost:4001/api/proxies/{{proxyId}}
 Authorization: Bearer {{adminToken}}
 
 ### Update Proxy
 # Replace {{proxyId}} with an actual proxy ID
-PUT http://localhost:4000/api/proxies/{{proxyId}}
+PUT http://localhost:4001/api/proxies/{{proxyId}}
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -100,9 +100,9 @@ Authorization: Bearer {{adminToken}}
 
 ### Delete Proxy
 # Replace {{proxyId}} with an actual proxy ID
-DELETE http://localhost:4000/api/proxies/{{proxyId}}
+DELETE http://localhost:4001/api/proxies/{{proxyId}}
 Authorization: Bearer {{adminToken}}
 
 ### Get Next Proxy for Rotation
-GET http://localhost:4000/api/proxies/next
+GET http://localhost:4001/api/proxies/next
 Authorization: Bearer {{adminToken}}

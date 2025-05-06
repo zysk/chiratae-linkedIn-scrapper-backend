@@ -160,3 +160,5 @@ dev-debug.log
 .vscode
 
 old-code/*
+
+chromedriver/*
