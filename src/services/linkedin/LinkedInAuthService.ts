@@ -118,7 +118,7 @@ export class LinkedInAuthService {
       await driver.findElement(By.css('button[type="submit"]')).click();
 
       // Wait a moment to check for any challenges
-      await randomDelay(3000, 5000);
+      await randomDelay(10000, 15000);
 
       // Check for CAPTCHA
       const captchaResult = await this.checkForCaptcha(driver);

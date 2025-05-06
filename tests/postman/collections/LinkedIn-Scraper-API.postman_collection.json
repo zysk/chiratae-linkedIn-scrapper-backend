@@ -41,8 +41,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "const response = pm.response.json();",
-                  "if (response.accessToken) {",
-                  "    pm.environment.set('accessToken', response.accessToken);",
+                  "if (response.token) {",
+                  "    pm.environment.set('accessToken', response.token);",
                   "}",
                   "if (response.refreshToken) {",
                   "    pm.environment.set('refreshToken', response.refreshToken);",
@@ -80,8 +80,8 @@
               "script": {
                 "exec": [
                   "const response = pm.response.json();",
-                  "if (response.accessToken) {",
-                  "    pm.environment.set('adminAccessToken', response.accessToken);",
+                  "if (response.token) {",
+                  "    pm.environment.set('adminAccessToken', response.token);",
                   "}",
                   "if (response.refreshToken) {",
                   "    pm.environment.set('adminRefreshToken', response.refreshToken);",
@@ -148,8 +148,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "const response = pm.response.json();",
-                  "if (response.accessToken) {",
-                  "    pm.environment.set('accessToken', response.accessToken);",
+                  "if (response.token) {",
+                  "    pm.environment.set('accessToken', response.token);",
                   "}",
                   "if (response.refreshToken) {",
                   "    pm.environment.set('refreshToken', response.refreshToken);",
@@ -600,7 +600,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "body": {
@@ -623,7 +623,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -642,7 +642,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -665,7 +665,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "body": {
@@ -692,7 +692,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "body": {
@@ -715,7 +715,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -734,7 +734,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminAccessToken}}"
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -818,7 +818,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"username\": \"{{linkedInAccountId}}\",\n    \"password\": \"{{linkedInAccountPassword}}\"\n}"
+              "raw": "{\n    \"accountId\": \"{{linkedInAccountId}}\",\n    \"password\": \"{{linkedInAccountPassword}}\",\n    \"proxyId\": \"{{proxyId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/linkedin/test-login",
@@ -845,7 +845,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"searchQuery\": \"software developer\",\n    \"company\": \"Google\",\n    \"location\": \"San Francisco\",\n    \"connectionDegree\": \"2nd\",\n    \"keywords\": [\"javascript\", \"react\"]\n}"
+              "raw": "{\n    \"accountId\": \"{{linkedInAccountId}}\",\n    \"password\": \"{{linkedInAccountPassword}}\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"keywords\": \"software developer\",\n    \"filters\": {\n        \"locations\": [\"San Francisco\"],\n        \"companies\": [\"Google\"],\n        \"connectionDegree\": [\"2nd\"]\n    },\n    \"maxResults\": 10\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/linkedin/search",
@@ -894,50 +894,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Check if we have a valid token",
-          "if (!pm.environment.get('accessToken') || pm.environment.get('tokenExpiry') && new Date(pm.environment.get('tokenExpiry')) <= new Date()) {",
-          "    console.log('Token is missing or expired. Obtaining new token...');",
-          "    ",
-          "    // Login as admin first to get a token",
-          "    pm.sendRequest({",
-          "        url: pm.environment.get('baseUrl') + '/api/users/loginAdmin',",
-          "        method: 'POST',",
-          "        header: {",
-          "            'Content-Type': 'application/json'",
-          "        },",
-          "        body: {",
-          "            mode: 'raw',",
-          "            raw: JSON.stringify({",
-          "                email: pm.environment.get('adminEmail'),",
-          "                password: pm.environment.get('adminPassword')",
-          "            })",
-          "        }",
-          "    }, function (err, res) {",
-          "        if (err) {",
-          "            console.error('Error logging in:', err);",
-          "        } else if (res.code === 200) {",
-          "            const responseJson = res.json();",
-          "            if (responseJson.token) {",
-          "                console.log('Successfully obtained admin token');",
-          "                ",
-          "                // Set the token in environment variables",
-          "                pm.environment.set('accessToken', responseJson.token);",
-          "                ",
-          "                // Calculate token expiry (default to 1 hour from now if not specified)",
-          "                const expiresIn = responseJson.expiresIn || 3600;",
-          "                const expiryDate = new Date();",
-          "                expiryDate.setSeconds(expiryDate.getSeconds() + expiresIn);",
-          "                pm.environment.set('tokenExpiry', expiryDate.toISOString());",
-          "                ",
-          "                console.log('Token will expire at:', expiryDate.toISOString());",
-          "            } else {",
-          "                console.error('No token in response:', responseJson);",
-          "            }",
-          "        } else {",
-          "            console.error('Failed to login. Status:', res.code);",
-          "        }",
-          "    });",
-          "}"
+          "// Pre-request scripts can be added here if needed"
         ]
       }
     }
