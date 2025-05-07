@@ -7,6 +7,8 @@ import LinkedInSearchService, { SearchParams } from '../services/linkedin/Linked
 import SeleniumService from '../services/selenium/SeleniumService';
 import logger from '../utils/logger';
 import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
+import Campaign, { CampaignStatus } from '../models/campaign.model';
+import Lead from '../models/lead.model';
 
 /**
  * Controller for LinkedIn operations
@@ -21,7 +23,6 @@ class LinkedInController {
   public testLogin = async (req: Request, res: Response, next: NextFunction) => {
     let loginResult: LoginResult | null = null;
 
-    logger.warn(`Test login request: ${JSON.stringify(req.body)}`);
     try {
       const { accountId, password, proxyId } = req.body;
 
@@ -56,11 +57,43 @@ class LinkedInController {
       // Attempt login
       loginResult = await LinkedInAuthService.login(account, password, proxy);
 
+		logger.info(`Login result: ${loginResult}`);
       // Check if login was successful
       if (!loginResult.driver) {
         return res.status(500).json({
           success: false,
           message: 'Failed to initialize WebDriver',
+        });
+      }
+
+      // Check for authentication challenges
+      if (loginResult.captcha.challengePresent) {
+        // CAPTCHA challenge detected
+        return res.status(403).json({
+          success: false,
+          message: 'CAPTCHA verification required',
+          challengeType: 'captcha',
+          challengeDetails: loginResult.captcha
+        });
+      }
+
+      if (loginResult.otp.verificationRequired) {
+        // OTP verification required
+        return res.status(403).json({
+          success: false,
+          message: 'One-time password verification required',
+          challengeType: 'otp',
+          challengeDetails: loginResult.otp
+        });
+      }
+
+      if (loginResult.phoneVerification.verificationRequired) {
+        // Phone verification required
+        return res.status(403).json({
+          success: false,
+          message: 'Phone verification required',
+          challengeType: 'phone',
+          challengeDetails: loginResult.phoneVerification
         });
       }
 
@@ -94,6 +127,7 @@ class LinkedInController {
         return res.status(400).json({
           success: false,
           message: 'Failed to login to LinkedIn. Account credentials may be incorrect or account may require verification.',
+          loginStatus: loginResult
         });
       }
     } catch (error) {
@@ -125,7 +159,7 @@ class LinkedInController {
     let loginResult: LoginResult | null = null;
 
     try {
-      const { accountId, password, proxyId, keywords, filters, maxResults } = req.body;
+      const { accountId, password, proxyId, keywords, filters, maxResults, campaignId } = req.body;
 
       if (!accountId) {
         return res.status(400).json({
@@ -162,8 +196,28 @@ class LinkedInController {
         }
       }
 
+      // Get campaign if provided
+      let campaign = undefined;
+      if (campaignId) {
+        campaign = await Campaign.findById(campaignId);
+        if (!campaign) {
+          return res.status(404).json({
+            success: false,
+            message: 'Campaign not found',
+          });
+        }
+
+        // Update campaign status to running
+        await Campaign.findByIdAndUpdate(campaignId, {
+          status: CampaignStatus.RUNNING,
+          startedAt: new Date(),
+        });
+      }
+
       // Login to LinkedIn
       loginResult = await LinkedInAuthService.login(account, password, proxy);
+
+		logger.info(`Login result: ${JSON.stringify(loginResult)}`);
 
       if (!loginResult.driver) {
         return res.status(500).json({
@@ -172,13 +226,53 @@ class LinkedInController {
         });
       }
 
+      // Check for authentication challenges
+      if (loginResult.captcha.challengePresent) {
+        // CAPTCHA challenge detected
+        return res.status(403).json({
+          success: false,
+          message: 'CAPTCHA verification required',
+          challengeType: 'captcha',
+          challengeDetails: loginResult.captcha
+        });
+      }
+
+      if (loginResult.otp.verificationRequired) {
+        // OTP verification required
+        return res.status(403).json({
+          success: false,
+          message: 'One-time password verification required',
+          challengeType: 'otp',
+          challengeDetails: loginResult.otp
+        });
+      }
+
+      if (loginResult.phoneVerification.verificationRequired) {
+        // Phone verification required
+        return res.status(403).json({
+          success: false,
+          message: 'Phone verification required',
+          challengeType: 'phone',
+          challengeDetails: loginResult.phoneVerification
+        });
+      }
+
       // Check if login was successful
       const isLoggedIn = await LinkedInAuthService.isLoggedIn(loginResult.driver);
       if (!isLoggedIn) {
         return res.status(401).json({
           success: false,
-          message: 'Failed to login to LinkedIn. Account credentials may be incorrect or account may require verification.',
+          message: 'Failed to login to LinkedIn. Account credentials may be incorrect.',
+          loginStatus: loginResult
         });
+      }
+
+      // Increment account usage
+      await LinkedInAccount.incrementUsage(account._id);
+
+      // If proxy was used, increment its usage too
+      if (proxy) {
+        await Proxy.incrementUsage(proxy._id);
       }
 
       // Prepare search parameters
@@ -186,30 +280,105 @@ class LinkedInController {
         keywords,
         filters,
         maxResults: maxResults || 10,
+        campaignId,
       };
 
       // Perform search
       const searchResults = await LinkedInSearchService.search(loginResult.driver, searchParams);
 
-      // Increment usage counters
-      await LinkedInAccount.incrementUsage(account._id);
-      if (proxy) {
-        await Proxy.incrementUsage(proxy._id);
+      // Store results in campaign if provided
+      if (campaign && searchResults.length > 0) {
+        // Create leads from search results
+        const leads = searchResults.map(profile => {
+          return {
+            campaignId: campaign?._id,
+            clientId: profile.profileId,
+            profileUrl: profile.profileUrl,
+            name: profile.name,
+            headline: profile.headline,
+            location: profile.location,
+            currentCompany: profile.currentCompany,
+            imageUrl: profile.imageUrl,
+            isOpenToWork: profile.isOpenToWork,
+            connectionDegree: profile.connectionDegree,
+            // Set additional fields for new leads
+            status: 'NEW',
+            isSearched: false,
+            createdAt: new Date(),
+          };
+        });
+
+        // Check for existing leads to avoid duplicates
+        const clientIds = leads.map(lead => lead.clientId);
+        const existingLeads = await Lead.find({
+          clientId: { $in: clientIds },
+          campaignId: campaign._id
+        });
+
+        // Filter out duplicates
+        const existingClientIdSet = new Set(existingLeads.map(lead => lead.clientId));
+        const newLeads = leads.filter(lead => !existingClientIdSet.has(lead.clientId));
+
+        // Insert new leads
+        if (newLeads.length > 0) {
+          await Lead.insertMany(newLeads);
+
+          // Update campaign stats
+          await Campaign.findByIdAndUpdate(campaignId, {
+            $inc: { 'stats.profilesFound': newLeads.length },
+            $set: { lastRunAt: new Date() }
+          });
+        }
+
+        // Return search results with new/existing status
+        return res.status(200).json({
+          success: true,
+          message: 'LinkedIn search completed successfully',
+          data: {
+            resultsCount: searchResults.length,
+            newResults: newLeads.length,
+            duplicates: searchResults.length - newLeads.length,
+            results: searchResults.map(profile => {
+              // Create a new object to avoid modifying the original
+              return {
+                profileId: profile.profileId,
+                name: profile.name,
+                headline: profile.headline,
+                profileUrl: profile.profileUrl,
+                // Check if this profile was already in the database
+                isNew: !existingClientIdSet.has(profile.profileId)
+              };
+            })
+          },
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: 'LinkedIn search completed successfully',
+          data: {
+            resultsCount: searchResults.length,
+            results: searchResults
+          },
+        });
+      }
+    } catch (error) {
+      logger.error(`LinkedIn search error: ${error instanceof Error ? error.message : String(error)}`);
+
+      // Update campaign status if it was provided and there was an error
+      if (req.body.campaignId) {
+        try {
+          await Campaign.findByIdAndUpdate(req.body.campaignId, {
+            status: CampaignStatus.FAILED,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        } catch (updateError) {
+          logger.error(`Error updating campaign status: ${updateError}`);
+        }
       }
 
-      return res.status(200).json({
-        success: true,
-        message: 'LinkedIn profile search completed',
-        data: {
-          results: searchResults,
-          count: searchResults.length,
-        },
-      });
-    } catch (error) {
-      logger.error(`Search profiles error: ${error instanceof Error ? error.message : String(error)}`);
       return res.status(500).json({
         success: false,
-        message: 'An error occurred while searching LinkedIn profiles',
+        message: 'An error occurred during LinkedIn search',
         error: error instanceof Error ? error.message : String(error),
       });
     } finally {

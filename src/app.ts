@@ -18,6 +18,7 @@ import linkedinAccountRoutes from './routes/linkedinAccount.routes';
 import proxyRoutes from './routes/proxy.routes';
 import campaignRoutes from './routes/campaign.routes';
 import linkedInRoutes from './routes/linkedin.routes';
+import leadRoutes from './routes/lead.routes';
 
 // Create Express app
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/linkedin-accounts', linkedinAccountRoutes);
 app.use('/api/proxies', proxyRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/linkedin', linkedInRoutes);
+app.use('/api/lead', leadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

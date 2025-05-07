@@ -162,3 +162,4 @@ dev-debug.log
 old-code/*
 
 chromedriver/*
+debug-screenshots/*

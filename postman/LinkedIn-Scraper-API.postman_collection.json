@@ -397,7 +397,7 @@
       ]
     },
     {
-      "name": "LinkedIn Actions",
+      "name": "LinkedIn Search",
       "item": [
         {
           "name": "Test LinkedIn Login",
@@ -428,7 +428,7 @@
                 "test-login"
               ]
             },
-            "description": "Test a LinkedIn account login with Selenium WebDriver"
+            "description": "Test if a LinkedIn account can log in successfully"
           }
         },
         {
@@ -447,7 +447,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"accountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"your_actual_password\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"keywords\": \"{{searchQuery}}\",\n    \"filters\": {\n        \"companies\": [\"{{company}}\"],\n        \"locations\": [\"United States\"],\n        \"connectionDegree\": [\"2nd\"]\n    },\n    \"maxResults\": 10\n}"
+              "raw": "{\n    \"accountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"your_actual_password\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"keywords\": \"CEO OR CTO OR Founder\",\n    \"filters\": {\n        \"locations\": [\"India\"],\n        \"connectionDegree\": [\"2nd\", \"3rd\"],\n        \"industries\": [\"Software\", \"Technology\"]\n    },\n    \"maxResults\": 10,\n    \"campaignId\": \"{{campaignId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/linkedin/search",
@@ -460,11 +460,11 @@
                 "search"
               ]
             },
-            "description": "Search for LinkedIn profiles with specified criteria"
+            "description": "Search for LinkedIn profiles with specified keywords and filters. Results can be saved to a campaign."
           }
         },
         {
-          "name": "Get Next LinkedIn Account",
+          "name": "Get Next Available LinkedIn Account",
           "request": {
             "method": "GET",
             "header": [
@@ -485,11 +485,11 @@
                 "next"
               ]
             },
-            "description": "Get the next available LinkedIn account"
+            "description": "Get the next available LinkedIn account (least recently used)"
           }
         },
         {
-          "name": "Get Next Proxy",
+          "name": "Get Next Available Proxy",
           "request": {
             "method": "GET",
             "header": [
@@ -510,7 +510,7 @@
                 "next"
               ]
             },
-            "description": "Get the next available proxy for LinkedIn operations"
+            "description": "Get the next available proxy (least recently used)"
           }
         }
       ]
@@ -652,8 +652,235 @@
             },
             "description": "Queue a campaign for execution"
           }
+        },
+        {
+          "name": "Trigger LinkedIn Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/searchLinkedin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "campaigns",
+                "{{campaignId}}",
+                "searchLinkedin"
+              ]
+            },
+            "description": "Trigger LinkedIn search for a specific campaign"
+          }
+        },
+        {
+          "name": "Trigger LinkedIn Profile Scraping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/linkedInProfileScrappingReq",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "campaigns",
+                "{{campaignId}}",
+                "linkedInProfileScrappingReq"
+              ]
+            },
+            "description": "Trigger LinkedIn profile scraping for a specific campaign"
+          }
         }
       ]
+    },
+    {
+      "name": "Lead Management",
+      "item": [
+        {
+          "name": "Get Leads",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/lead/getLeads?campaignId={{campaignId}}&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lead",
+                "getLeads"
+              ],
+              "query": [
+                {
+                  "key": "campaignId",
+                  "value": "{{campaignId}}"
+                },
+                {
+                  "key": "status",
+                  "value": "NEW",
+                  "disabled": true
+                },
+                {
+                  "key": "leadAssignedToId",
+                  "value": "{{userId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "-createdAt",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve leads with optional filtering, pagination, and sorting"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lead by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/lead/getById/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lead",
+                "getById",
+                "{{leadId}}"
+              ]
+            },
+            "description": "Retrieve a specific lead by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Lead",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"QUALIFIED\",\n    \"rating\": \"5\",\n    \"leadAssignedToId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/lead/updateById/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lead",
+                "updateById",
+                "{{leadId}}"
+              ]
+            },
+            "description": "Update a lead's status, rating, or assignment"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Lead",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/lead/deleteById/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lead",
+                "deleteById",
+                "{{leadId}}"
+              ]
+            },
+            "description": "Permanently delete a lead"
+          },
+          "response": []
+        }
+      ],
+      "description": "Lead management endpoints"
     }
   ],
   "auth": {

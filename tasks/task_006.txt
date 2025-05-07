@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: LinkedIn Search and Profile Scraping
-# Status: pending
+# Status: done
 # Dependencies: 4, 5
 # Priority: medium
 # Description: Implement LinkedIn search automation, profile data extraction, and de-duplication logic.

@@ -81,3 +81,4 @@
 2. Add random delays at appropriate points in the automation flow to mimic human-like behavior.
 3. Implement anti-detection measures like user-agent rotation, IP rotation, and other techniques to avoid triggering bot detection.
 4. Ensure proper cleanup of WebDriver instances and release of resources upon completion of the automation tasks.
+

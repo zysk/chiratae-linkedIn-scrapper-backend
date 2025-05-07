@@ -16,6 +16,7 @@ This project is a backend API service that automates LinkedIn searches, profile 
 - Profile data scraping and de-duplication
 - Lead management and annotation
 - Email integration for notifications
+- Improved handling of LinkedIn authentication challenges (CAPTCHA, OTP, phone verification)
 
 ## ✅ Completed Components
 
@@ -31,6 +32,7 @@ This project is a backend API service that automates LinkedIn searches, profile 
 - Proxy server CRUD operations
 - Automatic rotation of accounts and proxies
 - Usage tracking and availability management
+- Detailed LinkedIn authentication challenge detection and handling
 
 ## Getting Started
 
@@ -111,6 +113,26 @@ npm run port:find
 # Run on a specific port
 npm run dev:port --port=4001
 ```
+
+## LinkedIn Authentication Challenges
+
+LinkedIn uses various security measures to detect and prevent automated access. The API now properly detects and handles these challenges:
+
+### Authentication Challenge Types
+
+1. **CAPTCHA Verification**: When LinkedIn presents a CAPTCHA challenge, the API will return a 403 response with `challengeType: 'captcha'` and details about the challenge.
+
+2. **One-Time Password (OTP) Verification**: If LinkedIn requires OTP verification, the API will return a 403 response with `challengeType: 'otp'` and instructions.
+
+3. **Phone Verification**: When phone verification is required, the API will return a 403 response with `challengeType: 'phone'` and instructions.
+
+### Best Practices for Handling Challenges
+
+- Use dedicated LinkedIn accounts with proper business subscriptions
+- Implement manual challenge resolution for CAPTCHA, OTP, and phone verification
+- Rotate LinkedIn accounts and proxies to reduce detection risk
+- Add delays between actions to mimic human behavior
+- Set up alert systems to notify administrators when verification is required
 
 ## Contributing
 

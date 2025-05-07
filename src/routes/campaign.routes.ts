@@ -6,7 +6,9 @@ import {
   updateCampaign,
   deleteCampaign,
   addCampaignToQueue,
-  getCampaignResults
+  getCampaignResults,
+  searchLinkedin,
+  linkedInProfileScrappingReq
 } from '../controllers/campaign.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -31,5 +33,9 @@ router.post('/queue', addCampaignToQueue);  // Add campaign to execution queue
 
 // Campaign results
 router.get('/:id/results', getCampaignResults);  // Get campaign results
+
+// LinkedIn search and scraping endpoints
+router.post('/:id/searchLinkedin', searchLinkedin);  // Trigger LinkedIn search
+router.post('/:id/linkedInProfileScrappingReq', linkedInProfileScrappingReq);  // Trigger LinkedIn profile scraping
 
 export default router;

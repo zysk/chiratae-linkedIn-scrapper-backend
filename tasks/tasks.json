@@ -336,7 +336,7 @@
       "id": 6,
       "title": "LinkedIn Search and Profile Scraping",
       "description": "Implement LinkedIn search automation, profile data extraction, and de-duplication logic.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         4,
         5
