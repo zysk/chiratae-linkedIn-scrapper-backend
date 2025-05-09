@@ -24,9 +24,9 @@ class LinkedInController {
     let loginResult: LoginResult | null = null;
 
     try {
-      const { accountId, password, proxyId } = req.body;
+      const { linkedinAccountId, password, proxyId } = req.body;
 
-      if (!accountId) {
+      if (!linkedinAccountId) {
         return res.status(400).json({
           success: false,
           message: 'LinkedIn account ID is required',
@@ -34,7 +34,7 @@ class LinkedInController {
       }
 
       // Get LinkedIn account
-      const account = await LinkedInAccount.findById(accountId);
+      const account = await LinkedInAccount.findById(linkedinAccountId);
       if (!account) {
         return res.status(404).json({
           success: false,
@@ -57,7 +57,7 @@ class LinkedInController {
       // Attempt login
       loginResult = await LinkedInAuthService.login(account, password, proxy);
 
-		logger.info(`Login result: ${loginResult}`);
+		logger.info(`Login result: ${JSON.stringify(loginResult)}`);
       // Check if login was successful
       if (!loginResult.driver) {
         return res.status(500).json({
@@ -159,9 +159,9 @@ class LinkedInController {
     let loginResult: LoginResult | null = null;
 
     try {
-      const { accountId, password, proxyId, keywords, filters, maxResults, campaignId } = req.body;
+      const { linkedinAccountId, password, proxyId, keywords, filters, maxResults, campaignId } = req.body;
 
-      if (!accountId) {
+      if (!linkedinAccountId) {
         return res.status(400).json({
           success: false,
           message: 'LinkedIn account ID is required',
@@ -176,7 +176,7 @@ class LinkedInController {
       }
 
       // Get LinkedIn account
-      const account = await LinkedInAccount.findById(accountId);
+      const account = await LinkedInAccount.findById(linkedinAccountId);
       if (!account) {
         return res.status(404).json({
           success: false,

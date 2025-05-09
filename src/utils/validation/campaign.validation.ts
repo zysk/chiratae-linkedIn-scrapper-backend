@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { CampaignStatus } from '../../models/campaign.model';
+import { CampaignStatus, CampaignRecurrence, CampaignPriority } from '../../models/campaign.model';
 import mongoose from 'mongoose';
 
 // Helper function to validate MongoDB ObjectId
@@ -48,11 +48,9 @@ export const createCampaignSchema = Joi.object({
       'any.invalid': 'LinkedIn account ID must be a valid ID'
     }),
 
-  proxyId: Joi.string().custom(objectIdValidator).required()
+  proxyId: Joi.string().custom(objectIdValidator).allow(null)
     .messages({
       'string.base': 'Proxy ID must be a string',
-      'string.empty': 'Proxy ID is required',
-      'any.required': 'Proxy ID is required',
       'any.invalid': 'Proxy ID must be a valid ID'
     }),
 
@@ -151,3 +149,43 @@ export const campaignFilterSchema = Joi.object({
   sortBy: Joi.string().valid('createdAt', 'updatedAt', 'name', 'status').default('createdAt'),
   sortOrder: Joi.string().valid('asc', 'desc').default('desc')
 }).unknown(true); // Allow additional query params
+
+/**
+ * Validation schema for scheduling a campaign
+ */
+export const scheduleCampaignSchema = Joi.object({
+  scheduleDate: Joi.date().iso().min('now').required()
+    .messages({
+      'date.base': 'Schedule date must be a valid date',
+      'date.format': 'Schedule date must be in ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+      'date.min': 'Schedule date must be in the future',
+      'any.required': 'Schedule date is required'
+    }),
+
+  jobType: Joi.string().valid('search', 'profile_scraping').required()
+    .messages({
+      'string.base': 'Job type must be a string',
+      'string.empty': 'Job type is required',
+      'any.required': 'Job type is required',
+      'any.only': 'Job type must be either "search" or "profile_scraping"'
+    }),
+
+  priority: Joi.string().valid(...Object.values(CampaignPriority)).default(CampaignPriority.MEDIUM)
+    .messages({
+      'string.base': 'Priority must be a string',
+      'any.only': 'Priority must be one of "low", "medium", or "high"'
+    }),
+
+  recurrence: Joi.string().valid(...Object.values(CampaignRecurrence)).default(CampaignRecurrence.ONCE)
+    .messages({
+      'string.base': 'Recurrence must be a string',
+      'any.only': 'Recurrence must be one of "once", "daily", "weekly", or "monthly"'
+    }),
+
+  endDate: Joi.date().iso().min(Joi.ref('scheduleDate')).allow(null)
+    .messages({
+      'date.base': 'End date must be a valid date',
+      'date.format': 'End date must be in ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+      'date.min': 'End date must be after the schedule date'
+    })
+}).unknown(false); // Force strict validation

@@ -22,6 +22,16 @@ export enum CampaignPriority {
 }
 
 /**
+ * Campaign recurrence enum
+ */
+export enum CampaignRecurrence {
+  ONCE = 'once',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly'
+}
+
+/**
  * Campaign result interface - represents a scraped LinkedIn profile
  */
 export interface ICampaignResult {
@@ -56,6 +66,9 @@ export interface ICampaign extends Document {
   startedAt?: Date;
   completedAt?: Date;
   queuedAt?: Date;
+  scheduledFor?: Date;
+  recurrence?: CampaignRecurrence;
+  scheduleEndDate?: Date;
   priority?: CampaignPriority;
   stats?: {
     profilesFound: number;
@@ -98,8 +111,7 @@ const campaignSchema = new Schema<ICampaign>(
     },
     proxyId: {
       type: Schema.Types.ObjectId,
-      ref: 'Proxy',
-      required: [true, 'Proxy is required']
+      ref: 'Proxy'
     },
     school: { type: String, trim: true },
     company: { type: String, trim: true },
@@ -136,6 +148,13 @@ const campaignSchema = new Schema<ICampaign>(
     startedAt: { type: Date },
     completedAt: { type: Date },
     queuedAt: { type: Date },
+    scheduledFor: { type: Date },
+    recurrence: {
+      type: String,
+      enum: Object.values(CampaignRecurrence),
+      default: CampaignRecurrence.ONCE
+    },
+    scheduleEndDate: { type: Date },
     stats: {
       profilesFound: { type: Number, default: 0 },
       profilesScraped: { type: Number, default: 0 },

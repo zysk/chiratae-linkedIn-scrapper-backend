@@ -150,11 +150,11 @@ export class LinkedInAccountManager {
 
   /**
    * Get a specific LinkedIn account by ID
-   * @param accountId - ID of the account to retrieve
+   * @param linkedinAccountId - ID of the account to retrieve
    * @returns The requested account or null if not found
    */
-  public async getAccountById(accountId: string): Promise<ILinkedInAccount | null> {
-    return LinkedInAccount.findById(accountId);
+  public async getAccountById(linkedinAccountId: string): Promise<ILinkedInAccount | null> {
+    return LinkedInAccount.findById(linkedinAccountId);
   }
 
   /**

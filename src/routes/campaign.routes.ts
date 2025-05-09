@@ -8,7 +8,8 @@ import {
   addCampaignToQueue,
   getCampaignResults,
   searchLinkedin,
-  linkedInProfileScrappingReq
+  linkedInProfileScrappingReq,
+  scheduleCampaign
 } from '../controllers/campaign.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -37,5 +38,8 @@ router.get('/:id/results', getCampaignResults);  // Get campaign results
 // LinkedIn search and scraping endpoints
 router.post('/:id/searchLinkedin', searchLinkedin);  // Trigger LinkedIn search
 router.post('/:id/linkedInProfileScrappingReq', linkedInProfileScrappingReq);  // Trigger LinkedIn profile scraping
+
+// Campaign scheduling endpoint
+router.post('/:id/schedule', scheduleCampaign);  // Schedule a campaign for future execution
 
 export default router;

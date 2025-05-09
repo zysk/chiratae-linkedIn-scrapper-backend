@@ -47,12 +47,12 @@ The script will:
    - Verify the account created in step 1 is in the list
 
 3. **Get LinkedIn Account by ID**
-   - Endpoint: `GET /api/linkedin-accounts/{accountId}`
+   - Endpoint: `GET /api/linkedin-accounts/{linkedinAccountId}`
    - Use the ID saved from step 1
    - Verify the account details match what was created
 
 4. **Update LinkedIn Account**
-   - Endpoint: `PUT /api/linkedin-accounts/{accountId}`
+   - Endpoint: `PUT /api/linkedin-accounts/{linkedinAccountId}`
    - Update fields:
      ```json
      {
@@ -71,7 +71,7 @@ The script will:
    - Note: Requires at least one active account in the database
 
 6. **Delete LinkedIn Account**
-   - Endpoint: `DELETE /api/linkedin-accounts/{accountId}`
+   - Endpoint: `DELETE /api/linkedin-accounts/{linkedinAccountId}`
    - Verify the account is deleted
 
 ### Proxy Tests

@@ -1,11 +1,14 @@
-import { WebDriver, By, until } from 'selenium-webdriver';
-import { randomDelay, humanTypeText } from '../../utils/delay';
+import { rolesObj } from '../../utils/constants';
+import fs from 'fs/promises';
+import { Builder, WebDriver, By, until } from 'selenium-webdriver';
+import { Options } from 'selenium-webdriver/chrome';
 import logger from '../../utils/logger';
 import { normalizeLinkedInUrl, extractProfileId, extractCleanName } from '../../utils/linkedin.utils';
 import User from '../../models/user.model';
 import Lead from '../../models/lead.model';
 import mongoose from 'mongoose';
-import { rolesObj } from '../../utils/constants';
+import { randomDelay, humanTypeText } from '../../utils/delay';
+import { LinkedInProfileData } from '../../types/linkedin.types';
 
 /**
  * Interface for education data
@@ -62,11 +65,15 @@ export interface ProfileData {
 }
 
 /**
- * Service for LinkedIn profile scraping functionality
+ * LinkedInProfileScraper class
+ * Service for scraping LinkedIn profiles
  */
-class LinkedInProfileScraper {
+export class LinkedInProfileScraper {
   private static instance: LinkedInProfileScraper;
 
+  /**
+   * Private constructor to enforce singleton pattern
+   */
   private constructor() {}
 
   /**
@@ -81,88 +88,145 @@ class LinkedInProfileScraper {
   }
 
   /**
-   * Scrape a LinkedIn profile by URL
-   * @param driver WebDriver instance
-   * @param profileUrl LinkedIn profile URL
-   * @param campaignId Optional campaign ID for lead tracking
-   * @returns Extracted profile data or null if scraping fails
+   * Initialize the Selenium WebDriver
+   * @returns WebDriver instance
    */
-  public async scrapeProfile(
-    driver: WebDriver,
-    profileUrl: string,
-    campaignId?: string
-  ): Promise<ProfileData | null> {
+  private async initializeDriver(): Promise<WebDriver> {
+    logger.info('Initializing WebDriver for LinkedIn scraper');
+
     try {
-      logger.info(`Scraping LinkedIn profile: ${profileUrl}`);
-      const normalizedUrl = normalizeLinkedInUrl(profileUrl);
+      // Import Chrome specific classes to avoid TypeScript errors
+      const chrome = require('selenium-webdriver/chrome');
+      const chromeOptions = new chrome.Options();
+
+      // Add necessary Chrome options
+      chromeOptions.addArguments('--disable-notifications');
+      chromeOptions.addArguments('--no-sandbox');
+      chromeOptions.addArguments('--disable-dev-shm-usage');
+      chromeOptions.addArguments('--disable-gpu');
+      chromeOptions.addArguments('--window-size=1920,1080');
+
+      // Add user-agent to appear as a regular browser
+      chromeOptions.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36');
+
+      // Create and return the WebDriver
+      const driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(chromeOptions)
+        .build();
+
+      logger.info('WebDriver initialized successfully');
+      return driver;
+    } catch (error) {
+      logger.error(`Failed to initialize WebDriver: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`WebDriver initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Scrape a LinkedIn profile
+   * @param profileUrl URL of the LinkedIn profile to scrape
+   * @returns Scraped profile data
+   */
+  public async scrapeProfile(profileUrl: string): Promise<LinkedInProfileData> {
+    let driver: WebDriver | null = null;
+
+    // Normalize the LinkedIn URL
+    const normalizedUrl = normalizeLinkedInUrl(profileUrl);
+    if (!normalizedUrl) {
+      throw new Error(`Invalid LinkedIn profile URL: ${profileUrl}`);
+    }
+
+    try {
+      logger.info(`Starting to scrape profile: ${normalizedUrl}`);
+
+      // Extract the profile ID
       const profileId = extractProfileId(normalizedUrl);
-
       if (!profileId) {
-        logger.error(`Invalid LinkedIn profile URL: ${profileUrl}`);
-        return null;
+        throw new Error(`Failed to extract profile ID from URL: ${normalizedUrl}`);
       }
 
-      // Navigate to profile
+      // Initialize the WebDriver
+      driver = await this.initializeDriver();
+
+      // Navigate to the profile page
       await driver.get(normalizedUrl);
-      await randomDelay(3000, 5000);
+      logger.info(`Navigated to profile page: ${normalizedUrl}`);
 
-      // Check if page loaded properly
+      // Wait for the page to load
+      await driver.wait(until.elementLocated(By.css('body')), 10000);
+
+      // Add additional wait to ensure dynamic content loads
+      await driver.sleep(3000);
+
+      // Check if we're logged in by looking for login-required elements
       try {
-        await driver.wait(
-          until.elementLocated(By.css('.pv-top-card')),
-          15000
-        );
+        const signInButtons = await driver.findElements(By.css('.authwall-join-form, .login-form'));
+        if (signInButtons.length > 0) {
+          throw new Error('Not logged in to LinkedIn. Please check cookies.');
+        }
       } catch (error) {
-        logger.error(`Failed to load profile page: ${error instanceof Error ? error.message : String(error)}`);
-        return null;
+        if (error instanceof Error && error.message.includes('Not logged in')) {
+          throw error;
+        }
+        // Ignore other errors here as we're just checking login status
       }
 
-      // Start extracting basic profile data
-      const profileData: ProfileData = {
+      // Extract profile data
+      const name = await this.extractName(driver);
+      logger.info(`Extracted name: ${name}`);
+
+      const headline = await this.extractHeadline(driver);
+      logger.info(`Extracted headline: ${headline || 'Not found'}`);
+
+      const location = await this.extractLocation(driver);
+      logger.info(`Extracted location: ${location || 'Not found'}`);
+
+      // Extract about section (renamed to summary for interface compatibility)
+      const summary = await this.extractAbout(driver);
+      logger.info(`Extracted summary: ${summary ? 'Found' : 'Not found'}`);
+
+      // Construct and return the profile data
+      const profileData: LinkedInProfileData = {
         profileId,
         profileUrl: normalizedUrl,
-        name: await this.extractName(driver),
+        name,
+        headline,
+        location,
+        summary
       };
 
-      // Extract additional profile information
-      profileData.headline = await this.extractHeadline(driver);
-      profileData.location = await this.extractLocation(driver);
-      profileData.summary = await this.extractSummary(driver);
-      profileData.imageUrl = await this.extractProfileImage(driver);
+      logger.info(`Successfully scraped profile data for: ${normalizedUrl}`);
+      return profileData;
 
-      // Check if we need to click "Show more" buttons to expand sections
-      await this.expandSections(driver);
+    } catch (error) {
+      // Handle errors
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error scraping LinkedIn profile ${normalizedUrl}: ${errorMessage}`);
 
-      // Extract experience data
-      profileData.experienceArr = await this.extractExperience(driver);
-
-      // Set current position based on experience data
-      if (profileData.experienceArr && profileData.experienceArr.length > 0) {
-        const currentJob = profileData.experienceArr.find(exp => exp.isCurrentRole);
-        if (currentJob) {
-          profileData.currentPosition = `${currentJob.title} at ${currentJob.company}`;
+      // Take a screenshot of the page if driver is available
+      if (driver) {
+        try {
+          const screenshot = await driver.takeScreenshot();
+          const screenshotPath = `./screenshots/linkedin_scrape_error_${Date.now()}.png`;
+          await fs.writeFile(screenshotPath, Buffer.from(screenshot, 'base64'));
+          logger.info(`Error screenshot saved to: ${screenshotPath}`);
+        } catch (screenshotError) {
+          logger.warn(`Failed to take error screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
         }
       }
 
-      // Extract education data
-      profileData.educationArr = await this.extractEducation(driver);
-
-      // Extract skills
-      profileData.skills = await this.extractSkills(driver);
-
-      // Extract contact info (requires additional navigation)
-      profileData.contactInfo = await this.extractContactInfo(driver);
-
-      // If campaign ID is provided, update or create User and Lead records
-      if (campaignId && mongoose.Types.ObjectId.isValid(campaignId)) {
-        await this.saveProfileData(profileData, campaignId);
+      throw new Error(`Failed to extract profile data for ${profileUrl}: ${errorMessage}`);
+    } finally {
+      // Always close the driver
+      if (driver) {
+        try {
+          await driver.quit();
+          logger.info('WebDriver closed successfully');
+        } catch (quitError) {
+          logger.warn(`Error closing WebDriver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
+        }
       }
-
-      logger.info(`Successfully scraped profile data for ${profileData.name}`);
-      return profileData;
-    } catch (error) {
-      logger.error(`Profile scraping error: ${error instanceof Error ? error.message : String(error)}`);
-      return null;
     }
   }
 
@@ -173,9 +237,35 @@ class LinkedInProfileScraper {
    */
   private async extractName(driver: WebDriver): Promise<string> {
     try {
-      const nameElement = await driver.findElement(By.css('.pv-top-card h1'));
-      const fullName = await nameElement.getText();
-      return extractCleanName(fullName);
+      // Try multiple selectors to handle different LinkedIn profile page layouts
+      const selectors = [
+        ".pv-top-card h1",
+        ".text-heading-xlarge",
+        "h1.text-heading-xlarge",
+        "div.ph5 div.mt2 h1",
+        "div.ph5 h1",
+        "div.display-flex h1",
+        "[data-test-id='profile-topcard-name']",
+        "section.artdeco-card h1"
+      ];
+
+      for (const selector of selectors) {
+        try {
+          const elements = await driver.findElements(By.css(selector));
+          if (elements.length > 0) {
+            const fullName = await elements[0].getText();
+            logger.info(`Successfully extracted name using selector: ${selector}`);
+            return extractCleanName(fullName);
+          }
+        } catch (error) {
+          // Continue to next selector on error
+          continue;
+        }
+      }
+
+      // If we get here, none of the selectors worked
+      logger.warn("All name extraction selectors failed");
+      return 'Unknown Name';
     } catch (error) {
       logger.warn(`Error extracting name: ${error instanceof Error ? error.message : String(error)}`);
       return 'Unknown Name';
@@ -189,8 +279,31 @@ class LinkedInProfileScraper {
    */
   private async extractHeadline(driver: WebDriver): Promise<string | undefined> {
     try {
-      const headlineElement = await driver.findElement(By.css('.pv-top-card .text-body-medium'));
-      return await headlineElement.getText();
+      // Try multiple selectors for headline
+      const selectors = [
+        ".pv-top-card .text-body-medium",
+        ".text-body-medium.break-words",
+        ".ph5 .mt1 .text-body-medium",
+        "[data-test-id='profile-topcard-headline']",
+        "section.artdeco-card div.text-body-medium"
+      ];
+
+      for (const selector of selectors) {
+        try {
+          const elements = await driver.findElements(By.css(selector));
+          if (elements.length > 0) {
+            logger.info(`Successfully extracted headline using selector: ${selector}`);
+            return await elements[0].getText();
+          }
+        } catch (error) {
+          // Continue to next selector
+          continue;
+        }
+      }
+
+      // If we get here, none of the selectors worked
+      logger.warn("All headline extraction selectors failed");
+      return undefined;
     } catch (error) {
       logger.warn(`Error extracting headline: ${error instanceof Error ? error.message : String(error)}`);
       return undefined;
@@ -204,8 +317,32 @@ class LinkedInProfileScraper {
    */
   private async extractLocation(driver: WebDriver): Promise<string | undefined> {
     try {
-      const locationElement = await driver.findElement(By.css('.pv-top-card .text-body-small.inline'));
-      return await locationElement.getText();
+      // Try multiple selectors for location
+      const selectors = [
+        ".pv-top-card .text-body-small.inline.t-black--light.break-words",
+        ".pv-text-details__left-panel .text-body-small",
+        ".ph5 .mt2 span.text-body-small",
+        ".pv-text-details__left-panel span.text-body-small",
+        "[data-test-id='profile-topcard-location']",
+        "section.artdeco-card .text-body-small.inline.t-black--light"
+      ];
+
+      for (const selector of selectors) {
+        try {
+          const elements = await driver.findElements(By.css(selector));
+          if (elements.length > 0) {
+            logger.info(`Successfully extracted location using selector: ${selector}`);
+            return await elements[0].getText();
+          }
+        } catch (error) {
+          // Continue to next selector
+          continue;
+        }
+      }
+
+      // If we get here, none of the selectors worked
+      logger.warn("All location extraction selectors failed");
+      return undefined;
     } catch (error) {
       logger.warn(`Error extracting location: ${error instanceof Error ? error.message : String(error)}`);
       return undefined;
@@ -615,6 +752,65 @@ class LinkedInProfileScraper {
       logger.info(`Updated lead record for profile: ${profileData.profileId}`);
     } catch (error) {
       logger.error(`Error saving profile data: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Extract profile about section
+   * @param driver WebDriver instance
+   * @returns Profile about section
+   */
+  private async extractAbout(driver: WebDriver): Promise<string | undefined> {
+    try {
+      // Try to find the About section
+      const selectors = [
+        "#about ~ .pvs-header__title",
+        "[data-field='about'] .pvs-header__title",
+        "section#about .pvs-header__title",
+        "section.artdeco-card .pvs-header__title:contains('About')"
+      ];
+
+      // First, try to find and click on the About section header if it exists
+      let aboutSection = null;
+      for (const selector of selectors) {
+        try {
+          const aboutElements = await driver.findElements(By.css(selector));
+          if (aboutElements.length > 0) {
+            aboutSection = aboutElements[0];
+            break;
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+
+      if (aboutSection) {
+        // Try to find the text content
+        const contentSelectors = [
+          "div.display-flex ~ .pv-shared-text-with-see-more div.inline-show-more-text",
+          "div.pvs-list__outer-container .pvs-list div.inline-show-more-text",
+          "section.pv-about-section div.inline-show-more-text",
+          ".pv-about__summary-text .inline-show-more-text"
+        ];
+
+        for (const selector of contentSelectors) {
+          try {
+            const contentElements = await driver.findElements(By.css(selector));
+            if (contentElements.length > 0) {
+              logger.info(`Successfully extracted about section using selector: ${selector}`);
+              return await contentElements[0].getText();
+            }
+          } catch (error) {
+            continue;
+          }
+        }
+      }
+
+      logger.warn("Could not find or extract About section");
+      return undefined;
+    } catch (error) {
+      logger.warn(`Error extracting about section: ${error instanceof Error ? error.message : String(error)}`);
+      return undefined;
     }
   }
 }

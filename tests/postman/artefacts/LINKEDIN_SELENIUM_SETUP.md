@@ -87,7 +87,7 @@ The `test-login` endpoint allows you to verify that a LinkedIn account works pro
 ```json
 POST /api/linkedin/test-login
 {
-  "accountId": "6817988752833f5312c2bfc4",
+  "linkedinAccountId": "6817988752833f5312c2bfc4",
   "password": "your_linkedin_password",
   "proxyId": "681798b552833f5312c2bfd9"  // Optional
 }
@@ -106,7 +106,7 @@ The `search` endpoint allows you to search for LinkedIn profiles with filters:
 ```json
 POST /api/linkedin/search
 {
-  "accountId": "6817988752833f5312c2bfc4",
+  "linkedinAccountId": "6817988752833f5312c2bfc4",
   "password": "your_linkedin_password",
   "proxyId": "681798b552833f5312c2bfd9",  // Optional
   "keywords": "Software Engineer",

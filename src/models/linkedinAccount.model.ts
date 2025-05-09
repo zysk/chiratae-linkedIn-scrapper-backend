@@ -20,7 +20,7 @@ export interface ILinkedInAccount extends Document {
 // Interface for the LinkedIn Account model with static methods
 export interface ILinkedInAccountModel extends Model<ILinkedInAccount> {
   findAvailable(): Promise<ILinkedInAccount[]>;
-  incrementUsage(accountId: mongoose.Types.ObjectId): Promise<void>;
+  incrementUsage(linkedinAccountId: mongoose.Types.ObjectId): Promise<void>;
 }
 
 // Schema definition
@@ -87,10 +87,10 @@ linkedInAccountSchema.statics.findAvailable = async function (): Promise<ILinked
 
 // Static method to increment usage count for an account
 linkedInAccountSchema.statics.incrementUsage = async function (
-  accountId: mongoose.Types.ObjectId
+  linkedinAccountId: mongoose.Types.ObjectId
 ): Promise<void> {
   await this.findByIdAndUpdate(
-    accountId,
+    linkedinAccountId,
     {
       $inc: { usageCount: 1 },
       lastUsed: new Date(),

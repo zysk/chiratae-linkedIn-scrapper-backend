@@ -35,13 +35,13 @@ GET http://localhost:4001/api/linkedin-accounts
 Authorization: Bearer {{adminToken}}
 
 ### Get LinkedIn Account by ID
-# Replace {{accountId}} with an actual account ID
-GET http://localhost:4001/api/linkedin-accounts/{{accountId}}
+# Replace {{linkedinAccountId}} with an actual account ID
+GET http://localhost:4001/api/linkedin-accounts/{{linkedinAccountId}}
 Authorization: Bearer {{adminToken}}
 
 ### Update LinkedIn Account
-# Replace {{accountId}} with an actual account ID
-PUT http://localhost:4001/api/linkedin-accounts/{{accountId}}
+# Replace {{linkedinAccountId}} with an actual account ID
+PUT http://localhost:4001/api/linkedin-accounts/{{linkedinAccountId}}
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -52,8 +52,8 @@ Authorization: Bearer {{adminToken}}
 }
 
 ### Delete LinkedIn Account
-# Replace {{accountId}} with an actual account ID
-DELETE http://localhost:4001/api/linkedin-accounts/{{accountId}}
+# Replace {{linkedinAccountId}} with an actual account ID
+DELETE http://localhost:4001/api/linkedin-accounts/{{linkedinAccountId}}
 Authorization: Bearer {{adminToken}}
 
 ### Get Next LinkedIn Account for Rotation

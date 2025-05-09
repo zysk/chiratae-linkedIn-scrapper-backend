@@ -116,9 +116,9 @@ export const getLinkedInAccountById = async (
   next: NextFunction
 ) => {
   try {
-    const accountId = req.params.id;
+    const linkedinAccountId = req.params.id;
 
-    const account = await LinkedInAccount.findById(accountId)
+    const account = await LinkedInAccount.findById(linkedinAccountId)
       .select('-encryptedPassword')
       .populate('createdBy', 'name email');
 
@@ -147,11 +147,11 @@ export const updateLinkedInAccount = async (
   next: NextFunction
 ) => {
   try {
-    const accountId = req.params.id;
+    const linkedinAccountId = req.params.id;
     const { username, password, email, description, isActive } = req.body;
 
     // Find account
-    const account = await LinkedInAccount.findById(accountId);
+    const account = await LinkedInAccount.findById(linkedinAccountId);
 
     if (!account) {
       throw new ApiError('LinkedIn account not found', 404);
@@ -202,9 +202,9 @@ export const deleteLinkedInAccount = async (
   next: NextFunction
 ) => {
   try {
-    const accountId = req.params.id;
+    const linkedinAccountId = req.params.id;
 
-    const account = await LinkedInAccount.findByIdAndDelete(accountId);
+    const account = await LinkedInAccount.findByIdAndDelete(linkedinAccountId);
 
     if (!account) {
       throw new ApiError('LinkedIn account not found', 404);
