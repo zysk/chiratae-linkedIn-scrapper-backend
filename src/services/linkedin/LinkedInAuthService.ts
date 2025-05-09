@@ -82,7 +82,7 @@ export class LinkedInAuthService {
   public async login(
     account: ILinkedInAccount,
     password: string,
-    proxy?: IProxy
+    proxy?: IProxy | null
   ): Promise<LoginResult> {
     let driver: WebDriver | null = null;
 
@@ -90,7 +90,7 @@ export class LinkedInAuthService {
       // Create a WebDriver instance with the specified options
       driver = await seleniumService.createDriver({
         headless: process.env.NODE_ENV === 'production',
-        proxy: proxy
+        proxy: proxy || undefined
       });
 
       // Navigate to LinkedIn login page

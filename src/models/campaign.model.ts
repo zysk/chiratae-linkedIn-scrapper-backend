@@ -4,12 +4,14 @@ import mongoose, { Document, Schema, Model } from 'mongoose';
  * Campaign status enum
  */
 export enum CampaignStatus {
-  CREATED = 'CREATED',
-  QUEUED = 'QUEUED',
-  RUNNING = 'RUNNING',
-  SEARCH_COMPLETED = 'SEARCH_COMPLETED',
-  FAILED = 'FAILED',
-  PAUSED = 'PAUSED'
+  CREATED = 'created',
+  QUEUED = 'queued',
+  RUNNING = 'running',
+  PROCESSING_PROFILES = 'processing_profiles',
+  PAUSED = 'paused',
+  COMPLETED = 'completed',
+  SEARCH_COMPLETED = 'search_completed',
+  FAILED = 'failed'
 }
 
 /**

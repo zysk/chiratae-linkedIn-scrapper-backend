@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { adminOnly } from '../middleware/admin.middleware';
+import { validate } from '../middleware/validation.middleware';
 import {
   createLinkedInAccount,
   getLinkedInAccounts,
@@ -9,6 +10,12 @@ import {
   deleteLinkedInAccount,
   getNextAvailableAccount,
 } from '../controllers/linkedinAccount.controller';
+import {
+  createLinkedinAccountSchema,
+  updateLinkedinAccountSchema,
+  linkedinAccountIdParamSchema,
+  listLinkedinAccountsSchema
+} from '../utils/validation/linkedinAccount.validation';
 
 const router = express.Router();
 
@@ -19,19 +26,19 @@ router.use(authenticate);
 router.use(adminOnly);
 
 // Create a new LinkedIn account
-router.post('/', createLinkedInAccount);
+router.post('/', validate(createLinkedinAccountSchema), createLinkedInAccount);
 
 // Get all LinkedIn accounts with pagination
-router.get('/', getLinkedInAccounts);
+router.get('/', validate(listLinkedinAccountsSchema, 'query'), getLinkedInAccounts);
 
 // Get a specific LinkedIn account by ID
-router.get('/:id', getLinkedInAccountById);
+router.get('/:id', validate(linkedinAccountIdParamSchema, 'params'), getLinkedInAccountById);
 
 // Update a LinkedIn account
-router.put('/:id', updateLinkedInAccount);
+router.put('/:id', validate(linkedinAccountIdParamSchema, 'params'), validate(updateLinkedinAccountSchema), updateLinkedInAccount);
 
 // Delete a LinkedIn account
-router.delete('/:id', deleteLinkedInAccount);
+router.delete('/:id', validate(linkedinAccountIdParamSchema, 'params'), deleteLinkedInAccount);
 
 // Get next available LinkedIn account (for internal use)
 router.get('/next/available', getNextAvailableAccount);

@@ -1,0 +1,306 @@
+import mongoose from 'mongoose';
+import fs from 'fs/promises';
+import path from 'path';
+import logger from '../../utils/logger';
+import { LinkedInProfileScraper } from './LinkedInProfileScraper';
+import Lead, { LeadProcessingStatus } from '../../models/lead.model';
+import Campaign, { CampaignStatus } from '../../models/campaign.model';
+import JobQueueService, { JobType, JobPriority, QueueName } from '../redis/JobQueueService';
+import { normalizeLinkedInUrl } from '../../utils/linkedin.utils';
+
+/**
+ * Service for cleaning up screenshots after campaign completion
+ */
+class ScreenshotCleanupService {
+  /**
+   * Clean up screenshots for a specific campaign
+   * @param campaignId Campaign ID
+   */
+  public static async cleanupCampaignScreenshots(campaignId: string): Promise<void> {
+    try {
+      const screenshotsDir = path.join(process.cwd(), 'screenshots');
+
+      // Check if directory exists
+      try {
+        await fs.access(screenshotsDir);
+      } catch (error) {
+        // Directory doesn't exist, nothing to clean up
+        return;
+      }
+
+      // Get all files in the screenshots directory
+      const files = await fs.readdir(screenshotsDir);
+
+      // Filter files related to this campaign
+      const campaignFiles = files.filter(file => file.includes(campaignId));
+
+      // Delete each file
+      for (const file of campaignFiles) {
+        const filePath = path.join(screenshotsDir, file);
+        await fs.unlink(filePath);
+        logger.debug(`Deleted screenshot: ${filePath}`);
+      }
+
+      logger.info(`Cleaned up ${campaignFiles.length} screenshots for campaign ${campaignId}`);
+    } catch (error) {
+      logger.error(`Error cleaning up screenshots: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+}
+
+/**
+ * Lead Processing Service
+ * Handles the processing of LinkedIn profile scraping jobs through the job queue
+ */
+class LeadProcessingService {
+  private static instance: LeadProcessingService;
+  private jobQueue: JobQueueService;
+
+  /**
+   * Private constructor to ensure singleton pattern
+   */
+  private constructor() {
+    this.jobQueue = JobQueueService.getInstance();
+  }
+
+  /**
+   * Get singleton instance
+   * @returns LeadProcessingService instance
+   */
+  public static getInstance(): LeadProcessingService {
+    if (!LeadProcessingService.instance) {
+      LeadProcessingService.instance = new LeadProcessingService();
+    }
+    return LeadProcessingService.instance;
+  }
+
+  /**
+   * Queue profile scraping jobs for all leads in a campaign
+   * @param campaignId Campaign ID
+   * @param priority Job priority (defaults to medium)
+   * @returns The number of queued jobs
+   */
+  public async queueCampaignLeads(
+    campaignId: string | mongoose.Types.ObjectId,
+    priority: JobPriority = JobPriority.MEDIUM
+  ): Promise<number> {
+    try {
+      const campaignIdStr = campaignId.toString();
+
+      // Update campaign status
+      await Campaign.findByIdAndUpdate(campaignIdStr, {
+        status: CampaignStatus.PROCESSING_PROFILES
+      });
+
+      // Find all leads that haven't been searched yet
+      const leads = await Lead.find({
+        campaignId: campaignIdStr,
+        isSearched: false,
+        link: { $exists: true, $ne: null }
+      }).sort({ createdAt: -1 });
+
+      logger.info(`Queueing ${leads.length} leads for profile scraping in campaign ${campaignIdStr}`);
+
+      // Queue each lead as a separate job
+      let queueCount = 0;
+      for (const lead of leads) {
+        if (lead.link && !lead.isSearched) {
+          // Validate the profile URL first
+          const normalizedUrl = normalizeLinkedInUrl(lead.link);
+
+          if (!normalizedUrl) {
+            logger.warn(`Skipping invalid LinkedIn profile URL for lead ${lead._id}: ${lead.link}`);
+            continue;
+          }
+
+          // Create a job for this lead
+          const jobId = await this.jobQueue.addJob(
+            JobType.PROFILE_SCRAPING,
+            campaignIdStr,
+            {
+              leadId: lead._id.toString(),
+              profileUrl: normalizedUrl
+            },
+            priority
+          );
+
+          // Update the lead status to QUEUED
+          await Lead.findByIdAndUpdate(lead._id, {
+            processingStatus: LeadProcessingStatus.QUEUED,
+            lastProcessingAttempt: new Date(),
+            $inc: { processingAttempts: 1 }
+          });
+
+          queueCount++;
+          logger.info(`Queued profile scraping job ${jobId} for lead ${lead._id} in campaign ${campaignIdStr}`);
+        } else {
+          // Mark leads without URLs as searched to avoid future retries
+          await Lead.findByIdAndUpdate(lead._id, { isSearched: true });
+          logger.warn(`Lead ${lead._id} has no LinkedIn URL to scrape, marking as processed`);
+        }
+      }
+
+      // If no jobs were queued, mark the campaign as completed
+      if (queueCount === 0) {
+        await Campaign.findByIdAndUpdate(campaignIdStr, {
+          status: CampaignStatus.SEARCH_COMPLETED,
+          completedAt: new Date()
+        });
+        logger.info(`Campaign ${campaignIdStr} has no valid leads to scrape, marked as completed`);
+      }
+
+      return queueCount;
+    } catch (error) {
+      logger.error(`Error queueing leads for campaign ${campaignId}: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Process a single profile scraping job
+   * @param jobId Job ID
+   * @param campaignId Campaign ID
+   * @param leadId Lead ID
+   * @param profileUrl LinkedIn profile URL
+   * @returns True if successful, false otherwise
+   */
+  public async processProfileScrapingJob(
+    jobId: string,
+    campaignId: string,
+    leadId: string,
+    profileUrl: string
+  ): Promise<boolean> {
+    try {
+      await this.jobQueue.markJobAsProcessing(jobId);
+      logger.info(`Processing profile scraping job ${jobId} for lead ${leadId}`);
+
+      // First find the lead and update its status to PROCESSING
+      const lead = await Lead.findByIdAndUpdate(leadId, {
+        processingStatus: LeadProcessingStatus.PROCESSING,
+        lastProcessingAttempt: new Date()
+      }, { new: true });
+
+      if (!lead) {
+        throw new Error(`Lead with ID ${leadId} not found`);
+      }
+
+      // Get the profile scraper singleton instance
+      const profileScraper = LinkedInProfileScraper.getInstance();
+
+      // Scrape the profile
+      const profileData = await profileScraper.scrapeProfile(profileUrl);
+
+      if (profileData) {
+        // Mark the lead as processed with status COMPLETED
+        await Lead.findByIdAndUpdate(leadId, {
+          processingStatus: LeadProcessingStatus.COMPLETED,
+          isSearched: true,
+          name: profileData.name,
+          headline: profileData.headline,
+          location: profileData.location,
+          summary: profileData.summary,
+          imageUrl: profileData.imageUrl,
+          connections: profileData.connections
+        });
+
+        // Update campaign stats
+        await Campaign.findByIdAndUpdate(campaignId, {
+          $inc: {
+            'stats.profilesScraped': 1
+          }
+        });
+
+        logger.info(`Successfully scraped profile for lead ${leadId}: ${profileData.name}`);
+        await this.jobQueue.markJobAsCompleted(jobId);
+        return true;
+      } else {
+        // Mark the lead as processed with status FAILED
+        await Lead.findByIdAndUpdate(leadId, {
+          processingStatus: LeadProcessingStatus.FAILED,
+          $push: { processingErrors: 'Failed to extract profile data' }
+        });
+
+        // Update campaign stats
+        await Campaign.findByIdAndUpdate(campaignId, {
+          $inc: {
+            'stats.failedScrapes': 1
+          }
+        });
+
+        logger.warn(`Failed to extract profile data for lead ${leadId}`);
+        await this.jobQueue.markJobAsFailed(jobId, 'Failed to extract profile data');
+        return false;
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error(`Error processing profile scraping job ${jobId}: ${errorMsg}`);
+
+      // Mark the lead as processed with status FAILED
+      await Lead.findByIdAndUpdate(leadId, {
+        processingStatus: LeadProcessingStatus.FAILED,
+        $push: { processingErrors: errorMsg }
+      });
+
+      // Update campaign stats
+      await Campaign.findByIdAndUpdate(campaignId, {
+        $inc: {
+          'stats.failedScrapes': 1
+        }
+      });
+
+      // Mark job as failed in the queue
+      await this.jobQueue.markJobAsFailed(jobId, errorMsg);
+      return false;
+    }
+  }
+
+  /**
+   * Check if all leads in a campaign have been processed
+   * @param campaignId Campaign ID
+   * @returns True if all leads have been processed, false otherwise
+   */
+  public async checkCampaignCompletion(campaignId: string): Promise<boolean> {
+    try {
+      // Count unprocessed leads
+      const unprocessedCount = await Lead.countDocuments({
+        campaignId,
+        isSearched: false
+      });
+
+      // Check if any profile scraping jobs are still in the queue or processing
+      const activeJobs = await this.jobQueue.getJobsByCampaignId(campaignId);
+      const pendingJobs = activeJobs.filter(job =>
+        job.type === JobType.PROFILE_SCRAPING &&
+        !job.completedAt &&
+        !job.failedAt
+      );
+
+      if (unprocessedCount === 0 && pendingJobs.length === 0) {
+        // Update campaign status to completed
+        await Campaign.findByIdAndUpdate(campaignId, {
+          status: CampaignStatus.SEARCH_COMPLETED,
+          completedAt: new Date()
+        });
+
+        // Clean up screenshots
+        try {
+          await ScreenshotCleanupService.cleanupCampaignScreenshots(campaignId);
+          logger.info(`Cleaned up screenshots for campaign ${campaignId} after completion`);
+        } catch (cleanupError) {
+          logger.error(`Error cleaning up screenshots for campaign ${campaignId}: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+        }
+
+        logger.info(`Campaign ${campaignId} profile scraping completed`);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      logger.error(`Error checking campaign completion: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+}
+
+export default LeadProcessingService;

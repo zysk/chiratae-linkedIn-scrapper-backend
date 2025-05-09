@@ -21,7 +21,8 @@
     "test:linkedin-proxy:port": "node scripts/test-runner.js --port",
     "update-chromedriver": "node scripts/update-chromedriver.js",
     "make-chromedriver-executable": "node scripts/make-chromedriver-executable.js",
-    "setup-chromedriver": "npm run update-chromedriver && npm run make-chromedriver-executable"
+    "setup-chromedriver": "npm run update-chromedriver && npm run make-chromedriver-executable",
+    "worker:profile": "ts-node src/scripts/run-profile-worker.ts"
   },
   "dependencies": {
     "@types/winston": "^2.4.4",

@@ -15,6 +15,9 @@ import appLogger from './utils/logger';
 import RedisService from './services/redis/RedisService';
 import SchedulerService from './services/redis/SchedulerService';
 
+// Import the worker manager
+import WorkerManager from './workers/index';
+
 // Import routes
 import userRoutes from './routes/user.routes';
 import userRatingRoutes from './routes/userRating.routes';
@@ -63,8 +66,16 @@ mongoose.connect(CONFIG.MONGOURI)
     } else {
       appLogger.info('Scheduler service not enabled - ENABLE_CRON is set to false');
     }
+
+    // Start the worker processes for background jobs
+    if (CONFIG.ENABLE_WORKERS !== false) {
+      WorkerManager.startAll();
+      appLogger.info('Background workers started successfully');
+    } else {
+      appLogger.info('Background workers not enabled - ENABLE_WORKERS is set to false');
+    }
   } catch (error) {
-    appLogger.error(`Failed to initialize Redis services: ${error instanceof Error ? error.message : String(error)}`);
+    appLogger.error(`Failed to initialize services: ${error instanceof Error ? error.message : String(error)}`);
   }
 })();
 
@@ -109,7 +120,8 @@ app.get('/api/health', async (req, res) => {
       services: {
         mongodb: isMongoConnected ? 'connected' : 'disconnected',
         redis: isRedisConnected ? 'connected' : 'disconnected',
-        scheduler: CONFIG.ENABLE_CRON ? 'enabled' : 'disabled'
+        scheduler: CONFIG.ENABLE_CRON ? 'enabled' : 'disabled',
+        workers: CONFIG.ENABLE_WORKERS !== false ? 'enabled' : 'disabled'
       }
     });
   } catch (error) {
@@ -138,6 +150,12 @@ process.on('SIGTERM', async () => {
     if (CONFIG.ENABLE_CRON) {
       const scheduler = SchedulerService.getInstance();
       await scheduler.shutdown();
+    }
+
+    // Stop background workers
+    if (CONFIG.ENABLE_WORKERS !== false) {
+      WorkerManager.stopAll();
+      appLogger.info('Background workers stopped successfully');
     }
 
     // Close Redis connection

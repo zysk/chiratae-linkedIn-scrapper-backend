@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { adminOnly } from '../middleware/admin.middleware';
+import { validate } from '../middleware/validation.middleware';
 import {
   createProxy,
   getProxies,
@@ -9,6 +10,12 @@ import {
   deleteProxy,
   getNextAvailableProxy,
 } from '../controllers/proxy.controller';
+import {
+  createProxySchema,
+  updateProxySchema,
+  proxyIdParamSchema,
+  listProxiesSchema
+} from '../utils/validation/proxy.validation';
 
 const router = express.Router();
 
@@ -19,19 +26,19 @@ router.use(authenticate);
 router.use(adminOnly);
 
 // Create a new proxy
-router.post('/', createProxy);
+router.post('/', validate(createProxySchema), createProxy);
 
 // Get all proxies with pagination
-router.get('/', getProxies);
+router.get('/', validate(listProxiesSchema, 'query'), getProxies);
 
 // Get a specific proxy by ID
-router.get('/:id', getProxyById);
+router.get('/:id', validate(proxyIdParamSchema, 'params'), getProxyById);
 
 // Update a proxy
-router.put('/:id', updateProxy);
+router.put('/:id', validate(proxyIdParamSchema, 'params'), validate(updateProxySchema), updateProxy);
 
 // Delete a proxy
-router.delete('/:id', deleteProxy);
+router.delete('/:id', validate(proxyIdParamSchema, 'params'), deleteProxy);
 
 // Get next available proxy (for internal use)
 router.get('/next/available', getNextAvailableProxy);

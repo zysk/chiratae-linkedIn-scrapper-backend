@@ -1,6 +1,16 @@
 import express from 'express';
 import leadController from '../controllers/lead.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validation.middleware';
+import {
+  getLeadsSchema,
+  leadIdParamSchema,
+  leadIdParamAltSchema,
+  updateLeadSchema,
+  commentIdParamSchema,
+  createLeadCommentSchema,
+  updateLeadCommentSchema
+} from '../utils/validation/lead.validation';
 
 const router = express.Router();
 
@@ -9,55 +19,55 @@ const router = express.Router();
  * @desc Get all leads with filtering and pagination
  * @access Private
  */
-router.get('/getLeads', authenticate, leadController.getLeads);
+router.get('/getLeads', authenticate, validate(getLeadsSchema, 'query'), leadController.getLeads);
 
 /**
  * @route GET /lead/getById/:id
  * @desc Get a lead by ID
  * @access Private
  */
-router.get('/getById/:id', authenticate, leadController.getLeadById);
+router.get('/getById/:id', authenticate, validate(leadIdParamSchema, 'params'), leadController.getLeadById);
 
 /**
  * @route PATCH /lead/updateById/:id
  * @desc Update a lead by ID
  * @access Private
  */
-router.patch('/updateById/:id', authenticate, leadController.updateLeadById);
+router.patch('/updateById/:id', authenticate, validate(leadIdParamSchema, 'params'), validate(updateLeadSchema), leadController.updateLeadById);
 
 /**
  * @route DELETE /lead/deleteById/:id
  * @desc Delete a lead by ID
  * @access Private
  */
-router.delete('/deleteById/:id', authenticate, leadController.deleteLeadById);
+router.delete('/deleteById/:id', authenticate, validate(leadIdParamSchema, 'params'), leadController.deleteLeadById);
 
 /**
  * @route GET /lead/:leadId/comments
  * @desc Get all comments for a lead
  * @access Private
  */
-router.get('/:leadId/comments', authenticate, leadController.getLeadComments);
+router.get('/:leadId/comments', authenticate, validate(leadIdParamAltSchema, 'params'), leadController.getLeadComments);
 
 /**
  * @route POST /lead/:leadId/comments
  * @desc Add a comment to a lead
  * @access Private
  */
-router.post('/:leadId/comments', authenticate, leadController.addLeadComment);
+router.post('/:leadId/comments', authenticate, validate(leadIdParamAltSchema, 'params'), validate(createLeadCommentSchema), leadController.addLeadComment);
 
 /**
  * @route PATCH /lead/comments/:commentId
  * @desc Update a lead comment
  * @access Private
  */
-router.patch('/comments/:commentId', authenticate, leadController.updateLeadComment);
+router.patch('/comments/:commentId', authenticate, validate(commentIdParamSchema, 'params'), validate(updateLeadCommentSchema), leadController.updateLeadComment);
 
 /**
  * @route DELETE /lead/comments/:commentId
  * @desc Delete a lead comment
  * @access Private
  */
-router.delete('/comments/:commentId', authenticate, leadController.deleteLeadComment);
+router.delete('/comments/:commentId', authenticate, validate(commentIdParamSchema, 'params'), leadController.deleteLeadComment);
 
 export default router;

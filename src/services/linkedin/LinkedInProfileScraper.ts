@@ -9,6 +9,7 @@ import Lead from '../../models/lead.model';
 import mongoose from 'mongoose';
 import { randomDelay, humanTypeText } from '../../utils/delay';
 import { LinkedInProfileData } from '../../types/linkedin.types';
+import path from 'path';
 
 /**
  * Interface for education data
@@ -196,27 +197,42 @@ export class LinkedInProfileScraper {
         summary
       };
 
-      logger.info(`Successfully scraped profile data for: ${normalizedUrl}`);
+      // Validate that essential fields are present
+      if (!profileData.name || !profileData.profileId) {
+        logger.error(`Scraped profile data for ${normalizedUrl} is missing essential fields`);
+        logger.debug(`Incomplete profile data: ${JSON.stringify(profileData)}`);
+
+        throw new Error(`Failed to extract essential profile data (name, ID) for ${normalizedUrl}`);
+      }
+
+      // Add debug logging before returning
+      logger.debug(`Successfully scraped profile data for ${normalizedUrl}: ${JSON.stringify({
+        profileId: profileData.profileId,
+        name: profileData.name,
+        location: profileData.location,
+        summary: profileData.summary ? 'Present' : 'Not found',
+      })}`);
+
       return profileData;
 
     } catch (error) {
-      // Handle errors
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error(`Error scraping LinkedIn profile ${normalizedUrl}: ${errorMessage}`);
+      logger.error(`Error scraping LinkedIn profile ${normalizedUrl}: ${error instanceof Error ? error.message : String(error)}`);
 
-      // Take a screenshot of the page if driver is available
+      // Save screenshot on error if driver is available
       if (driver) {
         try {
-          const screenshot = await driver.takeScreenshot();
-          const screenshotPath = `./screenshots/linkedin_scrape_error_${Date.now()}.png`;
-          await fs.writeFile(screenshotPath, Buffer.from(screenshot, 'base64'));
-          logger.info(`Error screenshot saved to: ${screenshotPath}`);
+          // Save error screenshot
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const screenshotPath = path.join(process.cwd(), 'screenshots', `scrape-error-${timestamp}.png`);
+          const screenshotData = await driver.takeScreenshot();
+          await fs.writeFile(screenshotPath, screenshotData, 'base64');
+          logger.info(`Error screenshot saved to ${screenshotPath}`);
         } catch (screenshotError) {
-          logger.warn(`Failed to take error screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
+          logger.warn(`Failed to save error screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
         }
       }
 
-      throw new Error(`Failed to extract profile data for ${profileUrl}: ${errorMessage}`);
+      throw error;
     } finally {
       // Always close the driver
       if (driver) {

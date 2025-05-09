@@ -5,6 +5,14 @@ import { leadStatuses } from '../utils/constants';
  * Lead interface
  * Acts as a link between a Campaign and a scraped profile
  */
+export enum LeadProcessingStatus {
+  PENDING = 'pending',
+  QUEUED = 'queued',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed'
+}
+
 export interface ILead extends Document {
   campaignId: mongoose.Types.ObjectId;
   clientId: string; // LinkedIn profile ID
@@ -12,8 +20,19 @@ export interface ILead extends Document {
   status: string;
   rating?: string;
   isSearched: boolean;
+  link?: string; // LinkedIn profile URL
+  name?: string;
+  headline?: string;
+  location?: string;
+  summary?: string;
+  imageUrl?: string;
+  connections?: string;
   createdAt: Date;
   updatedAt: Date;
+  processingStatus?: LeadProcessingStatus;
+  lastProcessingAttempt?: Date;
+  processingErrors?: string[];
+  processingAttempts?: number;
 }
 
 /**
@@ -46,6 +65,50 @@ const leadSchema = new Schema<ILead>(
     isSearched: {
       type: Boolean,
       default: false
+    },
+    link: {
+      type: String,
+      trim: true
+    },
+    name: {
+      type: String,
+      trim: true
+    },
+    headline: {
+      type: String,
+      trim: true
+    },
+    location: {
+      type: String,
+      trim: true
+    },
+    summary: {
+      type: String,
+      trim: true
+    },
+    imageUrl: {
+      type: String,
+      trim: true
+    },
+    connections: {
+      type: String,
+      trim: true
+    },
+    processingStatus: {
+      type: String,
+      enum: Object.values(LeadProcessingStatus),
+      default: LeadProcessingStatus.PENDING
+    },
+    lastProcessingAttempt: {
+      type: Date
+    },
+    processingErrors: {
+      type: [String],
+      default: []
+    },
+    processingAttempts: {
+      type: Number,
+      default: 0
     }
   },
   {

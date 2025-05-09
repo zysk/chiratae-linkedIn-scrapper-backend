@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Campaign, { CampaignStatus, ICampaign, CampaignPriority, CampaignRecurrence } from '../models/campaign.model';
 import LinkedInAccount from '../models/linkedinAccount.model';
-import Proxy from '../models/proxy.model';
+import Proxy, { IProxy } from '../models/proxy.model';
 import Lead from '../models/lead.model';
 import mongoose from 'mongoose';
 import { ApiError } from '../utils/error.utils';
@@ -21,6 +21,17 @@ import JobQueueService, { JobType, JobPriority } from '../services/redis/JobQueu
 import LinkedInSearchService from '../services/linkedin/LinkedInSearchService';
 import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
 import ScreenshotCleanupService from '../services/utils/ScreenshotCleanupService';
+import LeadProcessingService from '../services/linkedin/LeadProcessingService';
+import { rolesObj } from '../utils/constants';
+import { profileScrapeSchema } from '../utils/validation/linkedin.validation';
+
+// Simple proxy config interface for the login function
+interface ProxyConfig {
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+}
 
 /**
  * Create a new campaign
@@ -440,10 +451,12 @@ export const searchLinkedin = async (req: IAuthRequest, res: Response, next: Nex
   try {
     const { id } = req.params;
 
-    // Validate ID format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError('Invalid campaign ID format', 400);
-    }
+    // Validate campaign data from body
+    const {
+      proxyHost, proxyPort, proxyUsername, proxyPassword,
+      // Extract other search parameters if needed
+      ...searchParams
+    } = req.body;
 
     // Find campaign with populated data
     const campaign = await Campaign.findById(id)
@@ -455,102 +468,160 @@ export const searchLinkedin = async (req: IAuthRequest, res: Response, next: Nex
     }
 
     // Check ownership (unless admin)
-    if (req.user?.role !== 'ADMIN' && campaign.createdBy.toString() !== req.user?.userId) {
-      throw new ApiError('Not authorized to trigger search for this campaign', 403);
+    if (req.user?.role !== rolesObj.ADMIN && campaign.createdBy.toString() !== req.user?._id?.toString()) {
+      throw new ApiError('Not authorized to access this campaign', 403);
     }
 
-    // Check campaign status
-    if (campaign.status !== CampaignStatus.QUEUED) {
-      throw new ApiError('Campaign must be in QUEUED status to trigger search', 400);
-    }
-
-    // Check if we have valid account and proxy
-    if (!campaign.linkedinAccountId) {
-      throw new ApiError('Campaign has no LinkedIn account assigned', 400);
-    }
-
-    // Proxy is now optional
-    // Update campaign status to processing
+    // Update campaign status to running
     await Campaign.findByIdAndUpdate(id, {
       status: CampaignStatus.RUNNING,
       startedAt: new Date()
     });
 
-    // Trigger the search in background
+    // Start the search process in background
     (async () => {
       try {
         logger.info(`Starting LinkedIn search for campaign ${id}`);
 
-        // Get necessary data for search
-        const linkedinAccount = await LinkedInAccount.findById(campaign.linkedinAccountId);
-        const proxy = campaign.proxyId ? await Proxy.findById(campaign.proxyId) : null;
+        // Get LinkedIn account credentials with proper password decryption
+        const linkedinAccount = campaign.linkedinAccountId as any;
+        const password = linkedinAccount.getPassword(); // Get decrypted password
 
-        if (!linkedinAccount || !linkedinAccount.isActive) {
-          throw new Error('LinkedIn account not found or inactive');
-        }
-
-        // Only check proxy if it's provided
-        if (campaign.proxyId && (!proxy || !proxy.isActive)) {
-          throw new Error('Proxy not found or inactive');
-        }
-
-        // Get password
-        const password = linkedinAccount.getPassword ? linkedinAccount.getPassword() : '';
         if (!password) {
-          throw new Error('Could not retrieve LinkedIn account password');
+          throw new ApiError('Failed to retrieve LinkedIn account password', 500);
         }
 
-        // Login to LinkedIn
-        logger.info(`Attempting to login with LinkedIn account: ${linkedinAccount.username}`);
-        const loginResult = await LinkedInAuthService.login(linkedinAccount, password, proxy || undefined);
+        // Initialize auth and search services
+        const authService = LinkedInAuthService;
+        const searchService = LinkedInSearchService;
 
-        if (!loginResult.success || !loginResult.driver) {
+        // Prepare proxy configuration
+        let proxyConfig = null;
+
+        if (proxyHost && proxyPort) {
+          // If proxy details provided in request, create a new proxy object
+          try {
+            // Create a simple proxy object with the required properties
+            const tempProxy: any = {
+              host: proxyHost,
+              port: proxyPort,
+              username: proxyUsername,
+              getPassword: () => proxyPassword
+            };
+
+            proxyConfig = tempProxy;
+          } catch (proxyError) {
+            logger.error(`Error creating proxy: ${proxyError instanceof Error ? proxyError.message : String(proxyError)}`);
+          }
+        } else if (campaign.proxyId) {
+          // If campaign has a proxy, use it directly
+          proxyConfig = campaign.proxyId;
+        }
+
+        // Log in to LinkedIn and get the driver
+        const loginResult = await authService.login(
+          {
+            username: linkedinAccount.username,
+            email: linkedinAccount.email || linkedinAccount.username
+          } as any, // Create minimal account object
+          password,
+          proxyConfig
+        );
+
+        if (!loginResult.success) {
           throw new Error(`LinkedIn login failed: ${loginResult.message}`);
         }
 
-        // Prepare search parameters
-        const campaignFilters = campaign.get('filters') || {};
-        const searchParams = {
-          keywords: campaign.get('searchQuery') || '',
-          filters: {
-            locations: campaignFilters.locations || [],
-            jobTitles: campaignFilters.jobTitles || [],
-            companies: campaignFilters.companies || [],
-            industries: campaignFilters.industries || [],
-            connectionDegree: campaignFilters.connectionDegree || [],
-            pastCompanies: campaignFilters.pastCompanies || []
-          },
-          maxResults: campaign.get('maxResults') || 100,
-          campaignId: id
-        };
-
-        logger.info(`Starting search with parameters: ${JSON.stringify(searchParams)}`);
-
-        // Execute the search
         try {
-          const profiles = await LinkedInSearchService.search(loginResult.driver, searchParams);
+          // Fix the keywords typing issue by using the first array element or falling back to searchQuery
+          const keywordsString = Array.isArray(campaign.keywords) && campaign.keywords.length > 0
+            ? campaign.keywords[0]
+            : (campaign.searchQuery || "");
 
-          logger.info(`Search completed. Found ${profiles.length} profiles.`);
+          // Perform the search using the campaign parameters
+          const searchResults = await searchService.search(
+            loginResult.driver!,
+            {
+              keywords: keywordsString,
+              filters: {
+                locations: campaign.location ? [campaign.location] : undefined,
+                companies: campaign.company ? [campaign.company] : undefined,
+                pastCompanies: campaign.pastCompany ? [campaign.pastCompany] : undefined,
+                industries: campaign.industry ? [campaign.industry] : undefined,
+                connectionDegree: campaign.connectionDegree ? [campaign.connectionDegree] : undefined
+              },
+              maxResults: campaign.maxResults || 50,
+              campaignId: id
+            }
+          );
 
-          // Update campaign stats (approximate, exact count will be done in background process)
+          logger.info(`Search completed with ${searchResults.length} results for campaign ${id}`);
+
+          // Save the search results as leads
+          let savedLeadsCount = 0;
+          for (const result of searchResults) {
+            try {
+              const { profileId, profileUrl, name } = result;
+
+              // Check if this profile already exists
+              const existingLead = await Lead.findOne({
+                campaignId: id,
+                clientId: profileId
+              });
+
+              if (!existingLead) {
+                await Lead.create({
+                  campaignId: id,
+                  clientId: profileId,
+                  link: profileUrl,
+                  name: name,
+                  isSearched: false
+                });
+                savedLeadsCount++;
+              }
+            } catch (saveError) {
+              logger.error(`Error saving lead: ${saveError instanceof Error ? saveError.message : String(saveError)}`);
+              // Continue with the next result
+            }
+          }
+
+          logger.info(`Saved ${savedLeadsCount} new leads for campaign ${id}`);
+
+          // Update campaign status to search completed
           await Campaign.findByIdAndUpdate(id, {
-            $inc: { 'stats.profilesFound': profiles.length },
+            $inc: {
+              'stats.profilesFound': savedLeadsCount
+            },
             status: CampaignStatus.SEARCH_COMPLETED
           });
 
-          // Clean up screenshots after search is completed
-          try {
-            await ScreenshotCleanupService.cleanupCampaignScreenshots(id);
-            logger.info(`Cleaned up screenshots for campaign ${id} after search completion`);
-          } catch (cleanupError) {
-            logger.error(`Error cleaning up screenshots for campaign ${id}: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+          // Queue up profile scraping jobs for the new leads
+          const leadProcessingService = LeadProcessingService.getInstance();
+
+          // Determine priority based on campaign priority
+          let jobPriority = JobPriority.MEDIUM;
+          if (campaign.priority === 'high') {
+            jobPriority = JobPriority.HIGH;
+          } else if (campaign.priority === 'low') {
+            jobPriority = JobPriority.LOW;
           }
 
+          // Queue the leads for profile scraping
+          const queuedJobsCount = await leadProcessingService.queueCampaignLeads(id, jobPriority);
+          logger.info(`Queued ${queuedJobsCount} leads for profile scraping for campaign ${id}`);
+
+        } catch (searchError) {
+          logger.error(`Error during search: ${searchError instanceof Error ? searchError.message : String(searchError)}`);
+          throw searchError;
         } finally {
-          // Always close the browser when done
+          // Always close the browser when done if it's still open
           if (loginResult.driver) {
-            await SeleniumService.quitDriver(loginResult.driver);
-            logger.info('WebDriver quit successfully');
+            try {
+              await SeleniumService.quitDriver(loginResult.driver);
+              logger.info('WebDriver quit successfully');
+            } catch (driverError) {
+              logger.error(`Error closing WebDriver: ${driverError instanceof Error ? driverError.message : String(driverError)}`);
+            }
           }
         }
       } catch (error) {
@@ -569,7 +640,7 @@ export const searchLinkedin = async (req: IAuthRequest, res: Response, next: Nex
       message: 'LinkedIn search triggered successfully. Processing in the background.',
       data: {
         campaignId: id,
-        status: 'processing'
+        status: 'running'
       }
     });
   } catch (error) {
@@ -578,50 +649,196 @@ export const searchLinkedin = async (req: IAuthRequest, res: Response, next: Nex
 };
 
 /**
- * Trigger LinkedIn profile scraping for a campaign
- * @route POST /api/campaigns/:id/linkedInProfileScrappingReq
+ * Trigger LinkedIn profile scraping for a specific campaign
+ * @route POST /api/campaigns/:id/scrapeProfiles
  * @access Private
  */
-export const linkedInProfileScrappingReq = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const scrapeProfiles = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { profileUrl } = req.body;
+    const { id } = req.params;
 
-    if (!profileUrl) {
-      res.status(400).json({
-        status: false,
-        error: 'LinkedIn profile URL is required'
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError('Invalid campaign ID format', 400);
+    }
+
+    // Find campaign
+    const campaign = await Campaign.findById(id);
+    if (!campaign) {
+      throw new ApiError('Campaign not found', 404);
+    }
+
+    // Check ownership (unless admin)
+    if (req.user?.role !== rolesObj.ADMIN && campaign.createdBy.toString() !== req.user?._id?.toString()) {
+      throw new ApiError('Not authorized to access this campaign', 403);
+    }
+
+    // Determine priority based on campaign priority or request body
+    let jobPriority = JobPriority.MEDIUM;
+    if (campaign.priority === 'high') {
+      jobPriority = JobPriority.HIGH;
+    } else if (campaign.priority === 'low') {
+      jobPriority = JobPriority.LOW;
+    }
+
+    // If priority is specified in the request body, use that instead
+    if (req.body.priority) {
+      if (req.body.priority === 'high') {
+        jobPriority = JobPriority.HIGH;
+      } else if (req.body.priority === 'low') {
+        jobPriority = JobPriority.LOW;
+      }
+    }
+
+    // Queue up the profile scraping jobs
+    const leadProcessingService = LeadProcessingService.getInstance();
+    const queuedJobsCount = await leadProcessingService.queueCampaignLeads(id, jobPriority);
+
+    if (queuedJobsCount === 0) {
+      res.status(200).json({
+        success: true,
+        message: 'No leads to scrape for this campaign.',
+        data: {
+          campaignId: id,
+          queuedJobs: 0
+        }
       });
       return;
     }
 
+    res.status(200).json({
+      success: true,
+      message: `Queued ${queuedJobsCount} leads for profile scraping.`,
+      data: {
+        campaignId: id,
+        queuedJobs: queuedJobsCount
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Manually scrape a LinkedIn profile and return the data
+ * @route POST /api/campaigns/linkedInProfileScrappingReq
+ * @access Private
+ */
+export const linkedInProfileScrappingReq = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Validate the request body using Joi schema
+    const { error, value } = profileScrapeSchema.validate(req.body);
+
+    if (error) {
+      res.status(400).json({
+        status: false,
+        error: error.message
+      });
+      return;
+    }
+
+    const { profileUrl } = value;
     logger.info(`Processing LinkedIn profile scraping request for URL: ${profileUrl}`);
 
     // Get the LinkedInProfileScraper instance
     const scraper = LinkedInProfileScraper.getInstance();
 
-    // Call scrapeProfile with the URL only - driver initialization is now handled internally
-    const profileData = await scraper.scrapeProfile(profileUrl);
+    try {
+      // Call scrapeProfile with the URL only - driver initialization is now handled internally
+      const profileData = await scraper.scrapeProfile(profileUrl);
 
-    if (!profileData) {
+      if (!profileData) {
+        throw new Error(`Failed to extract profile data for ${profileUrl}`);
+      }
+
+      // Return the scraped profile data
+      res.status(200).json({
+        status: true,
+        data: profileData
+      });
+    } catch (scrapeError) {
+      logger.error(`LinkedIn profile scraping error: ${scrapeError instanceof Error ? scrapeError.message : String(scrapeError)}`);
+
       res.status(400).json({
         status: false,
-        error: `Failed to extract profile data for ${profileUrl}`
+        error: scrapeError instanceof Error ? scrapeError.message : `Failed to scrape profile: ${profileUrl}`
       });
-      return;
     }
-
-    // Return the scraped profile data
-    res.status(200).json({
-      status: true,
-      data: profileData
-    });
-
   } catch (error) {
     logger.error(`LinkedIn profile scraping error: ${error instanceof Error ? error.message : String(error)}`);
-    res.status(500).json({
-      status: false,
-      error: error instanceof Error ? error.message : 'Failed to scrape LinkedIn profile'
+
+    next(error);
+  }
+};
+
+/**
+ * Get profile scraping job status for a campaign
+ * @route GET /api/campaigns/:id/scrapeStatus
+ * @access Private
+ */
+export const getScrapeStatus = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError('Invalid campaign ID format', 400);
+    }
+
+    // Find campaign
+    const campaign = await Campaign.findById(id);
+    if (!campaign) {
+      throw new ApiError('Campaign not found', 404);
+    }
+
+    // Check ownership (unless admin)
+    if (req.user?.role !== rolesObj.ADMIN && campaign.createdBy.toString() !== req.user?._id?.toString()) {
+      throw new ApiError('Not authorized to access this campaign', 403);
+    }
+
+    // Get job queue service
+    const jobQueue = JobQueueService.getInstance();
+
+    // Get jobs for this campaign
+    const jobs = await jobQueue.getJobsByCampaignId(id);
+
+    // Filter for profile scraping jobs
+    const profileJobs = jobs.filter(job => job.type === JobType.PROFILE_SCRAPING);
+
+    // Count jobs by status
+    const completed = profileJobs.filter(job => job.completedAt).length;
+    const failed = profileJobs.filter(job => job.failedAt).length;
+    const pending = profileJobs.filter(job => !job.completedAt && !job.failedAt && !job.startedAt).length;
+    const processing = profileJobs.filter(job => job.startedAt && !job.completedAt && !job.failedAt).length;
+    const total = profileJobs.length;
+
+    // Get lead counts
+    const totalLeads = await Lead.countDocuments({ campaignId: id });
+    const scrapedLeads = await Lead.countDocuments({ campaignId: id, isSearched: true });
+    const remainingLeads = await Lead.countDocuments({ campaignId: id, isSearched: false });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        campaignId: id,
+        status: campaign.status,
+        jobs: {
+          total,
+          completed,
+          failed,
+          pending,
+          processing
+        },
+        leads: {
+          total: totalLeads,
+          scraped: scrapedLeads,
+          remaining: remainingLeads
+        },
+        progress: total > 0 ? Math.round((completed / total) * 100) : 0
+      }
     });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -765,6 +982,63 @@ export const scheduleCampaign = async (req: IAuthRequest, res: Response, next: N
         jobId,
         jobType
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get processing status of a specific lead
+ * @route GET /api/campaigns/leads/:leadId/status
+ * @access Private
+ */
+export const getLeadStatus = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { leadId } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(leadId)) {
+      throw new ApiError('Invalid lead ID format', 400);
+    }
+
+    // Find lead
+    const lead = await Lead.findById(leadId);
+
+    if (!lead) {
+      throw new ApiError('Lead not found', 404);
+    }
+
+    // Find the campaign to check ownership
+    const campaign = await Campaign.findById(lead.campaignId);
+
+    if (!campaign) {
+      throw new ApiError('Associated campaign not found', 404);
+    }
+
+    // Check ownership (unless admin)
+    if (req.user?.role !== rolesObj.ADMIN && campaign.createdBy.toString() !== req.user?._id?.toString()) {
+      throw new ApiError('Not authorized to access this lead', 403);
+    }
+
+    // Prepare response data
+    const responseData = {
+      leadId: lead._id,
+      campaignId: lead.campaignId,
+      status: lead.status,
+      clientId: lead.clientId,
+      name: lead.name,
+      link: lead.link,
+      isSearched: lead.isSearched,
+      processingStatus: lead.processingStatus || 'unknown',
+      lastProcessingAttempt: lead.lastProcessingAttempt,
+      processingAttempts: lead.processingAttempts || 0,
+      processingErrors: lead.processingErrors || []
+    };
+
+    res.status(200).json({
+      success: true,
+      data: responseData
     });
   } catch (error) {
     next(error);

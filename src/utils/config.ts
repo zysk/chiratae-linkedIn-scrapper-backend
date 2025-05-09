@@ -25,6 +25,7 @@ export const CONFIG = {
 
   // LinkedIn scraper configuration
   ENABLE_CRON: process.env.ENABLE_CRON === 'true',
+  ENABLE_WORKERS: process.env.ENABLE_WORKERS !== 'false',
   HEADLESS_BROWSER: process.env.HEADLESS_BROWSER === 'true',
   TIMEZONE: process.env.TZ || 'Asia/Kolkata',
 
