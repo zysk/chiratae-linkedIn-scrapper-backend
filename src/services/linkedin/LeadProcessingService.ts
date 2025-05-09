@@ -6,7 +6,7 @@ import { LinkedInProfileScraper } from './LinkedInProfileScraper';
 import Lead, { LeadProcessingStatus } from '../../models/lead.model';
 import Campaign, { CampaignStatus } from '../../models/campaign.model';
 import JobQueueService, { JobType, JobPriority, QueueName } from '../redis/JobQueueService';
-import { normalizeLinkedInUrl } from '../../utils/linkedin.utils';
+import { normalizeLinkedInUrl, constructProfileUrl } from '../../utils/linkedin.utils';
 
 /**
  * Service for cleaning up screenshots after campaign completion
@@ -97,7 +97,7 @@ class LeadProcessingService {
       const leads = await Lead.find({
         campaignId: campaignIdStr,
         isSearched: false,
-        link: { $exists: true, $ne: null }
+        clientId: { $exists: true, $ne: null }
       }).sort({ createdAt: -1 });
 
       logger.info(`Queueing ${leads.length} leads for profile scraping in campaign ${campaignIdStr}`);
@@ -105,12 +105,15 @@ class LeadProcessingService {
       // Queue each lead as a separate job
       let queueCount = 0;
       for (const lead of leads) {
-        if (lead.link && !lead.isSearched) {
-          // Validate the profile URL first
-          const normalizedUrl = normalizeLinkedInUrl(lead.link);
+        // Construct profile URL from clientId
+        const profileUrl = lead.clientId ? constructProfileUrl(lead.clientId) : lead.link;
+
+        if (profileUrl && !lead.isSearched) {
+          // Validate the profile URL
+          const normalizedUrl = normalizeLinkedInUrl(profileUrl);
 
           if (!normalizedUrl) {
-            logger.warn(`Skipping invalid LinkedIn profile URL for lead ${lead._id}: ${lead.link}`);
+            logger.warn(`Skipping invalid LinkedIn profile URL for lead ${lead._id}: ${profileUrl}`);
             continue;
           }
 
@@ -125,8 +128,9 @@ class LeadProcessingService {
             priority
           );
 
-          // Update the lead status to QUEUED
+          // Update the lead status to QUEUED and save the constructed URL
           await Lead.findByIdAndUpdate(lead._id, {
+            link: normalizedUrl, // Store the constructed URL in the link field
             processingStatus: LeadProcessingStatus.QUEUED,
             lastProcessingAttempt: new Date(),
             $inc: { processingAttempts: 1 }
@@ -135,9 +139,9 @@ class LeadProcessingService {
           queueCount++;
           logger.info(`Queued profile scraping job ${jobId} for lead ${lead._id} in campaign ${campaignIdStr}`);
         } else {
-          // Mark leads without URLs as searched to avoid future retries
+          // Mark leads without valid clientId as searched to avoid future retries
           await Lead.findByIdAndUpdate(lead._id, { isSearched: true });
-          logger.warn(`Lead ${lead._id} has no LinkedIn URL to scrape, marking as processed`);
+          logger.warn(`Lead ${lead._id} has no valid clientId to construct LinkedIn URL, marking as processed`);
         }
       }
 

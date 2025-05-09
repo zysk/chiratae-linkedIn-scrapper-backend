@@ -212,3 +212,24 @@ export const extractIndustry = (industryText?: string): string | undefined => {
     return undefined;
   }
 };
+
+/**
+ * Constructs a LinkedIn profile URL from a profile ID (clientId)
+ *
+ * @param clientId LinkedIn profile ID
+ * @returns Constructed LinkedIn profile URL
+ */
+export const constructProfileUrl = (clientId: string): string => {
+  if (!clientId) return '';
+
+  try {
+    // Clean the clientId
+    const cleanId = clientId.trim();
+
+    // Construct the profile URL
+    return `https://www.linkedin.com/in/${cleanId}/`;
+  } catch (error) {
+    console.error('Error constructing profile URL:', error);
+    return '';
+  }
+};
