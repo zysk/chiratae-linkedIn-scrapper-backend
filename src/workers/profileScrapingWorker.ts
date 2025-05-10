@@ -9,7 +9,7 @@ import { Job } from '../services/redis/JobQueueService';
  */
 class ProfileScrapingWorker {
   private jobQueue: JobQueueService;
-  private leadProcessingService: LeadProcessingService;
+  private leadProcessingService: typeof LeadProcessingService;
   private isRunning: boolean = false;
   private pollingInterval: number = 5000; // 5 seconds
   private processInterval: NodeJS.Timeout | null = null;
@@ -18,7 +18,7 @@ class ProfileScrapingWorker {
 
   constructor() {
     this.jobQueue = JobQueueService.getInstance();
-    this.leadProcessingService = LeadProcessingService.getInstance();
+    this.leadProcessingService = LeadProcessingService;
   }
 
   /**

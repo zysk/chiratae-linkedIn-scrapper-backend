@@ -7,6 +7,9 @@ import Lead, { LeadProcessingStatus } from '../../models/lead.model';
 import Campaign, { CampaignStatus } from '../../models/campaign.model';
 import JobQueueService, { JobType, JobPriority, QueueName } from '../redis/JobQueueService';
 import { normalizeLinkedInUrl, constructProfileUrl } from '../../utils/linkedin.utils';
+import WebDriverManager from '../selenium/WebDriverManager';
+import { ILinkedInAccount } from '../../models/linkedinAccount.model';
+import { IProxy } from '../../models/proxy.model';
 
 /**
  * Service for cleaning up screenshots after campaign completion
@@ -56,12 +59,15 @@ class ScreenshotCleanupService {
 class LeadProcessingService {
   private static instance: LeadProcessingService;
   private jobQueue: JobQueueService;
+  private webDriverManager: typeof WebDriverManager;
+  private activeProfileScrapings: Set<string> = new Set(); // Set of campaign IDs with active scraping
 
   /**
    * Private constructor to ensure singleton pattern
    */
   private constructor() {
     this.jobQueue = JobQueueService.getInstance();
+    this.webDriverManager = WebDriverManager;
   }
 
   /**
@@ -76,6 +82,31 @@ class LeadProcessingService {
   }
 
   /**
+   * Check if a campaign is currently being processed
+   * @param campaignId Campaign ID
+   * @returns True if campaign is being processed, false otherwise
+   */
+  public isCampaignProcessing(campaignId: string): boolean {
+    return this.activeProfileScrapings.has(campaignId);
+  }
+
+  /**
+   * Mark a campaign as being processed
+   * @param campaignId Campaign ID
+   */
+  private markCampaignAsProcessing(campaignId: string): void {
+    this.activeProfileScrapings.add(campaignId);
+  }
+
+  /**
+   * Mark a campaign as not being processed
+   * @param campaignId Campaign ID
+   */
+  private markCampaignAsNotProcessing(campaignId: string): void {
+    this.activeProfileScrapings.delete(campaignId);
+  }
+
+  /**
    * Queue profile scraping jobs for all leads in a campaign
    * @param campaignId Campaign ID
    * @param priority Job priority (defaults to medium)
@@ -87,6 +118,12 @@ class LeadProcessingService {
   ): Promise<number> {
     try {
       const campaignIdStr = campaignId.toString();
+
+      // Check if campaign is already being processed
+      if (this.isCampaignProcessing(campaignIdStr)) {
+        logger.warn(`Campaign ${campaignIdStr} is already being processed, skipping`);
+        return 0;
+      }
 
       // Update campaign status
       await Campaign.findByIdAndUpdate(campaignIdStr, {
@@ -176,53 +213,104 @@ class LeadProcessingService {
     profileUrl: string
   ): Promise<boolean> {
     try {
-      await this.jobQueue.markJobAsProcessing(jobId);
-      logger.info(`Processing profile scraping job ${jobId} for lead ${leadId}`);
-
-      // First find the lead and update its status to PROCESSING
-      const lead = await Lead.findByIdAndUpdate(leadId, {
-        processingStatus: LeadProcessingStatus.PROCESSING,
-        lastProcessingAttempt: new Date()
-      }, { new: true });
-
-      if (!lead) {
-        throw new Error(`Lead with ID ${leadId} not found`);
+      // Check if the campaign is already being processed
+      if (this.isCampaignProcessing(campaignId)) {
+        logger.warn(`Another job is already processing campaign ${campaignId}, requeuing job ${jobId}`);
+        // Requeue the job with a delay
+        await this.jobQueue.requeueJob(jobId, 30000); // 30 second delay
+        return false;
       }
 
-      // Get the profile scraper singleton instance
-      const profileScraper = LinkedInProfileScraper.getInstance();
+      // Mark the campaign as being processed
+      this.markCampaignAsProcessing(campaignId);
 
-      // Scrape the profile
-      const profileData = await profileScraper.scrapeProfile(profileUrl);
+      try {
+        await this.jobQueue.markJobAsProcessing(jobId);
+        logger.info(`Processing profile scraping job ${jobId} for lead ${leadId}`);
 
-      if (profileData) {
-        // Mark the lead as processed with status COMPLETED
-        await Lead.findByIdAndUpdate(leadId, {
-          processingStatus: LeadProcessingStatus.COMPLETED,
-          isSearched: true,
-          name: profileData.name,
-          headline: profileData.headline,
-          location: profileData.location,
-          summary: profileData.summary,
-          imageUrl: profileData.imageUrl,
-          connections: profileData.connections
-        });
+        // First find the lead and update its status to PROCESSING
+        const lead = await Lead.findByIdAndUpdate(leadId, {
+          processingStatus: LeadProcessingStatus.PROCESSING,
+          lastProcessingAttempt: new Date()
+        }, { new: true });
 
-        // Update campaign stats
-        await Campaign.findByIdAndUpdate(campaignId, {
-          $inc: {
-            'stats.profilesScraped': 1
-          }
-        });
+        if (!lead) {
+          throw new Error(`Lead with ID ${leadId} not found`);
+        }
 
-        logger.info(`Successfully scraped profile for lead ${leadId}: ${profileData.name}`);
-        await this.jobQueue.markJobAsCompleted(jobId);
-        return true;
-      } else {
+        // Get the profile scraper singleton instance
+        const profileScraper = LinkedInProfileScraper.getInstance();
+
+        // Get the campaign with populated LinkedIn account and proxy
+        const campaign = await Campaign.findById(campaignId)
+          .populate<{ linkedinAccountId: ILinkedInAccount }>('linkedinAccountId')
+          .populate<{ proxyId: IProxy }>('proxyId');
+
+        if (!campaign || !campaign.linkedinAccountId) {
+          throw new Error(`Campaign ${campaignId} not found or has no LinkedIn account configured`);
+        }
+
+        // Get the LinkedIn account password from environment or secure storage
+		  const password = campaign.linkedinAccountId.getPassword(); // Get decrypted password
+        if (!password) {
+          throw new Error('LinkedIn account password not configured');
+        }
+
+        // Use the shared WebDriver instance managed by the WebDriverManager
+        const result = await profileScraper.scrapeProfile(
+          profileUrl,
+          campaignId,
+          campaign.linkedinAccountId,
+          password,
+          campaign.proxyId
+        );
+
+        if (result.success && result.profileData) {
+          // Mark the lead as processed with status COMPLETED
+          await Lead.findByIdAndUpdate(leadId, {
+            processingStatus: LeadProcessingStatus.COMPLETED,
+            isSearched: true,
+            name: result.profileData.name,
+            headline: result.profileData.headline,
+            location: result.profileData.location,
+            summary: result.profileData.summary,
+            imageUrl: result.profileData.imageUrl,
+            connections: result.profileData.connections
+          });
+
+          // Update campaign stats
+          await Campaign.findByIdAndUpdate(campaignId, {
+            $inc: {
+              'stats.profilesScraped': 1
+            }
+          });
+
+          logger.info(`Successfully scraped profile for lead ${leadId}: ${result.profileData.name}`);
+          await this.jobQueue.markJobAsCompleted(jobId);
+          return true;
+        } else {
+          // Handle scraping failure
+          const errorMessage = result.message || 'Unknown error during profile scraping';
+          logger.error(`Failed to scrape profile for lead ${leadId}: ${errorMessage}`);
+
+          // Update lead status
+          await Lead.findByIdAndUpdate(leadId, {
+            processingStatus: LeadProcessingStatus.FAILED,
+            processingError: errorMessage
+          });
+
+          // Mark the job as failed
+          await this.jobQueue.markJobAsFailed(jobId, errorMessage);
+          return false;
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        logger.error(`Error processing profile scraping job ${jobId}: ${errorMsg}`);
+
         // Mark the lead as processed with status FAILED
         await Lead.findByIdAndUpdate(leadId, {
           processingStatus: LeadProcessingStatus.FAILED,
-          $push: { processingErrors: 'Failed to extract profile data' }
+          $push: { processingErrors: errorMsg }
         });
 
         // Update campaign stats
@@ -232,29 +320,16 @@ class LeadProcessingService {
           }
         });
 
-        logger.warn(`Failed to extract profile data for lead ${leadId}`);
-        await this.jobQueue.markJobAsFailed(jobId, 'Failed to extract profile data');
+        // Mark job as failed in the queue
+        await this.jobQueue.markJobAsFailed(jobId, errorMsg);
         return false;
+      } finally {
+        // Mark the campaign as not being processed
+        this.markCampaignAsNotProcessing(campaignId);
       }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      logger.error(`Error processing profile scraping job ${jobId}: ${errorMsg}`);
-
-      // Mark the lead as processed with status FAILED
-      await Lead.findByIdAndUpdate(leadId, {
-        processingStatus: LeadProcessingStatus.FAILED,
-        $push: { processingErrors: errorMsg }
-      });
-
-      // Update campaign stats
-      await Campaign.findByIdAndUpdate(campaignId, {
-        $inc: {
-          'stats.failedScrapes': 1
-        }
-      });
-
-      // Mark job as failed in the queue
-      await this.jobQueue.markJobAsFailed(jobId, errorMsg);
+    } catch (outerError) {
+      logger.error(`Outer error in processProfileScrapingJob: ${outerError instanceof Error ? outerError.message : String(outerError)}`);
+      this.markCampaignAsNotProcessing(campaignId);
       return false;
     }
   }
@@ -281,6 +356,10 @@ class LeadProcessingService {
       );
 
       if (unprocessedCount === 0 && pendingJobs.length === 0) {
+        // Cleanup the WebDriver for this campaign
+        await this.webDriverManager.quitDriver(campaignId);
+        logger.info(`Cleaned up WebDriver for completed campaign ${campaignId}`);
+
         // Update campaign status to completed
         await Campaign.findByIdAndUpdate(campaignId, {
           status: CampaignStatus.SEARCH_COMPLETED,
@@ -307,4 +386,4 @@ class LeadProcessingService {
   }
 }
 
-export default LeadProcessingService;
+export default LeadProcessingService.getInstance();

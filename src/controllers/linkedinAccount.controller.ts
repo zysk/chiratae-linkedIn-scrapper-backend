@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import LinkedInAccount, { ILinkedInAccount } from '../models/linkedinAccount.model';
 import { ApiError } from '../middleware/errorHandler';
 import { LinkedInAccountManager } from '../utils/proxy.utils';
+import LinkedInAuthService from '../services/linkedin/LinkedInAuthService';
+import logger from '../utils/logger';
+import SeleniumService from '../services/selenium/SeleniumService';
 
 /**
  * Create a new LinkedIn account
@@ -14,7 +17,7 @@ export const createLinkedInAccount = async (
   next: NextFunction
 ) => {
   try {
-    const { username, password, email, description } = req.body;
+    const { username, password, email, description, verifyCredentials = true } = req.body;
 
     // Validate required fields
     if (!username || !password) {
@@ -28,6 +31,49 @@ export const createLinkedInAccount = async (
 
     if (existingAccount) {
       throw new ApiError('LinkedIn account with this username already exists', 400);
+    }
+
+    // Verify credentials if requested
+    if (verifyCredentials) {
+      try {
+        logger.info(`Verifying LinkedIn credentials for new account: ${username}`);
+
+        // Create a temporary account object for verification
+        const tempAccount = {
+          username,
+          getPassword: () => password
+        } as ILinkedInAccount;
+
+        // Attempt to login with the credentials
+        const loginResult = await LinkedInAuthService.login(tempAccount, password);
+
+        // Check if login was successful
+        if (!loginResult.success) {
+          // If there are authentication challenges, we can still create the account
+          // but warn the user about them
+          const challenges = [];
+          if (loginResult.captcha.challengePresent) challenges.push('CAPTCHA verification');
+          if (loginResult.otp.verificationRequired) challenges.push('OTP verification');
+          if (loginResult.phoneVerification.verificationRequired) challenges.push('Phone verification');
+
+          if (challenges.length > 0) {
+            logger.warn(`LinkedIn login requires additional verification for ${username}: ${challenges.join(', ')}`);
+          } else {
+            throw new ApiError(`Invalid LinkedIn credentials: ${loginResult.message}`, 400);
+          }
+        }
+
+        // Always quit the driver if it was created
+        if (loginResult.driver) {
+          try {
+            await SeleniumService.quitDriver(loginResult.driver);
+          } catch (quitError) {
+            logger.warn(`Error quitting WebDriver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
+          }
+        }
+      } catch (loginError) {
+        throw new ApiError(`LinkedIn credential verification failed: ${loginError instanceof Error ? loginError.message : String(loginError)}`, 400);
+      }
     }
 
     // Create new account
@@ -148,13 +194,56 @@ export const updateLinkedInAccount = async (
 ) => {
   try {
     const linkedinAccountId = req.params.id;
-    const { username, password, email, description, isActive } = req.body;
+    const { username, password, email, description, isActive, verifyCredentials = true } = req.body;
 
     // Find account
     const account = await LinkedInAccount.findById(linkedinAccountId);
 
     if (!account) {
       throw new ApiError('LinkedIn account not found', 404);
+    }
+
+    // Verify credentials if password is provided and verification is requested
+    if (password && verifyCredentials) {
+      try {
+        logger.info(`Verifying updated LinkedIn credentials for account: ${account.username}`);
+
+        // Create a temporary account object with the new credentials
+        const tempAccount = {
+          username: username || account.username,
+          getPassword: () => password
+        } as ILinkedInAccount;
+
+        // Attempt to login with the new credentials
+        const loginResult = await LinkedInAuthService.login(tempAccount, password);
+
+        // Check if login was successful
+        if (!loginResult.success) {
+          // If there are authentication challenges, we can still update the account
+          // but warn the user about them
+          const challenges = [];
+          if (loginResult.captcha.challengePresent) challenges.push('CAPTCHA verification');
+          if (loginResult.otp.verificationRequired) challenges.push('OTP verification');
+          if (loginResult.phoneVerification.verificationRequired) challenges.push('Phone verification');
+
+          if (challenges.length > 0) {
+            logger.warn(`LinkedIn login requires additional verification for ${username || account.username}: ${challenges.join(', ')}`);
+          } else {
+            throw new ApiError(`Invalid LinkedIn credentials: ${loginResult.message}`, 400);
+          }
+        }
+
+        // Always quit the driver if it was created
+        if (loginResult.driver) {
+          try {
+            await SeleniumService.quitDriver(loginResult.driver);
+          } catch (quitError) {
+            logger.warn(`Error quitting WebDriver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
+          }
+        }
+      } catch (loginError) {
+        throw new ApiError(`LinkedIn credential verification failed: ${loginError instanceof Error ? loginError.message : String(loginError)}`, 400);
+      }
     }
 
     // Update fields if provided

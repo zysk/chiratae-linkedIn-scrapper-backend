@@ -402,18 +402,54 @@ class JobQueueService {
   }
 
   /**
-   * Convert priority to numeric score (lower is higher priority)
+   * Get the priority score from priority enum
    */
   private getPriorityScore(priority: JobPriority): number {
     switch (priority) {
-      case JobPriority.HIGH:
-        return 1;
-      case JobPriority.MEDIUM:
-        return 2;
-      case JobPriority.LOW:
-        return 3;
-      default:
-        return 2;
+      case JobPriority.HIGH: return 1;
+      case JobPriority.MEDIUM: return 2;
+      default: return 3; // JobPriority.LOW
+    }
+  }
+
+  /**
+   * Requeue a job with a delay
+   * @param jobId The job ID to requeue
+   * @param delayMs Delay in milliseconds before the job is eligible to be processed
+   * @returns Promise<boolean> True if job was requeued successfully
+   */
+  public async requeueJob(jobId: string, delayMs: number = 0): Promise<boolean> {
+    try {
+      // Get job data
+      const jobData = await this.getJob(jobId);
+      if (!jobData) {
+        throw new Error(`Job ${jobId} not found`);
+      }
+
+      const client = await this.redis.getClient();
+
+      // Determine the queue based on job type
+      const queueName = jobData.type === JobType.PROFILE_SCRAPING
+        ? QueueName.PROFILE_SCRAPING
+        : QueueName.SEARCH;
+
+      // Calculate score with delay
+      const priorityScore = this.getPriorityScore(jobData.priority);
+      const score = priorityScore * 1000000 + Date.now() + delayMs;
+
+      // Remove from any existing queues (if present)
+      await client.zRem(QueueName.PROCESSING, jobId);
+      await client.zRem(QueueName.PROFILE_SCRAPING, jobId);
+      await client.zRem(QueueName.SEARCH, jobId);
+
+      // Add to the appropriate queue with the new score
+      await client.zAdd(queueName, { score, value: jobId });
+
+      logger.info(`Requeued job ${jobId} with delay of ${delayMs}ms`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to requeue job ${jobId}: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
     }
   }
 }

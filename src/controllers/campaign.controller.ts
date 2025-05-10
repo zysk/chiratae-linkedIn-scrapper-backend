@@ -17,13 +17,14 @@ import {
 import { By } from 'selenium-webdriver';
 import SeleniumService from '../services/selenium/SeleniumService';
 import LinkedInAuthService, { LoginResult } from '../services/linkedin/LinkedInAuthService';
-import JobQueueService, { JobType, JobPriority } from '../services/redis/JobQueueService';
+import JobQueueService, { JobType, JobPriority, QueueName } from '../services/redis/JobQueueService';
 import LinkedInSearchService from '../services/linkedin/LinkedInSearchService';
 import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
 import ScreenshotCleanupService from '../services/utils/ScreenshotCleanupService';
 import LeadProcessingService from '../services/linkedin/LeadProcessingService';
 import { rolesObj } from '../utils/constants';
 import { profileScrapeSchema } from '../utils/validation/linkedin.validation';
+import { ILinkedInAccount } from '../models/linkedinAccount.model';
 
 // Simple proxy config interface for the login function
 interface ProxyConfig {
@@ -596,7 +597,7 @@ export const searchLinkedin = async (req: IAuthRequest, res: Response, next: Nex
           });
 
           // Queue up profile scraping jobs for the new leads
-          const leadProcessingService = LeadProcessingService.getInstance();
+          const leadProcessingService = LeadProcessingService;
 
           // Determine priority based on campaign priority
           let jobPriority = JobPriority.MEDIUM;
@@ -691,7 +692,7 @@ export const scrapeProfiles = async (req: IAuthRequest, res: Response, next: Nex
     }
 
     // Queue up the profile scraping jobs
-    const leadProcessingService = LeadProcessingService.getInstance();
+    const leadProcessingService = LeadProcessingService;
     const queuedJobsCount = await leadProcessingService.queueCampaignLeads(id, jobPriority);
 
     if (queuedJobsCount === 0) {
@@ -737,25 +738,52 @@ export const linkedInProfileScrappingReq = async (req: IAuthRequest, res: Respon
       return;
     }
 
-    const { profileUrl } = value;
-    logger.info(`Processing LinkedIn profile scraping request for URL: ${profileUrl}`);
+    const { profileUrl, campaignId } = value;
+    logger.info(`Processing LinkedIn profile scraping request for URL: ${profileUrl}${campaignId ? ` in campaign ${campaignId}` : ''}`);
 
     // Get the LinkedInProfileScraper instance
     const scraper = LinkedInProfileScraper.getInstance();
 
     try {
-      // Call scrapeProfile with the URL only - driver initialization is now handled internally
-      const profileData = await scraper.scrapeProfile(profileUrl);
+      // Call scrapeProfile with the appropriate parameters
+      // If campaignId is provided, use the WebDriverManager
+      if (campaignId) {
+        // Get the campaign with populated LinkedIn account and proxy
+        const campaign = await Campaign.findById(campaignId)
+          .populate<{ linkedinAccountId: ILinkedInAccount }>('linkedinAccountId')
+          .populate<{ proxyId: IProxy }>('proxyId');
 
-      if (!profileData) {
-        throw new Error(`Failed to extract profile data for ${profileUrl}`);
+        if (!campaign || !campaign.linkedinAccountId) {
+          throw new Error(`Campaign ${campaignId} not found or has no LinkedIn account configured`);
+        }
+
+        // Get the LinkedIn account password from environment or secure storage
+        const password = process.env.LINKEDIN_PASSWORD; // TODO: Replace with secure password retrieval
+        if (!password) {
+          throw new Error('LinkedIn account password not configured');
+        }
+
+        const profileData = await scraper.scrapeProfile(
+          profileUrl,
+          campaignId,
+          campaign.linkedinAccountId,
+          password,
+          campaign.proxyId
+        );
+
+        if (!profileData) {
+          throw new Error(`Failed to extract profile data for ${profileUrl}`);
+        }
+
+        // Return the scraped profile data
+        res.status(200).json({
+          status: true,
+          data: profileData
+        });
+      } else {
+        // For direct scraping without campaign context, throw error
+        throw new Error('Campaign ID is required for profile scraping');
       }
-
-      // Return the scraped profile data
-      res.status(200).json({
-        status: true,
-        data: profileData
-      });
     } catch (scrapeError) {
       logger.error(`LinkedIn profile scraping error: ${scrapeError instanceof Error ? scrapeError.message : String(scrapeError)}`);
 

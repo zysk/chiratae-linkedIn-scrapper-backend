@@ -742,6 +742,21 @@ export class LinkedInAuthService {
       return false;
     }
   }
+
+  /**
+   * Check if the current page is the LinkedIn login page
+   * @param driver The WebDriver instance
+   * @returns True if on login page, false otherwise
+   */
+  public async isOnLoginPage(driver: WebDriver): Promise<boolean> {
+    try {
+      // Wait briefly for the username field which is unique to the login page
+      await driver.wait(until.elementLocated(By.id('username')), 5000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 export default LinkedInAuthService.getInstance();
