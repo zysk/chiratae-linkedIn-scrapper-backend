@@ -658,15 +658,27 @@ class LinkedInController {
         categorizedMetrics.get(metrics.category)?.push(metrics);
       }
 
-      // Filter by specified category if provided
-      const categoriesToProcess = category
-        ? (categorizedMetrics.has(category) ? [category] : [])
+      // Handle category parameter which can now be a string or string array
+      let categoryList: string[] = [];
+      if (category) {
+        if (Array.isArray(category)) {
+          categoryList = category;
+        } else if (typeof category === 'string') {
+          categoryList = [category];
+        }
+      }
+
+      // Filter by specified categories if provided, otherwise use all categories
+      const categoriesToProcess = categoryList.length > 0
+        ? categoryList.filter(cat => categorizedMetrics.has(cat))
         : Array.from(categorizedMetrics.keys());
 
-      if (category && categoriesToProcess.length === 0) {
+      if (categoryList.length > 0 && categoriesToProcess.length === 0) {
         return res.status(404).json({
           success: false,
-          message: `Category '${category}' not found in metrics file`,
+          message: `None of the specified categories were found in metrics file`,
+          requestedCategories: categoryList,
+          availableCategories: Array.from(categorizedMetrics.keys())
         });
       }
 

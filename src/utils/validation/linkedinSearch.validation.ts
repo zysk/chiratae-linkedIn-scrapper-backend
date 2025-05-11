@@ -72,7 +72,10 @@ export const verifySelectorSchema = Joi.object({
 export const updateSelectorSchema = Joi.object({
   metricsPath: Joi.string().required(),
   threshold: Joi.number().min(0).max(1).default(0.5),
-  category: Joi.string().optional(),
+  category: Joi.alternatives().try(
+    Joi.string(),
+    Joi.array().items(Joi.string())
+  ).optional(),
   updateSelectorFile: Joi.boolean().default(true),
   selectorFile: Joi.string().optional()
 });
