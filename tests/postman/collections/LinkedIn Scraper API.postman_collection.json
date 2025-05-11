@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5c9e4b5c-cbfd-4cb5-9b30-40fa1cea70a8",
+		"_postman_id": "5eff9977-efd0-4e73-9065-070b7ebcceb3",
 		"name": "LinkedIn Scraper API",
 		"description": "Updated collection for testing the Chiratae LinkedIn Scraper API endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -1569,7 +1569,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/sample-profile\",\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
@@ -1649,7 +1649,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"metricsPath\": \"./data/selector-metrics.json\",\n    \"threshold\": 0.5,\n    \"category\": \"Profile Name\"\n}"
+							"raw": "{\n    \"metricsPath\": \"./data/selector-metrics.json\",\n    \"threshold\": 0.5,\n    \"category\": \"Profile Headline\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/update",

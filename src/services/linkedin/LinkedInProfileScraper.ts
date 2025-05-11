@@ -180,6 +180,16 @@ export class LinkedInProfileScraper {
     this.webDriverManager = WebDriverManager;
     this.linkedInAuthService = linkedInAuthService;
     this.selectorVerifier = new SelectorVerifier();
+
+    // Make sure selectors are up to date
+    this.refreshSelectors();
+  }
+
+  /**
+   * Refresh selectors from the centralized selector system
+   */
+  private refreshSelectors(): void {
+    this.selectorVerifier.refreshSelectors();
   }
 
   /**
@@ -356,14 +366,21 @@ export class LinkedInProfileScraper {
     // Reset health metrics before running tests
     instance.selectorVerifier.resetHealthMetrics();
 
+    // Refresh selectors to ensure we have the latest
+    instance.refreshSelectors();
+
     logger.info(`Starting LinkedIn selector verification for profile: ${profileUrl}`);
     logger.info(`Using LinkedIn account: ${linkedInAccount?.username || 'None provided'}`);
 
     let driver: WebDriver | null = null;
+    let driverCreated = false;
 
     try {
-      // Set up the web driver with extended timeouts for verification
+      // Set up a new web driver with extended timeouts for verification
+      logger.info('Creating new WebDriver instance for selector verification');
       driver = await instance.setupDriver(linkedInAccount);
+      driverCreated = true;
+
       logger.info('WebDriver initialized successfully');
 
       try {
@@ -373,7 +390,17 @@ export class LinkedInProfileScraper {
           logger.info(`Logging in with account ${linkedInAccount.username}`);
         }
 
-        await instance.navigateToProfile(driver, profileUrl, linkedInAccount);
+        // Navigate to the profile, which may return a new driver instance after login
+        const navigatedDriver = await instance.navigateToProfile(driver, profileUrl, linkedInAccount);
+
+        // If we got a different driver back (due to authentication), update our reference
+        // and don't quit the original as it was already handled in navigateToProfile
+        if (navigatedDriver !== driver) {
+          logger.info('Driver instance changed during navigation/authentication');
+          driver = navigatedDriver;
+          driverCreated = true; // We're now responsible for this new driver
+        }
+
         logger.info('Successfully navigated to profile, waiting for page to load');
 
         await instance.waitForProfileLoad(driver);
@@ -423,8 +450,8 @@ export class LinkedInProfileScraper {
       logger.error(`Error verifying selectors: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     } finally {
-      // Close driver
-      if (driver) {
+      // Only close driver if we created it in this method
+      if (driver && driverCreated) {
         try {
           logger.info('Closing WebDriver');
           await driver.quit();
@@ -432,8 +459,20 @@ export class LinkedInProfileScraper {
         } catch (quitError) {
           logger.warn(`Error closing driver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
         }
+      } else if (driver) {
+        logger.info('Not closing WebDriver as it was reused from WebDriverManager');
       }
     }
+  }
+
+  /**
+   * Non-static version of verifySelectors that forwards to the static method
+   * This allows the instance to call the static method directly
+   * @param profileUrl LinkedIn profile URL to test against
+   * @param linkedInAccount Optional LinkedIn account for authentication
+   */
+  public async verifySelectors(profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<Map<string, SelectorHealthMetrics>> {
+    return LinkedInProfileScraper.verifySelectors(profileUrl, linkedInAccount);
   }
 
   /**
@@ -453,51 +492,277 @@ export class LinkedInProfileScraper {
 
   private async waitForProfileLoad(driver: WebDriver): Promise<void> {
     try {
-      // Wait for critical profile elements
-      const waitTimeMs = 10000; // 10 seconds
+      // Wait for critical profile elements with extended timeout
+      const waitTimeMs = 15000; // 15 seconds
 
-      // Use selectors for profile content
-      const contentSelectors = [
-        'div.pv-text-details__left-panel',
-        'div.ph5',
-        'div.profile-info',
-        'div.artdeco-card'
-      ];
+      // Take an initial screenshot when entering the waitForProfileLoad method
+      try {
+        await this.takeScreenshot(driver, 'profile-wait-begin');
+      } catch (screenshotError) {
+        logger.warn(`Error taking initial load screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
+      }
 
-      // Try each selector
-      for (const selector of contentSelectors) {
+      // Wait for profile elements to load with safety timeout
+      try {
+        const waitCondition = new Promise<boolean>(async (resolve, reject) => {
+          const startTime = Date.now();
+          let sessionValid = true;
+
+          const checkProfileLoaded = async () => {
+            try {
+              // First check if driver session is still valid
+              try {
+                // Simple test to see if driver is responsive
+                await driver.getTitle();
+              } catch (sessionError) {
+                if (sessionValid) { // Only log this once
+                  logger.error(`Driver session invalid during load check: ${sessionError instanceof Error ? sessionError.message : String(sessionError)}`);
+                  sessionValid = false;
+                }
+
+                // Don't reject immediately, try to recover if possible
+                // For example, we could be on a redirect that will ultimately resolve
+                const elapsedTime = Date.now() - startTime;
+                if (elapsedTime >= waitTimeMs) {
+                  // If we've tried long enough, give up
+                  reject(new Error('Driver session became invalid and could not recover'));
+                  return;
+                }
+
+                // Try again after a short delay
+                setTimeout(checkProfileLoaded, 1000);
+                return;
+              }
+
+              // Session is valid, check multiple indicators that the profile has loaded
+              const currentUrl = await driver.getCurrentUrl();
+
+              // Check for key profile elements
+              const namePresent = await this.isElementPresent(driver, 'h1.text-heading-xlarge');
+
+              // Check for LinkedIn profile URL patterns
+              const profileUrlPatterns = [
+                /linkedin\.com\/in\//,
+                /linkedin\.com\/pub\//,
+                /linkedin\.com\/profile\//
+              ];
+
+              const isProfileUrl = profileUrlPatterns.some(pattern => pattern.test(currentUrl));
+
+              if (!isProfileUrl) {
+                logger.warn(`Current URL does not match a LinkedIn profile pattern: ${currentUrl}`);
+                // Continue checking if we're within the timeout period
+                const elapsedTime = Date.now() - startTime;
+                if (elapsedTime >= waitTimeMs) {
+                  logger.error(`Timeout reached and URL still doesn't match profile pattern: ${currentUrl}`);
+                  resolve(false); // Continue with best effort rather than failing
+                } else {
+                  setTimeout(checkProfileLoaded, 1000);
+                  return;
+                }
+              }
+
+              // Simple scroll to help load content (without excessive scrolling)
+              try {
+                // Get current scroll height
+                const scrollHeight = await driver.executeScript('return document.body.scrollHeight') as number;
+                // Scroll down 30% of the page
+                await driver.executeScript(`window.scrollTo(0, ${Math.floor(scrollHeight * 0.3)})`);
+                await driver.sleep(800);
+                // Scroll to top
+                await driver.executeScript('window.scrollTo(0, 0)');
+              } catch (scrollError) {
+                // Non-fatal, just log it
+                logger.warn(`Error during scroll check: ${scrollError instanceof Error ? scrollError.message : String(scrollError)}`);
+              }
+
+              // Check if more sections have loaded
+              const sectionsLoaded = await this.areProfileSectionsLoaded(driver);
+
+              // LinkedIn profile loaded indicators
+              const isLoaded = namePresent && sectionsLoaded &&
+                              (isProfileUrl);
+
+              if (isLoaded) {
+                // Profile has loaded successfully
+                logger.info('LinkedIn profile loaded successfully');
+                resolve(true);
+                return;
+              }
+
+              // Profile not yet loaded, check if we should keep waiting
+              const elapsedTime = Date.now() - startTime;
+              if (elapsedTime >= waitTimeMs) {
+                // Timeout, resolve with whatever we have
+                logger.warn(`Profile load timeout (${elapsedTime}ms). Proceeding with partial content.`);
+                try {
+                  await this.takeScreenshot(driver, 'profile-load-timeout');
+                } catch (screenshotError) {
+                  logger.warn(`Error taking timeout screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
+                }
+                resolve(false);
+                return;
+              }
+
+              // Try again after a short delay
+              setTimeout(checkProfileLoaded, 1000);
+            } catch (error) {
+              // Handle errors in the check function
+              logger.error(`Error checking if profile loaded: ${error instanceof Error ? error.message : String(error)}`);
+
+              // If it's a fatal error, reject
+              if (error instanceof Error && (
+                  error.message.includes('invalid session') ||
+                  error.message.includes('no such session') ||
+                  error.message.includes('not connected'))) {
+                reject(error);
+              } else {
+                // For non-fatal errors, continue checking if we're within timeout
+                const elapsedTime = Date.now() - startTime;
+                if (elapsedTime >= waitTimeMs) {
+                  // We've tried long enough, resolve with failure but don't throw
+                  resolve(false);
+                } else {
+                  setTimeout(checkProfileLoaded, 1000);
+                }
+              }
+            }
+          };
+
+          // Start checking
+          checkProfileLoaded();
+        });
+
+        // Wait for the profile to load with a timeout
+        await Promise.race([
+          waitCondition,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Absolute profile load timeout')), waitTimeMs + 5000))
+        ]);
+
+        // Take a screenshot after waiting for the profile to load
         try {
-          await driver.wait(until.elementLocated(By.css(selector)), waitTimeMs);
-          const element = await driver.findElement(By.css(selector));
+          await this.takeScreenshot(driver, 'after-profile-load');
+        } catch (screenshotError) {
+          logger.warn(`Error taking after-load screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
+        }
 
-          // Check if the element is visible
-          if (await element.isDisplayed()) {
-            logger.info(`Profile loaded successfully, found selector: ${selector}`);
-            return;
+      } catch (waitError) {
+        // If waiting fails, log and continue with best effort
+        logger.error(`Error during profile load wait: ${waitError instanceof Error ? waitError.message : String(waitError)}`);
+
+        // Check if driver is still valid
+        let driverValid = false;
+        try {
+          await driver.getTitle();
+          driverValid = true;
+        } catch (sessionError) {
+          logger.error(`Driver session invalid after wait error: ${sessionError instanceof Error ? sessionError.message : String(sessionError)}`);
+          // Continue with best effort
+        }
+
+        // Still try to take a screenshot if driver is valid
+        if (driverValid) {
+          try {
+            await this.takeScreenshot(driver, 'profile-wait-error');
+          } catch (screenshotError) {
+            // Just log, don't throw
+            logger.warn(`Error taking error screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
           }
-        } catch (selectorError) {
-          // Continue trying other selectors
-          continue;
         }
       }
 
-      logger.warn('Profile content detection timed out, continuing anyway');
+      // Additional safety wait to ensure dynamic content is loaded, regardless of wait success
+      try {
+        await driver.sleep(3000);
+      } catch (sleepError) {
+        logger.warn(`Error during final sleep: ${sleepError instanceof Error ? sleepError.message : String(sleepError)}`);
+      }
+
     } catch (error) {
-      logger.warn(`Error waiting for profile load: ${error instanceof Error ? error.message : String(error)}`);
-      // Continue execution even if this fails, since some content might still be accessible
+      logger.error(`Error waiting for profile to load: ${error instanceof Error ? error.message : String(error)}`);
+      // Try to take an error screenshot, but don't throw if it fails
+      try {
+        await this.takeScreenshot(driver, 'profile-load-error');
+      } catch (screenshotError) {
+        logger.warn(`Error taking error screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
+      }
+      // Re-throw the original error
+      throw error;
+    }
+  }
+
+  /**
+   * Check if key profile sections are loaded
+   */
+  private async areProfileSectionsLoaded(driver: WebDriver): Promise<boolean> {
+    try {
+      // Check for common section headers or containers that would indicate profile sections have loaded
+      const sectionSelectors = [
+        // About section
+        'section#about',
+        'div[data-view-name="profile-about"]',
+        // Experience section
+        'section#experience',
+        'div[data-view-name="profile-positions"]',
+        // Education section
+        'section#education',
+        'div[data-view-name="profile-education"]',
+        // Skills section
+        'section#skills',
+        'div[data-view-name="profile-skills"]'
+      ];
+
+      // Count how many sections are found
+      let sectionsFound = 0;
+      for (const selector of sectionSelectors) {
+        try {
+          const elements = await driver.findElements(By.css(selector));
+          if (elements.length > 0) {
+            sectionsFound++;
+          }
+        } catch (selectorError) {
+          // Ignore individual selector errors
+        }
+      }
+
+      // Consider the profile loaded if we found at least 2 sections
+      // This handles profiles that might not have all sections
+      return sectionsFound >= 2;
+    } catch (error) {
+      logger.warn(`Error checking profile sections: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if an element is present on the page
+   */
+  private async isElementPresent(driver: WebDriver, selector: string): Promise<boolean> {
+    try {
+      const elements = await driver.findElements(By.css(selector));
+      return elements.length > 0;
+    } catch (error) {
+      return false;
     }
   }
 
   private async extractName(driver: WebDriver): Promise<{ firstName?: string; lastName?: string }> {
     try {
       const nameSelectors = [
-        'h1.text-heading-xlarge.inline.t-24.v-align-middle.break-words',
+        // 2024 Updated LinkedIn Profile Name Selectors
+        'div.display-flex.justify-space-between div.ph5 h1.text-heading-xlarge',
+        'div.pv-profile h1.text-heading-xlarge',
+        'div.profile-top-card h1.text-heading-xlarge',
+        'div.profile-content h1.text-heading-xlarge',
+        'div.core-section-container__content h1',
+        'div[data-member-id] h1.text-heading-xlarge',
+        'div.profile-badge h1.text-heading-xlarge',
+        'main[aria-label*="profile"] h1.text-heading-xlarge',
+        // Keep some original selectors as fallbacks
         'h1.text-heading-xlarge',
-        'h1.pv-text-details__title--main',
+        'div.pv-text-details__left-panel h1',
         'h1.top-card-layout__title',
-        'h1.profile-topcard-person-entity__name',
-        'h1.artdeco-entity-lockup__title',
-        'div.pv-text-details__left-panel h1'
+        'h1.artdeco-entity-lockup__title'
       ];
 
       for (const selector of nameSelectors) {
@@ -564,15 +829,18 @@ export class LinkedInProfileScraper {
   private async extractHeadline(driver: WebDriver): Promise<string | undefined> {
     try {
       const headlineSelectors = [
+        // 2024 Updated LinkedIn Headline Selectors
+        'div.display-flex.justify-space-between div.ph5 div.text-body-medium.break-words',
+        'div.pv-profile div.text-body-medium.break-words',
+        'div.mt2.relative div.text-body-medium.break-words',
+        'div.profile-info-card div.text-body-medium',
+        'div[data-member-id] div.text-body-medium',
+        'div.core-section-container__content div.text-body-medium',
+        'div.profile-top-card div.text-body-medium',
+        // Keep some original selectors as fallbacks
         'div.pv-text-details__left-panel div.text-body-medium',
         'div.ph5 div.text-body-medium',
-        'div.pv-text-details__title div.text-body-medium',
-        'div.profile-info div.text-body-medium',
-        'div[data-field="headline"]',
-        'div.profile-headline',
-        'div.pv-top-card-section__headline',
         'div.ph5 div.mt2 div.text-body-medium',
-        'div.pv-text-details__left-panel span.text-body-medium',
         'div.artdeco-entity-lockup__subtitle'
       ];
 
@@ -607,15 +875,18 @@ export class LinkedInProfileScraper {
   private async extractLocation(driver: WebDriver): Promise<string | undefined> {
     try {
       const locationSelectors = [
+        // 2024 Updated LinkedIn Location Selectors
+        'div.display-flex.justify-space-between div.ph5 span.text-body-small.inline',
+        'div.pv-profile span.text-body-small.inline.t-black--light',
+        'div.profile-top-card span.text-body-small.inline',
+        'div.mt2.relative span.text-body-small',
+        'div[data-member-id] span.text-body-small.inline',
+        'div.profile-info-card span.text-body-small.inline',
+        'div.profile-location-card span.text-body-small',
+        // Keep some original selectors as fallbacks
         'div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words',
         'div.ph5 span.text-body-small.inline.t-black--light.break-words',
-        'div.pv-text-details__title span.text-body-small.inline.t-black--light.break-words',
-        'div.profile-info span.text-body-small.inline.t-black--light.break-words',
-        'div[data-field="location"] span.text-body-small',
-        'div.profile-location span.text-body-small',
-        'div.pv-top-card-section__location',
         'div.ph5 div.mt2 span.text-body-small',
-        'div.pv-text-details__left-panel div.text-body-small',
         'div.artdeco-entity-lockup__caption'
       ];
 
@@ -676,6 +947,15 @@ export class LinkedInProfileScraper {
     try {
       // First try to find the About section container
       const aboutSectionSelectors = [
+        // 2024 Updated LinkedIn About Section Selectors
+        'section.artdeco-card.pv-profile-section.pv-about-section',
+        'section[data-view-name="profile-about"]',
+        'section#about',
+        'div.display-flex.ph5.pv3',
+        'div.pv-shared-text-with-see-more',
+        'div[data-field="summary"]',
+        'div.core-section-container__content section[id="about"]',
+        // Keep original selectors as fallbacks
         'section#about',
         'section[data-section="about"]',
         'section.artdeco-card.pv-profile-card.break-words',
@@ -689,6 +969,13 @@ export class LinkedInProfileScraper {
       await randomDelay(1000, 2000); // Wait for content to load
 
       const aboutTextSelectors = [
+        // 2024 Updated LinkedIn About Text Selectors
+        'div.display-flex.ph5.pv3 div.inline-show-more-text span[aria-hidden="true"]',
+        'div.pv-shared-text-with-see-more span[aria-hidden="true"]',
+        'div.pvs-list__outer-container div.inline-show-more-text span[aria-hidden="true"]',
+        'div.display-flex.flex-row.align-items-center div.inline-show-more-text span[aria-hidden="true"]',
+        'div.profile-about-text div.t-14 span[aria-hidden="true"]',
+        // Keep original selectors as fallbacks
         'div.inline-show-more-text span[aria-hidden="true"]',
         'div.pv-shared-text-with-see-more span[aria-hidden="true"]',
         'div.pv-about__summary-text span[aria-hidden="true"]',
@@ -709,6 +996,16 @@ export class LinkedInProfileScraper {
         } catch (error) {
           continue;
         }
+      }
+
+      // If section-based approach fails, try to find the text directly
+      try {
+        const aboutText = await this.extractTextFromElements(await driver.findElements(By.css(aboutTextSelectors.join(','))));
+        if (aboutText) {
+          return aboutText;
+        }
+      } catch (error) {
+        logger.debug(`Error in fallback about text extraction: ${error instanceof Error ? error.message : String(error)}`);
       }
 
       return undefined;
@@ -942,6 +1239,14 @@ export class LinkedInProfileScraper {
 
       // First try to find the Skills section container
       const skillsSectionSelectors = [
+        // 2024 Updated LinkedIn Skills Section Selectors
+        'section.artdeco-card.pv-profile-section.pv-skill-categories-section',
+        'section[data-view-name="skills-section"]',
+        'section#skills',
+        'div.display-flex.flex-column.full-width div[aria-label*="skill"]',
+        'div.pvs-list[aria-label*="skill"]',
+        'div.core-section-container__content section[id="skills"]',
+        // Keep original selectors as fallbacks
         'section#skills',
         'section[data-section="skills"]',
         'section.artdeco-card.pv-profile-card.break-words',
@@ -956,6 +1261,14 @@ export class LinkedInProfileScraper {
 
       // Try different selectors for skill items
       const skillItemSelectors = [
+        // 2024 Updated LinkedIn Skill Item Selectors
+        'div.display-flex.flex-row.align-items-center',
+        'div.pvs-entity.pvs-entity--padded',
+        'div.artdeco-list__item',
+        'div.pv-skill-category-entity',
+        'div.pvs-list__item--with-hover-container',
+        'span.pv-skill-category-entity__name',
+        // Keep original selectors as fallbacks
         'li.artdeco-list__item',
         'div.pvs-entity',
         'div.pv-skill-category-entity',
@@ -965,6 +1278,13 @@ export class LinkedInProfileScraper {
       ];
 
       const skillTextSelectors = [
+        // 2024 Updated LinkedIn Skill Text Selectors
+        'div.display-flex.flex-column.full-width span.mr1.hoverable-link-text span[aria-hidden="true"]',
+        'div.pvs-entity__title-text span.t-bold span[aria-hidden="true"]',
+        'span.pv-skill-category-entity__name span[aria-hidden="true"]',
+        'div.pvs-entity__info-container span.t-bold span[aria-hidden="true"]',
+        'div.pvs-list__paged-list-item span.t-bold span[aria-hidden="true"]',
+        // Keep original selectors as fallbacks
         'span.mr1.hoverable-link-text span[aria-hidden="true"]',
         'span.t-14.t-black.t-bold span[aria-hidden="true"]',
         'span.pv-skill-category-entity__name-text',
@@ -1869,6 +2189,13 @@ export class LinkedInProfileScraper {
   private async extractExperienceDetails(item: WebElement): Promise<Experience | null> {
     try {
       const titleSelectors = [
+        // 2024 Updated LinkedIn Experience Title Selectors
+        'div.display-flex.flex-column.full-width span.mr1.t-bold span[aria-hidden="true"]',
+        'span.t-16.t-bold.t-black span[aria-hidden="true"]',
+        'div.pv-entity__summary-info-container span.t-bold span[aria-hidden="true"]',
+        'div.pvs-entity div.pvs-entity__title-text span[aria-hidden="true"]',
+        'div.pvs-list__outer-container span.t-bold span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.mr1.t-bold span[aria-hidden="true"]',
         'span.t-16.t-black.t-bold span[aria-hidden="true"]',
         'h3.t-16.t-black.t-bold',
@@ -1877,6 +2204,13 @@ export class LinkedInProfileScraper {
       ];
 
       const companySelectors = [
+        // 2024 Updated LinkedIn Experience Company Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal span[aria-hidden="true"]',
+        'div.t-14.t-normal.break-words span[aria-hidden="true"]',
+        'div.pv-entity__secondary-title span[aria-hidden="true"]',
+        'div.pvs-entity div.pvs-entity__caption-text span[aria-hidden="true"]',
+        'div.pv-entity__company-summary-info span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal span[aria-hidden="true"]',
         'span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'p.pv-entity__secondary-title',
@@ -1885,6 +2219,13 @@ export class LinkedInProfileScraper {
       ];
 
       const dateRangeSelectors = [
+        // 2024 Updated LinkedIn Experience Date Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__caption span.pvs-entity__caption-text span[aria-hidden="true"]',
+        'div.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__dates span[aria-hidden="true"]',
+        'div.pv-entity__date-range-text span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'div.display-flex.align-items-center.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'h4.pv-entity__date-range span:not(:first-child)',
@@ -1892,17 +2233,30 @@ export class LinkedInProfileScraper {
       ];
 
       const locationSelectors = [
+        // 2024 Updated LinkedIn Experience Location Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__caption.location span.pvs-entity__caption-text span[aria-hidden="true"]',
+        'div.pv-entity__location-text span[aria-hidden="true"]',
+        'span.pvs-entity__location span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'h4.pv-entity__location span:not(:first-child)',
         'div.pv-entity__location span:not(:first-child)'
       ];
 
       const descriptionSelectors = [
+        // 2024 Updated LinkedIn Experience Description Selectors
+        'div.display-flex.flex-row.align-items-center div.inline-show-more-text span[aria-hidden="true"]',
+        'div.pvs-list__outer-container div.inline-show-more-text span[aria-hidden="true"]',
+        'div.pvs-entity__description span[aria-hidden="true"]',
+        'div.pv-shared-text-with-see-more span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'div.inline-show-more-text span[aria-hidden="true"]',
         'div.pv-entity__description span[aria-hidden="true"]',
         'div.pv-entity__extra-details span[aria-hidden="true"]'
       ];
 
+      // Rest of the function remains the same
       const title = await this.extractTextFromElements(await item.findElements(By.css(titleSelectors.join(','))));
       const company = await this.extractTextFromElements(await item.findElements(By.css(companySelectors.join(','))));
       const dateRange = await this.extractTextFromElements(await item.findElements(By.css(dateRangeSelectors.join(','))));
@@ -1988,6 +2342,13 @@ export class LinkedInProfileScraper {
   private async extractEducationDetails(item: WebElement): Promise<Education | null> {
     try {
       const schoolSelectors = [
+        // 2024 Updated LinkedIn Education School Selectors
+        'div.display-flex.flex-column.full-width span.mr1.hoverable-link-text.t-bold span[aria-hidden="true"]',
+        'div.pvs-entity__title-text span.t-16.t-bold span[aria-hidden="true"]',
+        'div.pv-profile-card__school-name span[aria-hidden="true"]',
+        'span.t-16.t-bold.t-black span[aria-hidden="true"]',
+        'div.pvs-entity div.pvs-entity__title-text a span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.mr1.hoverable-link-text.t-bold span[aria-hidden="true"]',
         'h3.pv-entity__school-name',
         'div.pv-entity__degree-info h3',
@@ -1996,6 +2357,13 @@ export class LinkedInProfileScraper {
       ];
 
       const degreeSelectors = [
+        // 2024 Updated LinkedIn Education Degree Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal span[aria-hidden="true"]',
+        'div.pvs-entity__secondary-title span.t-14.t-normal span[aria-hidden="true"]',
+        'div.pv-profile-card__degree-info span[aria-hidden="true"]',
+        'div.t-14.t-normal.t-black span[aria-hidden="true"]',
+        'div.pvs-entity div.pvs-entity__caption-text span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal span[aria-hidden="true"]',
         'span.pv-entity__comma-item',
         'p.pv-entity__degree-name span:not(:first-child)',
@@ -2004,6 +2372,13 @@ export class LinkedInProfileScraper {
       ];
 
       const fieldOfStudySelectors = [
+        // 2024 Updated LinkedIn Education Field of Study Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__secondary-subtitle span[aria-hidden="true"]',
+        'div.pv-profile-card__field-of-study span[aria-hidden="true"]',
+        'div.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__minor-titles span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'p.pv-entity__fos span:not(:first-child)',
         'div.pv-entity__fos span:not(:first-child)',
@@ -2011,6 +2386,13 @@ export class LinkedInProfileScraper {
       ];
 
       const dateRangeSelectors = [
+        // 2024 Updated LinkedIn Education Date Selectors
+        'div.display-flex.flex-column.full-width span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__date-range span[aria-hidden="true"]',
+        'div.pv-profile-card__date-range span[aria-hidden="true"]',
+        'div.t-14.t-normal.t-black--light span[aria-hidden="true"]',
+        'div.pvs-entity__timestamp span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'span.t-14.t-normal.t-black--light span[aria-hidden="true"]',
         'p.pv-entity__dates span:not(:first-child)',
         'div.pv-entity__dates span:not(:first-child)',
@@ -2018,6 +2400,12 @@ export class LinkedInProfileScraper {
       ];
 
       const descriptionSelectors = [
+        // 2024 Updated LinkedIn Education Description Selectors
+        'div.display-flex.flex-row.align-items-center div.inline-show-more-text span[aria-hidden="true"]',
+        'div.pvs-entity__description span[aria-hidden="true"]',
+        'div.pv-shared-text-with-see-more span[aria-hidden="true"]',
+        'div.pvs-list__outer-container div.inline-show-more-text span[aria-hidden="true"]',
+        // Keep some original selectors as fallbacks
         'div.inline-show-more-text span[aria-hidden="true"]',
         'div.pv-entity__description span[aria-hidden="true"]',
         'div.pv-entity__extra-details span[aria-hidden="true"]'
@@ -2125,13 +2513,13 @@ export class LinkedInProfileScraper {
   }
 
   /**
-   * Navigate to a LinkedIn profile URL
-   * Handles authentication if a LinkedIn account is provided
+   * Navigate to a LinkedIn profile page
    * @param driver WebDriver instance
-   * @param profileUrl URL of the LinkedIn profile to navigate to
+   * @param profileUrl LinkedIn profile URL to navigate to
    * @param linkedInAccount Optional LinkedIn account for authentication
+   * @returns The WebDriver instance (which may be a new instance if authentication occurred)
    */
-  private async navigateToProfile(driver: WebDriver, profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<void> {
+  private async navigateToProfile(driver: WebDriver, profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<WebDriver> {
     try {
       const normalizedUrl = normalizeLinkedInUrl(profileUrl);
       logger.info(`Navigating to normalized profile URL: ${normalizedUrl}`);
@@ -2159,46 +2547,85 @@ export class LinkedInProfileScraper {
 
         // Use the authenticated driver from the login result
         if (loginResult.driver) {
-          // Quit current driver and use the authenticated one
-          try {
-            await driver.quit();
-          } catch (quitError) {
-            logger.warn(`Error quitting driver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
+          // Quit current driver if different from the login result driver
+          if (driver !== loginResult.driver) {
+            try {
+              await driver.quit();
+            } catch (quitError) {
+              logger.warn(`Error quitting driver: ${quitError instanceof Error ? quitError.message : String(quitError)}`);
+            }
           }
 
-          // Capture the authenticated driver
+          // Use the authenticated driver
           driver = loginResult.driver;
           logger.info('Successfully authenticated with LinkedIn');
+        }
+
+        // Check if we're already logged in
+        const isLoggedIn = await this.isLoggedIn(driver);
+        if (!isLoggedIn) {
+          logger.warn('Not logged in after authentication attempt, screenshots may fail');
+        } else {
+          logger.info('Confirmed logged in status - proceeding to profile navigation');
         }
 
         // Navigate to the profile URL directly now that we're logged in
         logger.info(`Navigating to profile: ${normalizedUrl}`);
         await driver.get(normalizedUrl);
-
-        // Check if we've been redirected to a sign-in page
-        const currentUrl = await driver.getCurrentUrl();
-        if (currentUrl.includes('/login') || currentUrl.includes('/checkpoint')) {
-          logger.error(`Redirected to login page: ${currentUrl} despite successful authentication`);
-          await this.takeScreenshot(driver, 'login-redirect');
-          throw new Error('Redirected to login page despite successful authentication');
-        }
       } else {
         // If no account is provided, just navigate to the URL directly
         logger.info('No LinkedIn account provided, navigating directly');
         await driver.get(normalizedUrl);
-
-        // Check if we've been redirected to a sign-in page
-        const currentUrl = await driver.getCurrentUrl();
-        if (currentUrl.includes('/login') || currentUrl.includes('/checkpoint')) {
-          logger.error(`Redirected to login page: ${currentUrl}`);
-          await this.takeScreenshot(driver, 'public-access-redirect');
-          throw new Error('LinkedIn is requiring authentication to view this profile');
-        }
       }
 
       // Wait for navigation to complete
       await randomDelay(3000, 5000);
-      logger.info('Navigation to profile completed successfully');
+
+      // Verify we're on the correct profile page
+      const currentUrl = await driver.getCurrentUrl();
+
+      // Check if we've been redirected to a sign-in page
+      if (currentUrl.includes('/login') || currentUrl.includes('/checkpoint')) {
+        logger.error(`Redirected to login page: ${currentUrl}`);
+        await this.takeScreenshot(driver, 'login-redirect');
+        throw new Error('Redirected to login page - authentication issue');
+      }
+
+      // Check if we're on a profile page
+      const profileUrlPatterns = [
+        /linkedin\.com\/in\//,
+        /linkedin\.com\/pub\//,
+        /linkedin\.com\/profile\//
+      ];
+
+      const isOnProfilePage = profileUrlPatterns.some(pattern => pattern.test(currentUrl));
+
+      if (!isOnProfilePage) {
+        logger.error(`Not on a profile page. Current URL: ${currentUrl}`);
+        await this.takeScreenshot(driver, 'not-profile-page');
+
+        // Try to navigate to the profile again with a different approach
+        logger.info(`Attempting to navigate to profile again: ${normalizedUrl}`);
+        await driver.get(normalizedUrl);
+        await randomDelay(3000, 5000);
+
+        const retryUrl = await driver.getCurrentUrl();
+        const isOnProfilePageRetry = profileUrlPatterns.some(pattern => pattern.test(retryUrl));
+
+        if (!isOnProfilePageRetry) {
+          logger.error(`Still not on a profile page after retry. Current URL: ${retryUrl}`);
+          await this.takeScreenshot(driver, 'not-profile-page-retry');
+          throw new Error(`Failed to navigate to profile page. Redirected to: ${retryUrl}`);
+        }
+      }
+
+      logger.info(`Successfully landed on profile page: ${currentUrl}`);
+
+      // Take a screenshot to verify we're on the profile page
+      await this.takeScreenshot(driver, 'profile-page-initial');
+
+      // Return the driver instance (which may be different if authentication occurred)
+      return driver;
     } catch (error) {
       logger.error(`Error navigating to profile: ${error instanceof Error ? error.message : String(error)}`);
 
@@ -2208,8 +2635,8 @@ export class LinkedInProfileScraper {
         const pageTitle = await driver.getTitle();
         logger.error(`Current URL: ${currentUrl}, Page title: ${pageTitle}`);
         await this.takeScreenshot(driver, 'navigation-error');
-      } catch (diagnosticError) {
-        logger.warn(`Error capturing diagnostics: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}`);
+      } catch (screenshotError) {
+        logger.error(`Error taking screenshot: ${screenshotError instanceof Error ? screenshotError.message : String(screenshotError)}`);
       }
 
       throw error;
@@ -2232,41 +2659,55 @@ export class LinkedInProfileScraper {
    * @param driver WebDriver instance
    * @param name Name identifier for the screenshot
    */
-  private async takeScreenshot(driver: WebDriver, name: string): Promise<void> {
+  private async takeScreenshot(driver: WebDriver, label: string): Promise<void> {
     try {
-      // Create screenshots directory if it doesn't exist
+      // Ensure the screenshots directory exists
       const screenshotsDir = path.join(process.cwd(), 'data', 'screenshots');
+      await fs.mkdir(screenshotsDir, { recursive: true });
+
+      // Create a timestamp with timezone information for better debugging
+      const timestamp = new Date().toISOString().replace(/:/g, '_');
+
+      // Get the current URL and create a URL-based identifier
+      let urlIdentifier = '';
       try {
-        await fs.mkdir(screenshotsDir, { recursive: true });
-      } catch (mkdirError) {
-        logger.warn(`Could not create screenshots directory: ${mkdirError instanceof Error ? mkdirError.message : String(mkdirError)}`);
+        const currentUrl = await driver.getCurrentUrl();
+        // Extract username from profile URL or use domain name
+        const urlMatch = currentUrl.match(/linkedin\.com\/(in|pub)\/([^\/]+)/);
+        if (urlMatch && urlMatch[2]) {
+          urlIdentifier = urlMatch[2] + '_'; // Use LinkedIn username if available
+        } else {
+          // Use a portion of the URL to identify the page
+          const urlParts = new URL(currentUrl);
+          urlIdentifier = urlParts.hostname.replace(/\./g, '_') + '_' +
+                          urlParts.pathname.split('/').filter(Boolean).join('_') + '_';
+        }
+      } catch (urlError) {
+        logger.warn(`Could not extract URL for screenshot: ${urlError instanceof Error ? urlError.message : String(urlError)}`);
+        urlIdentifier = 'unknown_url_';
       }
 
-      // Generate filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.-]/g, '_');
-      const filename = path.join(screenshotsDir, `${name}_${timestamp}.png`);
+      // Sanitize the identifier to remove invalid filename characters
+      urlIdentifier = urlIdentifier.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+
+      // Format: label_urlIdentifier_timestamp.png
+      const filename = `${label}_${urlIdentifier}${timestamp}.png`;
+      const filePath = path.join(screenshotsDir, filename);
 
       // Take the screenshot
       const screenshot = await driver.takeScreenshot();
-      await fs.writeFile(filename, screenshot, 'base64');
+      await fs.writeFile(filePath, screenshot, 'base64');
 
-      // Also save the page source for further analysis
-      try {
-        const pageSource = await driver.getPageSource();
-        const htmlFilename = path.join(screenshotsDir, `${name}_${timestamp}.html`);
-        await fs.writeFile(htmlFilename, pageSource, 'utf8');
-        logger.info(`Saved page source to ${htmlFilename}`);
-      } catch (pageSourceError) {
-        logger.warn(`Could not save page source: ${pageSourceError instanceof Error ? pageSourceError.message : String(pageSourceError)}`);
-      }
+      logger.info(`Screenshot saved: ${filename}`);
 
-      // Get and log the current URL and page title for context
+      // Also save the HTML source for better debugging
       try {
-        const url = await driver.getCurrentUrl();
-        const title = await driver.getTitle();
-        logger.info(`Screenshot saved to ${filename} (URL: ${url}, Title: ${title})`);
-      } catch (error) {
-        logger.info(`Screenshot saved to ${filename}`);
+        const html = await driver.getPageSource();
+        const htmlPath = path.join(screenshotsDir, `${label}_${urlIdentifier}${timestamp}.html`);
+        await fs.writeFile(htmlPath, html);
+        logger.info(`HTML source saved: ${path.basename(htmlPath)}`);
+      } catch (htmlError) {
+        logger.warn(`Could not save HTML source: ${htmlError instanceof Error ? htmlError.message : String(htmlError)}`);
       }
     } catch (error) {
       logger.warn(`Error taking screenshot: ${error instanceof Error ? error.message : String(error)}`);

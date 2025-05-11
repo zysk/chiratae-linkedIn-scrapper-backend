@@ -1,5 +1,6 @@
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import logger from '../../utils/logger';
+import * as selectorsUtil from '../../utils/selectors';
 
 /**
  * Interface for selector health metrics
@@ -20,104 +21,22 @@ export interface SelectorHealthMetrics {
  */
 export class SelectorVerifier {
   private healthMetrics = new Map<string, SelectorHealthMetrics>();
+  private selectorMap: selectorsUtil.LinkedInSelectors;
 
   /**
-   * Selector categories and their selectors
+   * Constructor
    */
-  private readonly selectorMap = {
-    'Profile Name': [
-      'h1.text-heading-xlarge.inline.t-24.v-align-middle.break-words',
-      'h1.text-heading-xlarge',
-      'h1.pv-text-details__title--main',
-      'h1.top-card-layout__title',
-      'h1.profile-topcard-person-entity__name',
-      'h1.artdeco-entity-lockup__title',
-      'div.pv-text-details__left-panel h1'
-    ],
-    'Profile Headline': [
-      'div.pv-text-details__left-panel div.text-body-medium',
-      'div.ph5 div.text-body-medium',
-      'div.pv-text-details__title div.text-body-medium',
-      'div.profile-info div.text-body-medium',
-      'div[data-field="headline"]',
-      'div.profile-headline',
-      'div.pv-top-card-section__headline'
-    ],
-    'Profile Location': [
-      'div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words',
-      'div.ph5 span.text-body-small.inline.t-black--light.break-words',
-      'div.pv-text-details__title span.text-body-small.inline.t-black--light.break-words',
-      'div.profile-info span.text-body-small.inline.t-black--light.break-words',
-      'div[data-field="location"] span.text-body-small',
-      'div.profile-location span.text-body-small',
-      'div.pv-top-card-section__location'
-    ],
-    'About Section': [
-      'section#about',
-      'section[data-section="about"]',
-      'section.artdeco-card.pv-profile-card.break-words',
-      'div#about',
-      'div[data-field="about"]',
-      'div.pvs-list__outer-container'
-    ],
-    'Experience Section': [
-      'section#experience',
-      'section[data-section="experience"]',
-      'section.artdeco-card.pv-profile-card.break-words',
-      'div#experience',
-      'div[data-field="experience"]',
-      'div.pvs-list__outer-container'
-    ],
-    'Education Section': [
-      'section#education',
-      'section[data-section="education"]',
-      'section.artdeco-card.pv-profile-card.break-words',
-      'div#education',
-      'div[data-field="education"]',
-      'div.pvs-list__outer-container'
-    ],
-    'Recommendations Section': [
-      'section#recommendations',
-      'section.recommendations-section',
-      'div[id*="recommendations"]',
-      'section.artdeco-card.pv-profile-card.break-words.mt4',
-      'div.pvs-list__outer-container[aria-label*="recommendation"]'
-    ],
-    'Profile Picture': [
-      '.pv-top-card-profile-picture__image',
-      '.profile-photo-edit__preview',
-      '.pv-top-card__photo img',
-      '.profile-picture img'
-    ],
-    'Background Image': [
-      '.profile-background-image__image',
-      '.pv-profile-top-card__background-image',
-      '.profile-banner img',
-      '.pv-cover-photo'
-    ],
-    'Recommendation Text': [
-      '.pvs-entity__description-text',
-      '.pv-recommendation-entity__text',
-      '.artdeco-list__item-description',
-      'div.inline-show-more-text span[aria-hidden="true"]',
-      'div[data-field="recommendation_text"]'
-    ],
-    'Recommendation Author': [
-      '.pvs-entity__title-text',
-      '.pv-recommendation-entity__detail__title',
-      '.artdeco-list__item-title',
-      'a[data-field="recommender"]',
-      'span.hoverable-link-text'
-    ],
-    'Skills': [
-      'li.artdeco-list__item',
-      'div.pvs-entity',
-      'div.pv-skill-category-entity',
-      'div.pv-profile-section__card-item',
-      'div.pv-entity__summary-info',
-      'div.skill-item'
-    ]
-  };
+  constructor() {
+    // Initialize with default selectors
+    this.selectorMap = selectorsUtil.getAllSelectors();
+  }
+
+  /**
+   * Refresh selectors from the central utility
+   */
+  public refreshSelectors(): void {
+    this.selectorMap = selectorsUtil.getAllSelectors();
+  }
 
   /**
    * Test all selectors against a live page
@@ -125,6 +44,9 @@ export class SelectorVerifier {
    */
   public async testAllSelectors(driver: WebDriver): Promise<void> {
     logger.info('🔍 Starting selector verification...');
+
+    // Refresh selectors to ensure we have the latest
+    this.refreshSelectors();
 
     for (const [category, selectors] of Object.entries(this.selectorMap)) {
       logger.info(`Testing selectors for category: ${category}`);
@@ -248,7 +170,7 @@ export class SelectorVerifier {
 
   /**
    * Get health metrics for all selectors
-   * @returns Map of selector health metrics
+   * @returns Map of selector to health metrics
    */
   public getHealthMetrics(): Map<string, SelectorHealthMetrics> {
     return this.healthMetrics;
@@ -262,83 +184,93 @@ export class SelectorVerifier {
   }
 
   /**
-   * Log health metrics to console
+   * Log health metrics
    */
   public logHealthMetrics(): void {
-    logger.info('=== SELECTOR HEALTH METRICS ===');
+    let goodSelectors = 0;
+    let poorSelectors = 0;
+    let brokenSelectors = 0;
 
-    // Group by category
-    const categorizedMetrics = new Map<string, SelectorHealthMetrics[]>();
+    const categoryStats: Record<string, { good: number; poor: number; broken: number }> = {};
 
     for (const metrics of this.healthMetrics.values()) {
-      if (!categorizedMetrics.has(metrics.category)) {
-        categorizedMetrics.set(metrics.category, []);
+      if (!categoryStats[metrics.category]) {
+        categoryStats[metrics.category] = { good: 0, poor: 0, broken: 0 };
       }
-      categorizedMetrics.get(metrics.category)?.push(metrics);
-    }
 
-    // Log each category
-    for (const [category, metrics] of categorizedMetrics.entries()) {
-      logger.info(`\n📋 CATEGORY: ${category}`);
+      const stats = categoryStats[metrics.category];
 
-      // Sort by success rate (descending)
-      metrics.sort((a, b) => b.successRate - a.successRate);
-
-      for (const metric of metrics) {
-        const totalAttempts = metric.successCount + metric.failureCount;
-        const successRateFormatted = (metric.successRate * 100).toFixed(0);
-        const status = metric.successRate >= 0.7 ? '✅' :
-                      metric.successRate >= 0.3 ? '⚠️' : '❌';
-
-        logger.info(`${status} Selector: ${metric.selector}`);
-        logger.info(`   Success Rate: ${successRateFormatted}% (${metric.successCount}/${totalAttempts})`);
-
-        if (metric.lastText) {
-          logger.info(`   Last Text: "${metric.lastText}"`);
-        }
+      if (metrics.successRate > 0.7) {
+        goodSelectors++;
+        stats.good++;
+      } else if (metrics.successRate > 0) {
+        poorSelectors++;
+        stats.poor++;
+      } else {
+        brokenSelectors++;
+        stats.broken++;
       }
     }
 
-    logger.info('================================');
+    logger.info('📊 Selector Health Metrics Summary:');
+    logger.info(`Total selectors checked: ${this.healthMetrics.size}`);
+    logger.info(`✅ Good selectors (>70% success): ${goodSelectors}`);
+    logger.info(`⚠️ Poor selectors (1-70% success): ${poorSelectors}`);
+    logger.info(`❌ Broken selectors (0% success): ${brokenSelectors}`);
+
+    logger.info('📊 Selector Health by Category:');
+    for (const [category, stats] of Object.entries(categoryStats)) {
+      logger.info(`${category}: ✅ ${stats.good} good, ⚠️ ${stats.poor} poor, ❌ ${stats.broken} broken`);
+    }
   }
 
   /**
-   * Get the best performing selector for a category
+   * Get the best selector for a category
    * @param category Selector category
-   * @returns Best performing selector or undefined if none found
+   * @returns Best selector for the category, or undefined if none found
    */
   public getBestSelector(category: string): string | undefined {
     let bestSelector: string | undefined;
-    let bestSuccessRate = -1;
+    let bestScore = -1;
 
     for (const [selector, metrics] of this.healthMetrics.entries()) {
-      if (metrics.category === category &&
-          metrics.successRate > bestSuccessRate &&
-          metrics.successCount > 0) {
-        bestSuccessRate = metrics.successRate;
+      if (metrics.category === category && metrics.successRate > bestScore) {
+        bestScore = metrics.successRate;
         bestSelector = selector;
       }
     }
 
-    return bestSelector;
+    if (bestSelector && bestScore > 0) {
+      return bestSelector;
+    }
+
+    // Fall back to the first selector in the category if we don't have metrics
+    const categorySelectors = this.selectorMap[category];
+    return categorySelectors && categorySelectors.length > 0 ? categorySelectors[0] : undefined;
   }
 
   /**
-   * Get all selectors for a category with success rate above threshold
+   * Get working selectors for a category
    * @param category Selector category
-   * @param threshold Success rate threshold (0-1)
+   * @param threshold Minimum success rate (default 0.3)
    * @returns Array of working selectors
    */
   public getWorkingSelectors(category: string, threshold = 0.3): string[] {
     const workingSelectors: string[] = [];
 
     for (const [selector, metrics] of this.healthMetrics.entries()) {
-      if (metrics.category === category &&
-          metrics.successRate >= threshold &&
-          metrics.successCount > 0) {
+      if (metrics.category === category && metrics.successRate >= threshold) {
         workingSelectors.push(selector);
       }
     }
+
+    // Sort by success rate (highest first)
+    workingSelectors.sort((a, b) => {
+      const metricsA = this.healthMetrics.get(a);
+      const metricsB = this.healthMetrics.get(b);
+      if (!metricsA || !metricsB) return 0;
+      return metricsB.successRate - metricsA.successRate;
+    });
 
     return workingSelectors;
   }

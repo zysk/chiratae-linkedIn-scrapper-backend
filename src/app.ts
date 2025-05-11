@@ -10,6 +10,7 @@ import { CONFIG } from './utils/config';
 import { errorHandler, ApiError } from './middleware/errorHandler';
 import { checkChromeDriver } from './utils/checkChromeDriver';
 import appLogger from './utils/logger';
+import * as selectorsUtil from './utils/selectors';
 
 // Import services
 import RedisService from './services/redis/RedisService';
@@ -38,6 +39,16 @@ mongoose.connect(CONFIG.MONGOURI)
   })
   .catch((err) => {
     appLogger.error(`MongoDB connection error: ${err}`);
+  });
+
+// Initialize LinkedIn selectors
+const selectorsFilePath = path.join(__dirname, '../config/linkedin-selectors.json');
+selectorsUtil.initializeSelectors(selectorsFilePath)
+  .then(() => {
+    appLogger.info(`LinkedIn selectors initialized from ${selectorsFilePath}`);
+  })
+  .catch((err) => {
+    appLogger.warn(`Error initializing LinkedIn selectors: ${err.message}. Using default selectors.`);
   });
 
 // Check ChromeDriver installation on startup

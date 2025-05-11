@@ -129,6 +129,29 @@ export class WebDriverManager {
       }
     }
   }
+
+  /**
+   * Get an existing WebDriver instance if available
+   * This allows checking for an existing driver without creating a new one
+   * @param campaignId Campaign ID or session identifier
+   * @returns WebDriver instance if one exists, null otherwise
+   */
+  public getExistingDriver(campaignId: string): WebDriver | null {
+    // Look for any session that matches this campaign ID
+    for (const [sessionKey, sessionInfo] of this.sessions.entries()) {
+      if (sessionKey.startsWith(`${campaignId}:`)) {
+        // Update last used time
+        sessionInfo.lastUsed = new Date();
+        this.sessions.set(sessionKey, sessionInfo);
+        logger.info(`Found existing driver for campaign ${campaignId}`);
+        return sessionInfo.driver;
+      }
+    }
+
+    // No existing driver found
+    logger.info(`No existing driver found for campaign ${campaignId}`);
+    return null;
+  }
 }
 
 export default WebDriverManager.getInstance();

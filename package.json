@@ -26,7 +26,11 @@
     "setup-chromedriver": "npm run update-chromedriver && npm run make-chromedriver-executable",
     "worker:profile": "ts-node src/scripts/run-profile-worker.ts",
     "verify-selectors": "ts-node src/tools/verifySelectors.ts",
-    "update-selectors": "ts-node src/tools/updateSelectors.ts"
+    "update-selectors": "ts-node src/tools/updateSelectors.ts",
+    "test:selectors": "node scripts/test-selectors.js",
+    "test:selectors:verify": "node scripts/test-selectors.js --mode verify",
+    "test:selectors:update": "node scripts/test-selectors.js --mode update",
+    "init:selectors": "node scripts/init-selectors.js"
   },
   "dependencies": {
     "@types/prompts": "^2.4.9",

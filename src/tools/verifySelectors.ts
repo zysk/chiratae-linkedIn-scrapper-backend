@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
+import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
 import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
 import LinkedInAuthService from '../services/linkedin/LinkedInAuthService';
 import LinkedInAccount from '../models/linkedinAccount.model';

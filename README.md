@@ -1,14 +1,15 @@
-# LinkedIn Profile Scraper Backend
+# LinkedIn Scraper Backend
 
-This TypeScript-based backend service provides functionality to scrape LinkedIn profiles and extract structured data.
+This backend service provides APIs for LinkedIn profile scraping, authentication, and selector management.
 
 ## Features
 
-- 🤖 Automated LinkedIn profile data extraction
-- 📊 Structured data format for all profile sections
-- 🛡️ Robust error handling and recovery
-- 🔄 Automatic selector verification and optimization
-- 📝 Comprehensive logging
+- LinkedIn profile search and scraping
+- LinkedIn account management
+- Proxy management
+- Campaign management
+- Selector verification and management system
+- Background job processing
 
 ## Setup
 
@@ -17,103 +18,144 @@ This TypeScript-based backend service provides functionality to scrape LinkedIn 
    npm install
    ```
 
-2. Configure environment variables (copy `.env.example` to `.env` and update):
+2. Create a `.env` file in the root directory with the following variables:
    ```
-   cp .env.example .env
+   NODE_ENV=development
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/linkedin-scraper
+   JWT_SECRET=your_jwt_secret
+   REDIS_URL=redis://localhost:6379
+   ENCRYPTION_KEY=your_encryption_key_32_chars
    ```
 
-3. Run the development server:
+3. Install Chrome and ChromeDriver (compatible versions)
+
+4. Start the server:
    ```
    npm run dev
    ```
 
-## Selector Verification
+## Selector Management System
 
-The LinkedIn scraper includes a built-in selector verification system that helps ensure reliable data extraction despite LinkedIn's frequent UI changes.
+LinkedIn's DOM structure changes frequently, causing selectors to break. The Selector Management System helps maintain working selectors by:
+
+1. **Verifying** current selectors against real profiles
+2. **Identifying** which selectors are failing
+3. **Updating** failing selectors with working alternatives
+4. **Centralizing** selector management in one place
 
 ### How It Works
 
-1. The `SelectorVerifier` class tracks the success/failure rate of each CSS selector
-2. Multiple selectors are attempted for each data field, with statistics tracked on which ones work
-3. The scraper self-optimizes by prioritizing selectors with higher success rates
-4. Health metrics are generated to identify selectors that need maintenance
+The system follows this process:
 
-### Verifying Selectors
+1. **Verification**: Tests all selectors against a LinkedIn profile, recording success/failure metrics
+2. **Analysis**: Reviews which selectors are working and which need updates
+3. **Update**: Replaces poor-performing selectors with better alternatives
 
-To test selectors against a real LinkedIn profile and generate health metrics:
+### Using the Selector Management System
 
-```bash
-# Run the verification tool
-npm run verify-selectors -- --url <linkedin-profile-url> --output ./metrics.json
+#### Via API Endpoints
 
-# For verbose output
-npm run verify-selectors -- --url <linkedin-profile-url> --verbose
+Two main endpoints are available:
+
+1. **Verify Selectors**: `/api/linkedin/selectors/verify`
+   ```
+   POST /api/linkedin/selectors/verify
+   {
+     "profileUrl": "https://www.linkedin.com/in/username",
+     "linkedinAccountId": "account_id",
+     "password": "password",
+     "outputPath": "optional/path/to/output.json"
+   }
+   ```
+
+2. **Update Selectors**: `/api/linkedin/selectors/update`
+   ```
+   POST /api/linkedin/selectors/update
+   {
+     "metricsPath": "path/to/metrics.json",
+     "threshold": 0.5,
+     "updateSelectorFile": true,
+     "selectorFile": "optional/path/to/selectors.json"
+   }
+   ```
+
+#### Using the Test Script
+
+A convenience script is provided for testing and managing selectors:
+
+1. **Verify Mode**: Tests selectors against a LinkedIn profile
+   ```
+   npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
+   ```
+   Or:
+   ```
+   node scripts/test-selectors.js --mode verify --url https://www.linkedin.com/in/username --account accountId
+   ```
+
+2. **Update Mode**: Updates selectors based on metrics
+   ```
+   npm run test:selectors:update -- --input path/to/metrics.json
+   ```
+   Or:
+   ```
+   node scripts/test-selectors.js --mode update --input path/to/metrics.json --threshold 0.5
+   ```
+
+### Selector File Structure
+
+Selectors are organized by category in `config/linkedin-selectors.json`:
+
+```json
+{
+  "Profile Name": [
+    "h1.text-heading-xlarge",
+    "div.pv-text-details__left-panel h1"
+  ],
+  "Profile Headline": [
+    "div.pv-text-details__left-panel div.text-body-medium",
+    "div.ph5 div.text-body-medium"
+  ]
+}
 ```
 
-### Updating Selectors
+## API Documentation
 
-When LinkedIn updates their UI, you can use the selector update tool to identify and fix selectors that no longer work:
+### LinkedIn APIs
 
-```bash
-# Analyze health metrics and update selectors interactively
-npm run update-selectors -- --input ./metrics.json --threshold 0.3
+#### Profile Scraping
+- `POST /api/linkedin/search`: Search LinkedIn profiles
 
-# Focus on a specific category of selectors
-npm run update-selectors -- --input ./metrics.json --category "Recommendations"
-```
+#### Account Management
+- `POST /api/linkedin/next-account`: Get the next available LinkedIn account
+- `POST /api/linkedin/test-login`: Test LinkedIn account login
 
-The tool will:
-1. Identify poorly performing selectors based on the threshold
-2. Show examples of working selectors for reference
-3. Let you interactively decide which selectors to replace or remove
-4. Provide guidance on where to update the code
+#### Proxy Management
+- `POST /api/linkedin/next-proxy`: Get the next available proxy
 
-### Interpreting Health Metrics
+#### Selector Management
+- `POST /api/linkedin/selectors/verify`: Verify LinkedIn selectors
+- `POST /api/linkedin/selectors/update`: Update LinkedIn selectors
 
-The health metrics file contains information about each selector:
+## Troubleshooting
 
-- `successRate`: percentage of successful selector usages (higher is better)
-- `successCount`: number of times the selector found valid data
-- `failureCount`: number of times the selector failed
-- `lastText`: sample of the last extracted text (helpful for debugging)
+### Common Issues
 
-Selectors with low success rates may need updating to match LinkedIn's current UI.
+1. **ChromeDriver Errors**: Make sure Chrome and ChromeDriver versions are compatible
+   ```
+   npm run setup-chromedriver
+   ```
 
-## Supported Profile Data
+2. **LinkedIn Authentication Failures**: Check account status and update cookies if needed
 
-The scraper extracts the following information:
-
-- Basic Profile Information
-  - First & Last Name
-  - Headline
-  - Location
-  - About
-  - Profile Picture
-  - Background Image
-
-- Professional Information
-  - Experience
-  - Education
-  - Skills
-  - Certifications
-  - Volunteering
-  - Awards
-  - Recommendations
-
-- Additional Information
-  - Interests
-  - Languages
-  - Contact Information
-  - Endorsements
-
-## API Endpoints
-
-Documentation for API endpoints available at `/api-docs` when running the server.
+3. **Selector Issues**: If profiles aren't being scraped correctly:
+   ```
+   npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
+   ```
 
 ## License
 
-MIT
-
+Copyright © 2023 Chiratae Ventures
 
 # Using email/password:
 npm run verify-selectors -- -u https://www.linkedin.com/in/some-profile -e your-linkedin@email.com -p yourpassword

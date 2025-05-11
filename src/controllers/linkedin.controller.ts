@@ -9,10 +9,10 @@ import logger from '../utils/logger';
 import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
 import Campaign, { CampaignStatus } from '../models/campaign.model';
 import Lead from '../models/lead.model';
-import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
+import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
 import fs from 'fs/promises';
 import path from 'path';
-import { SelectorVerifier, SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
+import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
 
 /**
  * Controller for LinkedIn operations
@@ -554,7 +554,8 @@ class LinkedInController {
 
       // Run the selector verification
       logger.info(`Testing selectors against profile: ${targetProfileUrl}`);
-      const healthMetrics = await LinkedInProfileScraper.verifySelectors(targetProfileUrl, account);
+      const instance = LinkedInProfileScraper;
+      const healthMetrics = await instance.verifySelectors(targetProfileUrl, account);
 
       // Convert Map to serializable object
       const metricsObj: Record<string, SelectorHealthMetrics> = {};
@@ -619,14 +620,14 @@ class LinkedInController {
 
   /**
    * Update LinkedIn selectors
-   * Analyzes selector health metrics and allows updating/replacing poor performing selectors
+   * Analyzes selector health metrics and updates/replaces poor performing selectors
    * @param req Request object
    * @param res Response object
    * @param next Next function
    */
   public updateSelectors = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { metricsPath, threshold = 0.5, category } = req.body;
+      const { metricsPath, threshold = 0.5, category, updateSelectorFile = true, selectorFile } = req.body;
 
       if (!metricsPath) {
         return res.status(400).json({
@@ -673,6 +674,7 @@ class LinkedInController {
 
       // Process categories and identify selectors that need attention
       const results: any = {};
+      const selectorUpdates: any = {};
 
       for (const categoryName of categoriesToProcess) {
         const metrics = categorizedMetrics.get(categoryName)!;
@@ -697,13 +699,82 @@ class LinkedInController {
             lastText: selector.lastText
           }))
         };
+
+        // Prepare selector updates if we have good selectors to use as replacements
+        if (goodSelectors.length > 0 && poorSelectors.length > 0) {
+          selectorUpdates[categoryName] = {
+            bestSelector: goodSelectors[0].selector,
+            replacedSelectors: poorSelectors.map(s => s.selector),
+            effectiveSelectors: goodSelectors.map(s => s.selector)
+          };
+        }
+      }
+
+      // If updateSelectorFile is true and we have a selectorFile, update the selectors
+      if (updateSelectorFile && selectorFile) {
+        try {
+          const selectorFilePath = path.resolve(selectorFile);
+
+          // Check if the selector file exists
+          let selectorData: any = {};
+          try {
+            const existingSelectors = await fs.readFile(selectorFilePath, 'utf8');
+            selectorData = JSON.parse(existingSelectors);
+          } catch (readError) {
+            logger.warn(`Selector file not found or invalid, creating new one at: ${selectorFilePath}`);
+          }
+
+          // Update the selector data with the new selectors
+          for (const [category, update] of Object.entries(selectorUpdates)) {
+            if (!selectorData[category]) {
+              selectorData[category] = [];
+            }
+
+            // Keep track of which selectors we've updated
+            const updatedOriginalSelectors = new Set<string>();
+
+            // Update poor-performing selectors with the best working selector
+            const bestSelector = (update as any).bestSelector;
+            const effectiveSelectors = (update as any).effectiveSelectors || [];
+            const replacedSelectors = (update as any).replacedSelectors || [];
+
+            // Add all effective selectors if they're not already in the list
+            for (const selector of effectiveSelectors) {
+              if (!selectorData[category].includes(selector)) {
+                selectorData[category].push(selector);
+              }
+            }
+
+            // Remove and replace the poor performing selectors
+            for (const selector of replacedSelectors) {
+              const index = selectorData[category].indexOf(selector);
+              if (index !== -1) {
+                selectorData[category].splice(index, 1);
+                updatedOriginalSelectors.add(selector);
+              }
+            }
+          }
+
+          // Write the updated selector data back to the file
+          await fs.writeFile(selectorFilePath, JSON.stringify(selectorData, null, 2), 'utf8');
+          logger.info(`Updated selector file at: ${selectorFilePath}`);
+
+          // Add the update information to the results
+          results.selectorFileUpdated = true;
+          results.selectorFilePath = selectorFilePath;
+        } catch (updateError) {
+          logger.error(`Error updating selector file: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
+          results.selectorFileUpdated = false;
+          results.selectorFileError = updateError instanceof Error ? updateError.message : String(updateError);
+        }
       }
 
       return res.status(200).json({
         success: true,
         message: 'Selector analysis completed successfully',
         threshold: thresholdValue,
-        data: results
+        data: results,
+        updates: selectorUpdates
       });
 
     } catch (error) {
