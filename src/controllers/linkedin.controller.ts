@@ -8,7 +8,7 @@ import SeleniumService from '../services/selenium/SeleniumService';
 import logger from '../utils/logger';
 import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
 import Campaign, { CampaignStatus } from '../models/campaign.model';
-import Lead from '../models/lead.model';
+import Lead, { ILead } from '../models/lead.model';
 import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
 import fs from 'fs/promises';
 import path from 'path';
@@ -536,7 +536,7 @@ class LinkedInController {
         // Find the most recent lead with a valid LinkedIn profile URL
         const latestLead = await Lead.findOne({
           link: { $exists: true, $ne: '' }
-        }).sort({ createdAt: -1 }).limit(1);
+        }).sort({ createdAt: -1 }).limit(1) as ILead | null;
 
         if (!latestLead || !latestLead.link) {
           return res.status(404).json({
@@ -555,7 +555,7 @@ class LinkedInController {
       // Run the selector verification
       logger.info(`Testing selectors against profile: ${targetProfileUrl}`);
       const instance = LinkedInProfileScraper;
-      const healthMetrics = await instance.verifySelectors(targetProfileUrl, account);
+      const healthMetrics = await instance.verifySelectors(targetProfileUrl, account, password);
 
       // Convert Map to serializable object
       const metricsObj: Record<string, SelectorHealthMetrics> = {};

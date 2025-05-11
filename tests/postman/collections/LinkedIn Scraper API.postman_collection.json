@@ -1569,7 +1569,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
@@ -1609,7 +1609,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"useLatestLead\": true,\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"useLatestLead\": true,\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
@@ -1649,7 +1649,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"metricsPath\": \"./data/selector-metrics.json\",\n    \"threshold\": 0.5,\n    \"category\": \"Profile Headline\"\n}"
+							"raw": "{\n    \"metricsPath\": \"{{selectorsOutputPath}}\",\n    \"threshold\": \"{{selectorThreshold}}\",\n    \"updateSelectorFile\": true,\n    \"selectorFile\": \"./data/selectors.json\",\n    \"category\": \"Profile Headline\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/update",

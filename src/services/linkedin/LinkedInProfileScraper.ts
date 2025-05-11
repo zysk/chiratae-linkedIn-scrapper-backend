@@ -359,8 +359,9 @@ export class LinkedInProfileScraper {
    * Useful for testing selectors against real LinkedIn profiles
    * @param profileUrl LinkedIn profile URL to test against
    * @param linkedInAccount Optional LinkedIn account for authentication
+   * @param password Optional password for the LinkedIn account
    */
-  public static async verifySelectors(profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<Map<string, SelectorHealthMetrics>> {
+  public static async verifySelectors(profileUrl: string, linkedInAccount?: ILinkedInAccount, password?: string): Promise<Map<string, SelectorHealthMetrics>> {
     const instance = LinkedInProfileScraper.getInstance();
 
     // Reset health metrics before running tests
@@ -391,7 +392,7 @@ export class LinkedInProfileScraper {
         }
 
         // Navigate to the profile, which may return a new driver instance after login
-        const navigatedDriver = await instance.navigateToProfile(driver, profileUrl, linkedInAccount);
+        const navigatedDriver = await instance.navigateToProfile(driver, profileUrl, linkedInAccount, password);
 
         // If we got a different driver back (due to authentication), update our reference
         // and don't quit the original as it was already handled in navigateToProfile
@@ -470,9 +471,10 @@ export class LinkedInProfileScraper {
    * This allows the instance to call the static method directly
    * @param profileUrl LinkedIn profile URL to test against
    * @param linkedInAccount Optional LinkedIn account for authentication
+   * @param password Optional password for the LinkedIn account
    */
-  public async verifySelectors(profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<Map<string, SelectorHealthMetrics>> {
-    return LinkedInProfileScraper.verifySelectors(profileUrl, linkedInAccount);
+  public async verifySelectors(profileUrl: string, linkedInAccount?: ILinkedInAccount, password?: string): Promise<Map<string, SelectorHealthMetrics>> {
+    return LinkedInProfileScraper.verifySelectors(profileUrl, linkedInAccount, password);
   }
 
   /**
@@ -2517,9 +2519,10 @@ export class LinkedInProfileScraper {
    * @param driver WebDriver instance
    * @param profileUrl LinkedIn profile URL to navigate to
    * @param linkedInAccount Optional LinkedIn account for authentication
+   * @param password Optional password for the LinkedIn account
    * @returns The WebDriver instance (which may be a new instance if authentication occurred)
    */
-  private async navigateToProfile(driver: WebDriver, profileUrl: string, linkedInAccount?: ILinkedInAccount): Promise<WebDriver> {
+  private async navigateToProfile(driver: WebDriver, profileUrl: string, linkedInAccount?: ILinkedInAccount, password?: string): Promise<WebDriver> {
     try {
       const normalizedUrl = normalizeLinkedInUrl(profileUrl);
       logger.info(`Navigating to normalized profile URL: ${normalizedUrl}`);
@@ -2528,15 +2531,18 @@ export class LinkedInProfileScraper {
       if (linkedInAccount) {
         logger.info(`Attempting to log in with LinkedIn account: ${linkedInAccount.username}`);
 
-        // Get decrypted password
-        const password = linkedInAccount.getPassword();
-        if (!password) {
-          logger.error('Failed to decrypt LinkedIn account password');
-          throw new Error('Failed to decrypt LinkedIn account password');
+        // Get password - use provided password or try to decrypt from the account
+        let accountPassword = password;
+        if (!accountPassword) {
+          accountPassword = linkedInAccount.getPassword();
+          if (!accountPassword) {
+            logger.error('Failed to get LinkedIn account password - neither provided nor decrypted');
+            throw new Error('Failed to get LinkedIn account password');
+          }
         }
 
         // Use the authentication service to login
-        const loginResult = await linkedInAuthService.login(linkedInAccount, password);
+        const loginResult = await linkedInAuthService.login(linkedInAccount, accountPassword);
 
         if (!loginResult.success) {
           logger.error(`Login error: ${loginResult.message}`);
