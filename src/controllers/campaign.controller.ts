@@ -757,18 +757,27 @@ export const linkedInProfileScrappingReq = async (req: IAuthRequest, res: Respon
           throw new Error(`Campaign ${campaignId} not found or has no LinkedIn account configured`);
         }
 
-        // Get the LinkedIn account password from environment or secure storage
-        const password = process.env.LINKEDIN_PASSWORD; // TODO: Replace with secure password retrieval
-        if (!password) {
-          throw new Error('LinkedIn account password not configured');
+        // Get the LinkedIn account from database
+        const linkedInAccount = await LinkedInAccount.findById(campaign.linkedinAccountId);
+        if (!linkedInAccount) {
+          throw new ApiError('LinkedIn account not found', 404);
+        }
+
+        // Get the proxy if specified
+        let proxy: IProxy | undefined;
+        if (campaign.proxyId) {
+          const foundProxy = await Proxy.findById(campaign.proxyId).exec();
+          if (!foundProxy) {
+            throw new ApiError('Proxy not found', 404);
+          }
+          proxy = foundProxy;
         }
 
         const profileData = await scraper.scrapeProfile(
           profileUrl,
           campaignId,
-          campaign.linkedinAccountId,
-          password,
-          campaign.proxyId
+          linkedInAccount,
+          proxy
         );
 
         if (!profileData) {

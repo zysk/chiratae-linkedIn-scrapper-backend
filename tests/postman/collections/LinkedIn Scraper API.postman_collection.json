@@ -1,0 +1,1770 @@
+{
+	"info": {
+		"_postman_id": "5c9e4b5c-cbfd-4cb5-9b30-40fa1cea70a8",
+		"name": "LinkedIn Scraper API",
+		"description": "Updated collection for testing the Chiratae LinkedIn Scraper API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4713152"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"newtestuser@example.com\",\n  \"password\": \"Password123!\",\n  \"phone\": 1234567890,\n  \"employeeId\": \"EMP001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						},
+						"description": "Register a new regular user"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.token) {",
+									"    pm.environment.set('authToken', response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						},
+						"description": "Log in a user and get auth token"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"AdminPass123!\",\n  \"phone\": 9876543210,\n  \"employeeId\": \"ADMIN001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/registerAdmin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"registerAdmin"
+							]
+						},
+						"description": "Register a new admin user (requires admin token)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.accessToken) {",
+									"    pm.environment.set('adminToken', response.accessToken);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpass123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/loginAdmin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"loginAdmin"
+							]
+						},
+						"description": "Log in an admin user"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/refreshToken",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"refreshToken"
+							]
+						},
+						"description": "Get a new access token using refresh token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						},
+						"description": "Get the currently logged in user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Current User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated User Name\",\n  \"phone\": 1234567899\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me/update",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"update"
+							]
+						},
+						"description": "Update the currently logged in user's profile"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication related endpoints"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Get all users (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/68173b931d602f7d1ffee3f4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"68173b931d602f7d1ffee3f4"
+							]
+						},
+						"description": "Get a single user by ID (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Test User\",\n  \"isActive\": true,\n  \"role\": \"USER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/68173b931d602f7d1ffee3f4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"68173b931d602f7d1ffee3f4"
+							]
+						},
+						"description": "Update a user (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/68173b931d602f7d1ffee3f4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"68173b931d602f7d1ffee3f4"
+							]
+						},
+						"description": "Delete a user (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints (admin only)"
+		},
+		{
+			"name": "User Ratings",
+			"item": [
+				{
+					"name": "Rate User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"68173b931d602f7d1ffee3f4\",\n  \"rating\": 5,\n  \"comment\": \"Excellent performance on recent campaign\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/userRatings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"userRatings"
+							]
+						},
+						"description": "Rate a user's performance"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Ratings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/userRatings/68173b931d602f7d1ffee3f4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"userRatings",
+								"68173b931d602f7d1ffee3f4"
+							]
+						},
+						"description": "Get all ratings for a specific user"
+					},
+					"response": []
+				}
+			],
+			"description": "User rating management endpoints"
+		},
+		{
+			"name": "Campaigns",
+			"item": [
+				{
+					"name": "Create Campaign",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.data && response.data._id) {",
+									"    pm.environment.set('campaignId', response.data._id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Full Stack Devs\",\n  \"searchQuery\": \"Full Stack Developer\",\n  \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n//   \"proxyId\": \"681bffb42016c9d82a043a47\", // Optional field\n  \"company\": \"Any\",\n  \"location\": \"Any\",\n  \"maxResults\": 5,\n  \"connectionDegree\": \"2nd\",\n  \"keywords\": [\"Node.js\", \"Next.js\", \"GCP\", \"GenAI\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns"
+							]
+						},
+						"description": "Create a new LinkedIn search campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Campaign Without Proxy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.data && response.data._id) {",
+									"    pm.environment.set('campaignId', response.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Senior Developers Without Proxy\",\n  \"searchQuery\": \"Senior Developer\",\n  \"linkedinAccountId\": \"6818bff2b7e52b5311125963\",\n  \"company\": \"Microsoft\",\n  \"location\": \"United States\",\n  \"maxResults\": 150,\n  \"connectionDegree\": \"2nd\",\n  \"priority\": \"medium\",\n  \"keywords\": [\"C#\", \".NET\", \"Azure\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns"
+							]
+						},
+						"description": "Create a new LinkedIn search campaign without using a proxy"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Campaigns",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns"
+							]
+						},
+						"description": "Get all campaigns for the current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Campaign by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/6817f89fd348dacbe14b0782",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"6817f89fd348dacbe14b0782"
+							]
+						},
+						"description": "Get a single campaign by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Campaign",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Software Engineers at Google\",\n  \"maxResults\": 250,\n  \"keywords\": [\"React\", \"Node.js\", \"JavaScript\", \"TypeScript\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/6817f89fd348dacbe14b0782",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"6817f89fd348dacbe14b0782"
+							]
+						},
+						"description": "Update an existing campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Campaign",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/6817f89fd348dacbe14b0782",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"6817f89fd348dacbe14b0782"
+							]
+						},
+						"description": "Delete a campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Campaign to Queue",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/queue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"queue"
+							]
+						},
+						"description": "Add a campaign to the execution queue"
+					},
+					"response": []
+				},
+				{
+					"name": "Search LinkedIn",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/searchLinkedin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"{{campaignId}}",
+								"searchLinkedin"
+							]
+						},
+						"description": "Trigger a LinkedIn search for a campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "LinkedIn Profile Scraping",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/linkedInProfileScrappingReq",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"{{campaignId}}",
+								"linkedInProfileScrappingReq"
+							]
+						},
+						"description": "Trigger LinkedIn profile scraping for a campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "Schedule Campaign",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"scheduledFor\": \"2025-06-01T10:00:00Z\",\n  \"recurrence\": \"weekly\",\n  \"scheduleEndDate\": \"2025-07-01T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/6817f89fd348dacbe14b0782/schedule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"6817f89fd348dacbe14b0782",
+								"schedule"
+							]
+						},
+						"description": "Schedule a campaign for future execution"
+					},
+					"response": []
+				}
+			],
+			"description": "Campaign management endpoints"
+		},
+		{
+			"name": "LinkedIn Accounts",
+			"item": [
+				{
+					"name": "Create LinkedIn Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.data && response.data._id) {",
+									"    pm.environment.set('linkedinAccountId', response.data._id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"arijitsaha1700@gmail.com\",\n  \"password\": \"@Linkedin2016\",\n  \"email\": \"arijitsaha1700@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin-accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin-accounts"
+							]
+						},
+						"description": "Create a new LinkedIn account"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All LinkedIn Accounts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin-accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin-accounts"
+							]
+						},
+						"description": "Get all LinkedIn accounts"
+					},
+					"response": []
+				},
+				{
+					"name": "Get LinkedIn Account by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedinAccounts/6818bff2b7e52b5311125963",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedinAccounts",
+								"6818bff2b7e52b5311125963"
+							]
+						},
+						"description": "Get a LinkedIn account by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update LinkedIn Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"@Linkedin2016\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin-accounts/{{linkedinAccountId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin-accounts",
+								"{{linkedinAccountId}}"
+							]
+						},
+						"description": "Update a LinkedIn account"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete LinkedIn Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedinAccounts/6818bff2b7e52b5311125963",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedinAccounts",
+								"6818bff2b7e52b5311125963"
+							]
+						},
+						"description": "Delete a LinkedIn account"
+					},
+					"response": []
+				}
+			],
+			"description": "LinkedIn account management endpoints"
+		},
+		{
+			"name": "Proxies",
+			"item": [
+				{
+					"name": "Create Proxy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.data && response.data._id) {",
+									"    pm.environment.set('proxyId', response.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"host\": \"47.88.3.19\",\n  \"port\": 8080,\n  \"protocol\": \"http\",\n  \"description\": \"Free public proxy for testing\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/proxies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proxies"
+							]
+						},
+						"description": "Create a new proxy"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Proxies",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/proxies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proxies"
+							]
+						},
+						"description": "Get all proxies"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Proxy by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/proxies/681bffb42016c9d82a043a47",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proxies",
+								"681bffb42016c9d82a043a47"
+							]
+						},
+						"description": "Get a proxy by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Proxy",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"host\": \"47.88.3.19\",\n  \"port\": 8080,\n  \"isActive\": true,\n  \"description\": \"Updated proxy description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/proxies/681bffb42016c9d82a043a47",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proxies",
+								"681bffb42016c9d82a043a47"
+							]
+						},
+						"description": "Update a proxy"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Proxy",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/proxies/681bffb42016c9d82a043a47",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proxies",
+								"681bffb42016c9d82a043a47"
+							]
+						},
+						"description": "Delete a proxy"
+					},
+					"response": []
+				}
+			],
+			"description": "Proxy management endpoints"
+		},
+		{
+			"name": "Leads",
+			"item": [
+				{
+					"name": "Get Leads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/getLeads?campaignId=6817f89fd348dacbe14b0782&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"getLeads"
+							],
+							"query": [
+								{
+									"key": "campaignId",
+									"value": "6817f89fd348dacbe14b0782"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all leads with filtering and pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lead by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/getById/681b588c35c35f8951591118",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"getById",
+								"681b588c35c35f8951591118"
+							]
+						},
+						"description": "Get lead by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Lead",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"CONTACTED\",\n  \"rating\": \"A\",\n  \"leadAssignedToId\": \"68173b931d602f7d1ffee3f4\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/updateById/681b588c35c35f8951591118",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"updateById",
+								"681b588c35c35f8951591118"
+							]
+						},
+						"description": "Update a lead's status, rating, or assignment"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Lead",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/deleteById/681b588c35c35f8951591118",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"deleteById",
+								"681b588c35c35f8951591118"
+							]
+						},
+						"description": "Delete a lead"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Comment to Lead",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Reached out via email, waiting for response\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/681b588c35c35f8951591118/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"681b588c35c35f8951591118",
+								"comments"
+							]
+						},
+						"description": "Add a comment to a lead"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lead Comments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/681b588c35c35f8951591118/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"681b588c35c35f8951591118",
+								"comments"
+							]
+						},
+						"description": "Get all comments for a lead"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Lead Comment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Updated comment: Lead is responsive, scheduling a call\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/comments/COMMENT_ID",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"comments",
+								"COMMENT_ID"
+							]
+						},
+						"description": "Update a lead comment"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Lead Comment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/lead/comments/COMMENT_ID",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lead",
+								"comments",
+								"COMMENT_ID"
+							]
+						},
+						"description": "Delete a lead comment"
+					},
+					"response": []
+				}
+			],
+			"description": "Lead management endpoints"
+		},
+		{
+			"name": "LinkedIn API",
+			"item": [
+				{
+					"name": "Test LinkedIn Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n  \"password\": \"{{linkedinAccountPass}}\"\n//   \"proxyId\": \"681bffb42016c9d82a043a47\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/test-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"test-login"
+							]
+						},
+						"description": "Test a LinkedIn account login (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search LinkedIn Profiles",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keywords\": \"Prompt Engineers\",\n  \"location\": \"Any\",\n  \"company\": \"Any\",\n  \"connectionDegree\": \"2nd\",\n  \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n  \"password\": \"{{linkedinAccountPass}}\",\n  \"campaignId\": \"{{campaignId}}\",\n//   \"proxyId\": \"681bffb42016c9d82a043a47\",\n  \"maxResults\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"search"
+							]
+						},
+						"description": "Search LinkedIn profiles directly"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Next Available LinkedIn Account",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/accounts/next",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"accounts",
+								"next"
+							]
+						},
+						"description": "Get the next available LinkedIn account (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Next Available Proxy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/proxies/next",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"proxies",
+								"next"
+							]
+						},
+						"description": "Get the next available proxy (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct LinkedIn interaction endpoints"
+		},
+		{
+			"name": "LinkedIn Selectors",
+			"item": [
+				{
+					"name": "Verify Selectors with ProfileURL",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/sample-profile\",\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"selectors",
+								"verify"
+							]
+						},
+						"description": "Test LinkedIn selectors against a specific profile URL"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Selectors with Latest Lead",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"useLatestLead\": true,\n    \"outputPath\": \"./data/selector-metrics.json\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"selectors",
+								"verify"
+							]
+						},
+						"description": "Test LinkedIn selectors against the most recent lead in the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Selectors",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"metricsPath\": \"./data/selector-metrics.json\",\n    \"threshold\": 0.5,\n    \"category\": \"Profile Name\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/selectors/update",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"selectors",
+								"update"
+							]
+						},
+						"description": "Analyze selector health metrics and get recommendations for updates"
+					},
+					"response": []
+				}
+			],
+			"description": "LinkedIn selector validation and update endpoints"
+		},
+		{
+			"name": "Utils",
+			"item": [
+				{
+					"name": "Cleanup All Screenshots",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/utils/screenshots/cleanup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"utils",
+								"screenshots",
+								"cleanup"
+							]
+						},
+						"description": "Clean up all screenshot files (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup Campaign Screenshots",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/utils/screenshots/cleanup/campaign/6817f89fd348dacbe14b0782",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"utils",
+								"screenshots",
+								"cleanup",
+								"campaign",
+								"6817f89fd348dacbe14b0782"
+							]
+						},
+						"description": "Clean up screenshots for a specific campaign (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup Old Screenshots",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"olderThanDays\": 7\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/utils/screenshots/cleanup/old",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"utils",
+								"screenshots",
+								"cleanup",
+								"old"
+							]
+						},
+						"description": "Clean up screenshots older than specified days (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Utility endpoints for system maintenance"
+		}
+	]
+}

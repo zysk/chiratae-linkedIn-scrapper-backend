@@ -561,8 +561,8 @@ class LinkedInSearchService {
       const pageSource = await driver.getPageSource();
       logger.debug(`Page source length: ${pageSource.length}`);
 
-      // Wait a bit longer for search results to fully render
-      await randomDelay(5000, 8000);
+      // Minimal wait for initial render
+      await driver.sleep(1000);
 
       const profiles: SearchResultProfile[] = [];
 
@@ -570,323 +570,305 @@ class LinkedInSearchService {
 
       // Try multiple selectors to find profile cards - updated for 2024 LinkedIn UI
       const selectors = [
-        'li.reusable-search__result-container', // Most common format now
-        'li.artdeco-list__item', // Alternative format
-        'div.entity-result', // Alternate format
-        'div[data-chameleon-result-urn]', // Based on data attributes
-        'div.search-results-container ul > li', // Generic list items in search results
-        'div.search-results__cluster-content li', // Another common pattern
-        '.search-results-container .entity-result', // Original selector
-        'ul.reusable-search__entity-result-list > li' // Direct child approach
+        'div.search-results-container div.entity-result',
+        'ul.reusable-search__entity-result-list li.reusable-search__result-container',
+        'div.search-results div.entity-result',
+        'div.scaffold-layout__list div.entity-result',
+        'div.search-results-container li.reusable-search__result-container',
+        'div[data-test-search-result="PROFILE"]',
+        'div[data-chameleon-result-urn]',
+        'div.entity-result__item',
+        'li.artdeco-list__item'
       ];
 
-      let profileCards: WebElement[] = [];
-      for (const selector of selectors) {
-        try {
-          profileCards = await driver.findElements(By.css(selector));
-          logger.info(`Selector "${selector}" found ${profileCards.length} profile cards`);
-          if (profileCards.length > 0) {
-            break;
-          }
-        } catch (error) {
-          logger.debug(`Error with selector ${selector}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
+      // Use Promise.race to get results from the first successful selector
+      const profileCardsPromises = selectors.map(selector =>
+        driver.findElements(By.css(selector))
+          .then(elements => ({ elements, selector }))
+          .catch(() => ({ elements: [], selector }))
+      );
 
-      // If we still couldn't find any profile cards, try using XPath instead of CSS selectors
+      const { elements: profileCards, selector: successfulSelector } = await Promise.race(
+        profileCardsPromises.map(async p => {
+          const result = await p;
+          return result.elements.length > 0 ? result : Promise.reject();
+        })
+      ).catch(() => ({ elements: [], selector: '' }));
+
       if (profileCards.length === 0) {
-        logger.info('Trying XPath selectors as CSS selectors failed...');
-
-        const xpathSelectors = [
-          '//li[contains(@class, "reusable-search__result-container")]',
-          '//li[contains(@class, "artdeco-list__item")]',
-          '//div[contains(@class, "entity-result")]',
-          '//ul[contains(@class, "reusable-search__entity-result-list")]/li',
-          '//div[contains(@class, "search-results")]/descendant::li'
-        ];
-
-        for (const xpath of xpathSelectors) {
-          try {
-            profileCards = await driver.findElements(By.xpath(xpath));
-            logger.info(`XPath "${xpath}" found ${profileCards.length} profile cards`);
-            if (profileCards.length > 0) {
-              break;
-            }
-          } catch (error) {
-            logger.debug(`Error with XPath ${xpath}: ${error instanceof Error ? error.message : String(error)}`);
-          }
-        }
-      }
-
-      // If we still couldn't find profile cards, try to fix the search page and retry
-      if (profileCards.length === 0) {
-        logger.error('No profile cards found with any selector. Taking screenshot for debugging.');
-        await this.saveSearchPageScreenshot(driver, 'no-results-found');
-
-        // Try to repair the search by refreshing and waiting
-        const fixed = await this.tryToRepairSearch(driver);
-        if (fixed) {
-          // Try extraction again after repair
-          profileCards = await driver.findElements(By.css('li.reusable-search__result-container'));
-          logger.info(`After repair: found ${profileCards.length} profile cards`);
-        }
-      }
-
-      // If still no results, return empty array
-      if (profileCards.length === 0) {
-        logger.warn('Could not find any profile cards even after repair attempts.');
+        logger.warn('No profile cards found with any selector');
         return [];
       }
 
-      logger.info(`Found ${profileCards.length} profile cards. Extracting data...`);
+      logger.info(`Found ${profileCards.length} profile cards using selector: ${successfulSelector}`);
 
-      // Extract data from each card
-      for (const [index, card] of profileCards.entries()) {
-        try {
-          const profile: SearchResultProfile = {
-            profileId: '',
-            profileUrl: '',
-            name: '',
-          };
-
-          logger.debug(`Processing profile card #${index + 1}`);
-
-          // Try multiple approaches to get profile link - updated for 2024 LinkedIn UI
-          const profileLinkSelectors = [
-            'a[href*="/in/"]', // Most general selector
-            'a.app-aware-link[href*="/in/"]',
-            'div.entity-result__title a',
-            'span.entity-result__title-text a',
-            'a.app-aware-link[data-control-name="search_srp_result"]'
-          ];
-
-          let profileLink = null;
-          for (const selector of profileLinkSelectors) {
+      // Process profile cards in parallel batches to improve performance
+      const batchSize = 5;
+      for (let i = 0; i < profileCards.length; i += batchSize) {
+        const batch = profileCards.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (card, index) => {
             try {
-              const links = await card.findElements(By.css(selector));
-              if (links.length > 0) {
-                profileLink = links[0];
-                break;
+              const profile: SearchResultProfile = {
+                profileId: '',
+                profileUrl: '',
+                name: '',
+              };
+
+              // Extract profile link
+              const profileLink = await this.extractProfileLink(card);
+              if (!profileLink) {
+                return null;
               }
+
+              const hrefAttr = await profileLink.getAttribute('href');
+              profile.profileUrl = hrefAttr;
+              profile.profileId = extractProfileId(hrefAttr);
+
+              // Extract name and headline in parallel
+              const [nameResult, headlineResult] = await Promise.all([
+                this.extractProfileName(card),
+                this.extractProfileHeadline(card)
+              ]);
+
+              profile.name = nameResult;
+              profile.headline = headlineResult;
+
+              // Extract location and current company if headline is found
+              if (profile.headline) {
+                const [locationResult, companyResult] = await Promise.all([
+                  this.extractLocation(card),
+                  this.extractCurrentCompany(profile.headline)
+                ]);
+
+                profile.location = locationResult;
+                profile.currentCompany = companyResult;
+              }
+
+              // Extract remaining fields in parallel
+              const [connectionDegree, imageUrl, isOpenToWork] = await Promise.all([
+                this.extractConnectionDegree(card),
+                this.extractProfileImage(card),
+                this.checkOpenToWork(card)
+              ]);
+
+              profile.connectionDegree = connectionDegree;
+              profile.imageUrl = imageUrl;
+              profile.isOpenToWork = isOpenToWork;
+
+              return profile.profileId && profile.name ? profile : null;
             } catch (error) {
-              // Continue to next selector
+              logger.debug(`Error processing profile card ${i + index + 1}: ${error instanceof Error ? error.message : String(error)}`);
+              return null;
             }
-          }
+          })
+        );
 
-          // If CSS selectors fail, try XPath
-          if (!profileLink) {
-            try {
-              const xpathLinks = await card.findElements(By.xpath('.//a[contains(@href, "/in/")]'));
-              if (xpathLinks.length > 0) {
-                profileLink = xpathLinks[0];
-              }
-            } catch (error) {
-              // Continue if XPath also fails
-            }
-          }
-
-          if (profileLink) {
-            const hrefAttr = await profileLink.getAttribute('href');
-            profile.profileUrl = hrefAttr;
-            profile.profileId = extractProfileId(hrefAttr);
-            logger.debug(`Found profile URL: ${profile.profileUrl}`);
-          } else {
-            logger.debug('Could not find profile link, skipping this card');
-            continue;
-          }
-
-          // Get name with multiple approaches - updated for 2024 LinkedIn UI
-          const nameSelectors = [
-            'span.entity-result__title-text',
-            'span.entity-result__title-line a span[aria-hidden="true"]',
-            'a.app-aware-link span[aria-hidden="true"]',
-            'a[href*="/in/"] span',
-            'h3 span[aria-hidden="true"]'
-          ];
-
-          for (const selector of nameSelectors) {
-            try {
-              const nameElements = await card.findElements(By.css(selector));
-              if (nameElements.length > 0) {
-                profile.name = await nameElements[0].getText();
-                if (profile.name) {
-                  logger.debug(`Found name: ${profile.name}`);
-                  break;
-                }
-              }
-            } catch (nameError) {
-              // Continue to next selector
-            }
-          }
-
-          // If CSS selectors fail, try XPath
-          if (!profile.name) {
-            try {
-              const xpathName = await card.findElements(By.xpath('.//span[@aria-hidden="true" and ancestor::a[contains(@href, "/in/")]]'));
-              if (xpathName.length > 0) {
-                profile.name = await xpathName[0].getText();
-                logger.debug(`Found name using XPath: ${profile.name}`);
-              }
-            } catch (error) {
-              // Continue if XPath also fails
-            }
-          }
-
-          // Get headline - updated for 2024 LinkedIn UI
-          const headlineSelectors = [
-            'div.entity-result__primary-subtitle',
-            '.entity-result__summary span',
-            '.linked-area > span',
-            'div.entity-result__content p.subline-level-1'
-          ];
-
-          for (const selector of headlineSelectors) {
-            try {
-              const elements = await card.findElements(By.css(selector));
-              if (elements.length > 0) {
-                profile.headline = await elements[0].getText();
-                if (profile.headline) {
-                  logger.debug(`Found headline: ${profile.headline}`);
-                  break;
-                }
-              }
-            } catch (error) {
-              // Continue to next selector
-            }
-          }
-
-          // Get location - updated for 2024 LinkedIn UI
-          const locationSelectors = [
-            'div.entity-result__secondary-subtitle',
-            '.search-result__truncate',
-            'div.entity-result__content p.subline-level-2',
-            'span.entity-result__secondary-subtitle'
-          ];
-
-          for (const selector of locationSelectors) {
-            try {
-              const elements = await card.findElements(By.css(selector));
-              if (elements.length > 0) {
-                profile.location = await elements[0].getText();
-                if (profile.location) {
-                  logger.debug(`Found location: ${profile.location}`);
-                  break;
-                }
-              }
-            } catch (error) {
-              // Continue to next selector
-            }
-          }
-
-          // Get current company from headline or additional info
-          if (profile.headline) {
-            // Try to extract company information from the headline
-            const companyPatterns = [
-              /at\s+([^•]+)/i,
-              /at\s+([\w\s&\-,.']+)/i,
-              /at\s+(.*?)(?:$|\s+•)/i
-            ];
-
-            for (const pattern of companyPatterns) {
-              const companyMatch = profile.headline.match(pattern);
-              if (companyMatch && companyMatch[1]) {
-                profile.currentCompany = companyMatch[1].trim();
-                logger.debug(`Extracted company from headline: ${profile.currentCompany}`);
-                break;
-              }
-            }
-          }
-
-          // Get connection degree - updated for 2024 LinkedIn UI
-          const degreeSelectors = [
-            'span.dist-value',
-            'span.entity-result__badge',
-            'span.distance-badge',
-            'div.entity-result__badge span'
-          ];
-
-          for (const selector of degreeSelectors) {
-            try {
-              const elements = await card.findElements(By.css(selector));
-              if (elements.length > 0) {
-                const degreeText = await elements[0].getText();
-                // Clean up the degree text (remove dots, etc.)
-                profile.connectionDegree = degreeText.replace(/[·\s]+/g, ' ').trim();
-                if (profile.connectionDegree) {
-                  logger.debug(`Found connection degree: ${profile.connectionDegree}`);
-                  break;
-                }
-              }
-            } catch (error) {
-              // Continue to next selector
-            }
-          }
-
-          // Get profile image - updated for 2024 LinkedIn UI
-          const imageSelectors = [
-            'img.presence-entity__image',
-            'img.ivm-view-attr__img--centered',
-            'img.artdeco-entity-image',
-            'img.EntityPhoto-circle-3',
-            'img.ghost-person', // Default image
-            'img' // Most general selector, last resort
-          ];
-
-          for (const selector of imageSelectors) {
-            try {
-              const elements = await card.findElements(By.css(selector));
-              if (elements.length > 0) {
-                profile.imageUrl = await elements[0].getAttribute('src');
-                if (profile.imageUrl) {
-                  logger.debug(`Found image URL: ${profile.imageUrl}`);
-                  break;
-                }
-              }
-            } catch (error) {
-              // Continue to next selector
-            }
-          }
-
-          // Check if open to work - updated for 2024 LinkedIn UI
-          const openToWorkSelectors = [
-            '.open-to-opportunities-badge',
-            '.artdeco-pill.artdeco-pill--green',
-            '.result-lockup__highlight-badge',
-            'li.entity-result__highlight-pill'
-          ];
-
-          for (const selector of openToWorkSelectors) {
-            try {
-              const elements = await card.findElements(By.css(selector));
-              profile.isOpenToWork = elements.length > 0;
-              if (profile.isOpenToWork) {
-                logger.debug('Profile is open to work');
-                break;
-              }
-            } catch (error) {
-              // Continue to next selector
-            }
-          }
-
-          // Only add profiles with required data
-          if (profile.profileId && profile.name) {
-            logger.info(`Successfully extracted profile: ${profile.name} (${profile.profileId})`);
-            profiles.push(profile);
-          } else {
-            logger.warn(`Incomplete profile data, skipping. ProfileId: ${profile.profileId}, Name: ${profile.name}`);
-          }
-        } catch (cardError) {
-          logger.warn(`Error extracting data from profile card: ${cardError instanceof Error ? cardError.message : String(cardError)}`);
-          // Continue to next card
-        }
+        // Add valid profiles from the batch
+        profiles.push(...batchResults.filter((p): p is SearchResultProfile => p !== null));
       }
 
-      logger.info(`Total profiles extracted: ${profiles.length}`);
+      logger.info(`Successfully extracted ${profiles.length} valid profiles`);
       return profiles;
     } catch (error) {
       logger.error(`Error extracting search results: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
+  }
+
+  private async extractProfileLink(card: WebElement): Promise<WebElement | null> {
+    const selectors = [
+      'span.entity-result__title-text a',
+      'span.entity-result__title a',
+      'div.entity-result__title a',
+      'a.app-aware-link[href*="/in/"]',
+      'a[data-field="title"]',
+      'a.entity-result__title-link',
+      'a.search-result__result-link',
+      'a[data-control-name="search_srp_result"]'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const links = await card.findElements(By.css(selector));
+        if (links.length > 0) {
+          return links[0];
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    // Try XPath as fallback
+    try {
+      const xpathLinks = await card.findElements(By.xpath('.//a[contains(@href, "/in/")]'));
+      if (xpathLinks.length > 0) {
+        return xpathLinks[0];
+      }
+    } catch (error) {
+      // Ignore XPath errors
+    }
+
+    return null;
+  }
+
+  private async extractProfileName(card: WebElement): Promise<string> {
+    const selectors = [
+      'span.entity-result__title-text span span',
+      'span.entity-result__title-text',
+      'div.entity-result__title-text',
+      'span.name-and-icon span span',
+      'span.name-and-distance span span',
+      'h3.entity-result__title',
+      'span.entity-result__title span'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const element = await card.findElement(By.css(selector));
+        const name = await element.getText();
+        if (name && name.trim()) {
+          return name.trim();
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return '';
+  }
+
+  private async extractProfileHeadline(card: WebElement): Promise<string | undefined> {
+    const selectors = [
+      'div.entity-result__primary-subtitle',
+      'div.entity-result__summary',
+      'p.entity-result__summary',
+      'div.linked-area__primary-description',
+      'div.search-result__info-container p.subline-level-1',
+      'div.entity-result__secondary-subtitle',
+      'div[data-field="headline"]'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const element = await card.findElement(By.css(selector));
+        const headline = await element.getText();
+        if (headline && headline.trim()) {
+          return headline.trim();
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return undefined;
+  }
+
+  private async extractLocation(card: WebElement): Promise<string | undefined> {
+    const selectors = [
+      '.entity-result__secondary-subtitle',
+      '.entity-result__location',
+      '.presence-entity__image + span'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const element = await card.findElement(By.css(selector));
+        const location = await element.getText();
+        if (location && location.trim()) {
+          return location.trim();
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractCurrentCompany(headline: string): string | undefined {
+    const companyPatterns = [
+      /at\s+([^•]+)/i,
+      /at\s+([\w\s&\-,.']+)/i,
+      /at\s+(.*?)(?:$|\s+•)/i
+    ];
+
+    for (const pattern of companyPatterns) {
+      const companyMatch = headline.match(pattern);
+      if (companyMatch && companyMatch[1]) {
+        return companyMatch[1].trim();
+      }
+    }
+
+    return undefined;
+  }
+
+  private async extractConnectionDegree(card: WebElement): Promise<string | undefined> {
+    const selectors = [
+      'span.dist-value',
+      'span.entity-result__badge',
+      'span.distance-badge',
+      'div.entity-result__badge span'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const element = await card.findElement(By.css(selector));
+        const degree = await element.getText();
+        if (degree) {
+          return degree.replace(/[·\s]+/g, ' ').trim();
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return undefined;
+  }
+
+  private async extractProfileImage(card: WebElement): Promise<string | undefined> {
+    const selectors = [
+      'img.presence-entity__image',
+      'img.ivm-view-attr__img--centered',
+      'img.artdeco-entity-image',
+      'img.EntityPhoto-circle-3'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const element = await card.findElement(By.css(selector));
+        const src = await element.getAttribute('src');
+        if (src) {
+          return src;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return undefined;
+  }
+
+  private async checkOpenToWork(card: WebElement): Promise<boolean> {
+    const selectors = [
+      '.open-to-opportunities-badge',
+      '.artdeco-pill.artdeco-pill--green',
+      '.result-lockup__highlight-badge',
+      'li.entity-result__highlight-pill'
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const elements = await card.findElements(By.css(selector));
+        if (elements.length > 0) {
+          return true;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return false;
   }
 
   /**

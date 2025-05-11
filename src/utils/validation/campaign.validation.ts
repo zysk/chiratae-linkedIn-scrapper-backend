@@ -157,7 +157,7 @@ export const scheduleCampaignSchema = Joi.object({
   scheduleDate: Joi.date().iso().min('now').required()
     .messages({
       'date.base': 'Schedule date must be a valid date',
-      'date.format': 'Schedule date must be in ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+      'date.format': 'Schedule date must be in ISO format (DD-MM-YYYY THH:mm:ss.sssZ)',
       'date.min': 'Schedule date must be in the future',
       'any.required': 'Schedule date is required'
     }),
@@ -185,7 +185,7 @@ export const scheduleCampaignSchema = Joi.object({
   endDate: Joi.date().iso().min(Joi.ref('scheduleDate')).allow(null)
     .messages({
       'date.base': 'End date must be a valid date',
-      'date.format': 'End date must be in ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+      'date.format': 'End date must be in ISO format (DD-MM-YYYY THH:mm:ss.sssZ)',
       'date.min': 'End date must be after the schedule date'
     })
 }).unknown(false); // Force strict validation

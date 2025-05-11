@@ -10,6 +10,8 @@
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "change-port": "node scripts/change-port.js",
     "port-manager": "node scripts/port-manager.js",
     "port:check": "node scripts/port-manager.js check",
@@ -22,9 +24,12 @@
     "update-chromedriver": "node scripts/update-chromedriver.js",
     "make-chromedriver-executable": "node scripts/make-chromedriver-executable.js",
     "setup-chromedriver": "npm run update-chromedriver && npm run make-chromedriver-executable",
-    "worker:profile": "ts-node src/scripts/run-profile-worker.ts"
+    "worker:profile": "ts-node src/scripts/run-profile-worker.ts",
+    "verify-selectors": "ts-node src/tools/verifySelectors.ts",
+    "update-selectors": "ts-node src/tools/updateSelectors.ts"
   },
   "dependencies": {
+    "@types/prompts": "^2.4.9",
     "@types/winston": "^2.4.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -38,6 +43,7 @@
     "multer": "^1.4.5-lts.1",
     "node-schedule": "^2.1.1",
     "nodemailer": "^6.9.7",
+    "prompts": "^2.4.2",
     "redis": "^4.6.10",
     "selenium-webdriver": "^4.15.0",
     "winston": "^3.17.0"

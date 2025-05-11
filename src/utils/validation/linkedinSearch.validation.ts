@@ -13,109 +13,64 @@ const objectIdValidator = (value: string, helpers: Joi.CustomHelpers<any>) => {
  * Validation schema for testing LinkedIn login
  */
 export const testLoginSchema = Joi.object({
-  accountId: Joi.string().custom(objectIdValidator)
-    .messages({
-      'string.base': 'Account ID must be a string',
-      'any.invalid': 'Account ID must be a valid ID'
-    }),
-
-  proxyId: Joi.string().custom(objectIdValidator)
-    .messages({
-      'string.base': 'Proxy ID must be a string',
-      'any.invalid': 'Proxy ID must be a valid ID'
-    }),
-
-  username: Joi.string().trim()
-    .messages({
-      'string.base': 'Username must be a string'
-    }),
-
-  email: Joi.string().email()
-    .messages({
-      'string.base': 'Email must be a string',
-      'string.email': 'Email must be a valid email address'
-    }),
-
-  password: Joi.string()
-    .messages({
-      'string.base': 'Password must be a string'
-    })
-}).unknown(false);
+  linkedinAccountId: Joi.string().required(),
+  password: Joi.string().required(),
+  proxyId: Joi.string().optional()
+});
 
 /**
  * Validation schema for searching LinkedIn profiles
  */
 export const searchProfilesSchema = Joi.object({
-  keywords: Joi.alternatives().try(
-    Joi.string().trim(),
-    Joi.array().items(Joi.string().trim())
-  ).required()
-    .messages({
-      'string.base': 'Keywords must be a string or array of strings',
-      'string.empty': 'Keywords cannot be empty',
-      'any.required': 'Keywords are required'
-    }),
-
+  linkedinAccountId: Joi.string().required(),
+  password: Joi.string().required(),
+  proxyId: Joi.string().optional(),
+  keywords: Joi.string().required(),
   filters: Joi.object({
-    locations: Joi.array().items(Joi.string().trim()).allow(null),
-    companies: Joi.array().items(Joi.string().trim()).allow(null),
-    pastCompanies: Joi.array().items(Joi.string().trim()).allow(null),
-    schools: Joi.array().items(Joi.string().trim()).allow(null),
-    industries: Joi.array().items(Joi.string().trim()).allow(null),
-    connectionDegree: Joi.array().items(Joi.string().valid('1st', '2nd', '3rd', 'All')).allow(null)
-  }),
-
-  maxResults: Joi.number().integer().min(1).max(1000).default(100)
-    .messages({
-      'number.base': 'Maximum results must be a number',
-      'number.integer': 'Maximum results must be an integer',
-      'number.min': 'Maximum results must be at least {#limit}',
-      'number.max': 'Maximum results cannot exceed {#limit}'
-    }),
-
-  accountId: Joi.string().custom(objectIdValidator)
-    .messages({
-      'string.base': 'Account ID must be a string',
-      'any.invalid': 'Account ID must be a valid ID'
-    }),
-
-  proxyId: Joi.string().custom(objectIdValidator)
-    .messages({
-      'string.base': 'Proxy ID must be a string',
-      'any.invalid': 'Proxy ID must be a valid ID'
-    }),
-
-  campaignId: Joi.string().custom(objectIdValidator)
-    .messages({
-      'string.base': 'Campaign ID must be a string',
-      'any.invalid': 'Campaign ID must be a valid ID'
-    })
-}).unknown(false);
+    location: Joi.string().optional(),
+    company: Joi.string().optional(),
+    industry: Joi.string().optional(),
+    connections: Joi.string().optional()
+  }).optional(),
+  maxResults: Joi.number().integer().min(1).max(1000).default(10),
+  campaignId: Joi.string().optional()
+});
 
 /**
  * Validation schema for getting next available LinkedIn account
  */
 export const getNextAccountSchema = Joi.object({
-  excludeIds: Joi.array().items(Joi.string().custom(objectIdValidator))
-    .messages({
-      'array.base': 'Exclude IDs must be an array',
-      'any.invalid': 'Exclude IDs must contain valid IDs'
-    })
-}).unknown(true);
+  excludedIds: Joi.string().optional(),
+  lastUsedBefore: Joi.string().optional()
+});
 
 /**
  * Validation schema for getting next available proxy
  */
 export const getNextProxySchema = Joi.object({
-  excludeIds: Joi.array().items(Joi.string().custom(objectIdValidator))
-    .messages({
-      'array.base': 'Exclude IDs must be an array',
-      'any.invalid': 'Exclude IDs must contain valid IDs'
-    }),
+  excludedIds: Joi.string().optional(),
+  lastUsedBefore: Joi.string().optional()
+});
 
-  type: Joi.string().valid('http', 'https', 'socks4', 'socks5')
-    .messages({
-      'string.base': 'Type must be a string',
-      'any.only': 'Type must be one of "http", "https", "socks4", or "socks5"'
-    })
-}).unknown(true);
+// New schemas for selector verification API endpoints
+
+export const verifySelectorSchema = Joi.object({
+  linkedinAccountId: Joi.string().required(),
+  password: Joi.string().optional(),
+  proxyId: Joi.string().optional(),
+  profileUrl: Joi.string().uri().optional(),
+  useLatestLead: Joi.boolean().default(false),
+  outputPath: Joi.string().optional()
+}).custom((value, helpers) => {
+  // Require either profileUrl or useLatestLead
+  if (!value.profileUrl && !value.useLatestLead) {
+    return helpers.error('object.custom', { message: 'Either profileUrl or useLatestLead must be provided' });
+  }
+  return value;
+});
+
+export const updateSelectorSchema = Joi.object({
+  metricsPath: Joi.string().required(),
+  threshold: Joi.number().min(0).max(1).default(0.5),
+  category: Joi.string().optional()
+});

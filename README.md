@@ -1,143 +1,125 @@
-# LinkedIn Scraper Backend API
+# LinkedIn Profile Scraper Backend
 
-A TypeScript-based backend API for LinkedIn scraping and lead management.
-
-## Project Overview
-
-This project is a backend API service that automates LinkedIn searches, profile scraping, and lead management. It's designed for sales and marketing teams to discover potential leads by automating LinkedIn searches and data collection.
+This TypeScript-based backend service provides functionality to scrape LinkedIn profiles and extract structured data.
 
 ## Features
 
-- User management with role-based authentication
-- LinkedIn account management with secure credential storage
-- Proxy management for IP rotation
-- Campaign creation and management
-- Automated LinkedIn search using Selenium WebDriver
-- Profile data scraping and de-duplication
-- Lead management and annotation
-- Email integration for notifications
-- Improved handling of LinkedIn authentication challenges (CAPTCHA, OTP, phone verification)
+- 🤖 Automated LinkedIn profile data extraction
+- 📊 Structured data format for all profile sections
+- 🛡️ Robust error handling and recovery
+- 🔄 Automatic selector verification and optimization
+- 📝 Comprehensive logging
 
-## ✅ Completed Components
+## Setup
 
-### 1. Authentication System
-- JWT-based authentication with refresh tokens
-- Role-based access control (USER, ADMIN, CLIENT)
-- Secure password hashing with bcrypt
-- User management API for admins
+1. Install dependencies:
+   ```
+   npm install
+   ```
 
-### 2. LinkedIn Account and Proxy Management
-- Secure credential storage with AES-256-GCM encryption
-- LinkedIn account CRUD operations
-- Proxy server CRUD operations
-- Automatic rotation of accounts and proxies
-- Usage tracking and availability management
-- Detailed LinkedIn authentication challenge detection and handling
+2. Configure environment variables (copy `.env.example` to `.env` and update):
+   ```
+   cp .env.example .env
+   ```
 
-## Getting Started
+3. Run the development server:
+   ```
+   npm run dev
+   ```
 
-### Prerequisites
+## Selector Verification
 
-- Node.js (v14+)
-- MongoDB
-- npm or yarn
+The LinkedIn scraper includes a built-in selector verification system that helps ensure reliable data extraction despite LinkedIn's frequent UI changes.
 
-### Installation
+### How It Works
 
-```bash
-# Clone the repository
-git clone <repository-url>
+1. The `SelectorVerifier` class tracks the success/failure rate of each CSS selector
+2. Multiple selectors are attempted for each data field, with statistics tracked on which ones work
+3. The scraper self-optimizes by prioritizing selectors with higher success rates
+4. Health metrics are generated to identify selectors that need maintenance
 
-# Install dependencies
-npm install
+### Verifying Selectors
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Start development server
-npm run dev
-```
-
-### Testing
+To test selectors against a real LinkedIn profile and generate health metrics:
 
 ```bash
-# Run automated tests
-npm test
+# Run the verification tool
+npm run verify-selectors -- --url <linkedin-profile-url> --output ./metrics.json
 
-# Test LinkedIn and Proxy management
-npm run test:linkedin-proxy
-
-# Check port availability
-npm run port:check 4000
-
-# Run on alternative port
-npm run dev:4001
+# For verbose output
+npm run verify-selectors -- --url <linkedin-profile-url> --verbose
 ```
 
-## API Documentation
+### Updating Selectors
 
-See [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md) for a complete list of API endpoints.
-
-For testing with Postman, see [docs/POSTMAN_GUIDE.md](docs/POSTMAN_GUIDE.md).
-
-## Project Structure
-
-```
-├── src/
-│   ├── controllers/     # Request handlers
-│   ├── middleware/      # Express middleware
-│   ├── models/          # MongoDB models
-│   ├── routes/          # API routes
-│   ├── services/        # Business logic
-│   ├── utils/           # Utility functions
-│   ├── app.ts           # Express app
-│   └── server.ts        # Server entry point
-├── docs/                # Documentation
-├── postman/             # Postman collections
-├── scripts/             # Utility scripts
-└── tests/               # Test files
-```
-
-## Port Management
-
-If you encounter port conflicts, use the provided scripts:
+When LinkedIn updates their UI, you can use the selector update tool to identify and fix selectors that no longer work:
 
 ```bash
-# Check if port 4000 is available
-npm run port:check 4000
+# Analyze health metrics and update selectors interactively
+npm run update-selectors -- --input ./metrics.json --threshold 0.3
 
-# Find the next available port
-npm run port:find
-
-# Run on a specific port
-npm run dev:port --port=4001
+# Focus on a specific category of selectors
+npm run update-selectors -- --input ./metrics.json --category "Recommendations"
 ```
 
-## LinkedIn Authentication Challenges
+The tool will:
+1. Identify poorly performing selectors based on the threshold
+2. Show examples of working selectors for reference
+3. Let you interactively decide which selectors to replace or remove
+4. Provide guidance on where to update the code
 
-LinkedIn uses various security measures to detect and prevent automated access. The API now properly detects and handles these challenges:
+### Interpreting Health Metrics
 
-### Authentication Challenge Types
+The health metrics file contains information about each selector:
 
-1. **CAPTCHA Verification**: When LinkedIn presents a CAPTCHA challenge, the API will return a 403 response with `challengeType: 'captcha'` and details about the challenge.
+- `successRate`: percentage of successful selector usages (higher is better)
+- `successCount`: number of times the selector found valid data
+- `failureCount`: number of times the selector failed
+- `lastText`: sample of the last extracted text (helpful for debugging)
 
-2. **One-Time Password (OTP) Verification**: If LinkedIn requires OTP verification, the API will return a 403 response with `challengeType: 'otp'` and instructions.
+Selectors with low success rates may need updating to match LinkedIn's current UI.
 
-3. **Phone Verification**: When phone verification is required, the API will return a 403 response with `challengeType: 'phone'` and instructions.
+## Supported Profile Data
 
-### Best Practices for Handling Challenges
+The scraper extracts the following information:
 
-- Use dedicated LinkedIn accounts with proper business subscriptions
-- Implement manual challenge resolution for CAPTCHA, OTP, and phone verification
-- Rotate LinkedIn accounts and proxies to reduce detection risk
-- Add delays between actions to mimic human behavior
-- Set up alert systems to notify administrators when verification is required
+- Basic Profile Information
+  - First & Last Name
+  - Headline
+  - Location
+  - About
+  - Profile Picture
+  - Background Image
 
-## Contributing
+- Professional Information
+  - Experience
+  - Education
+  - Skills
+  - Certifications
+  - Volunteering
+  - Awards
+  - Recommendations
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+- Additional Information
+  - Interests
+  - Languages
+  - Contact Information
+  - Endorsements
+
+## API Endpoints
+
+Documentation for API endpoints available at `/api-docs` when running the server.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+MIT
+
+
+# Using email/password:
+npm run verify-selectors -- -u https://www.linkedin.com/in/some-profile -e your-linkedin@email.com -p yourpassword
+
+# Using an account ID from the database:
+npm run verify-selectors -- -u https://www.linkedin.com/in/some-profile -i 61234567890abcdef1234567
+
+# Update selectors with authentication:
+npm run update-selectors -- -i ./selector-health.json -e your-linkedin@email.com -p yourpassword

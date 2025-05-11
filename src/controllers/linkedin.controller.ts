@@ -9,6 +9,10 @@ import logger from '../utils/logger';
 import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
 import Campaign, { CampaignStatus } from '../models/campaign.model';
 import Lead from '../models/lead.model';
+import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
+import fs from 'fs/promises';
+import path from 'path';
+import { SelectorVerifier, SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
 
 /**
  * Controller for LinkedIn operations
@@ -473,6 +477,240 @@ class LinkedInController {
       return res.status(500).json({
         success: false,
         message: 'An error occurred while getting the next proxy',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  /**
+   * Verify LinkedIn selectors
+   * Tests selectors against a LinkedIn profile and returns health metrics
+   * @param req Request object
+   * @param res Response object
+   * @param next Next function
+   */
+  public verifySelectors = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { linkedinAccountId, password, proxyId, profileUrl, useLatestLead, outputPath } = req.body;
+
+      // At least one of profileUrl or useLatestLead is required
+      if (!profileUrl && !useLatestLead) {
+        return res.status(400).json({
+          success: false,
+          message: 'Either a profile URL or useLatestLead flag must be provided',
+        });
+      }
+
+      if (!linkedinAccountId) {
+        return res.status(400).json({
+          success: false,
+          message: 'LinkedIn account ID is required',
+        });
+      }
+
+      // Get LinkedIn account
+      const account = await LinkedInAccount.findById(linkedinAccountId);
+      if (!account) {
+        return res.status(404).json({
+          success: false,
+          message: 'LinkedIn account not found',
+        });
+      }
+
+      // Get proxy if provided
+      let proxy = undefined;
+      if (proxyId) {
+        proxy = await Proxy.findById(proxyId);
+        if (!proxy) {
+          return res.status(404).json({
+            success: false,
+            message: 'Proxy not found',
+          });
+        }
+      }
+
+      // Determine which profile URL to use
+      let targetProfileUrl = profileUrl;
+
+      if (useLatestLead) {
+        // Find the most recent lead with a valid LinkedIn profile URL
+        const latestLead = await Lead.findOne({
+          link: { $exists: true, $ne: '' }
+        }).sort({ createdAt: -1 }).limit(1);
+
+        if (!latestLead || !latestLead.link) {
+          return res.status(404).json({
+            success: false,
+            message: 'No lead with a valid LinkedIn profile URL found',
+          });
+        }
+
+        targetProfileUrl = latestLead.link;
+        logger.info(`Using latest lead profile URL: ${targetProfileUrl}`);
+      }
+
+      // Enable selector debugging
+      process.env.DEBUG_SELECTORS = 'true';
+
+      // Run the selector verification
+      logger.info(`Testing selectors against profile: ${targetProfileUrl}`);
+      const healthMetrics = await LinkedInProfileScraper.verifySelectors(targetProfileUrl, account);
+
+      // Convert Map to serializable object
+      const metricsObj: Record<string, SelectorHealthMetrics> = {};
+      healthMetrics.forEach((value: SelectorHealthMetrics, key: string) => {
+        metricsObj[key] = value;
+      });
+
+      // Save to file if outputPath is specified
+      if (outputPath) {
+        try {
+          const resolvedPath = path.resolve(outputPath);
+          await fs.writeFile(
+            resolvedPath,
+            JSON.stringify(metricsObj, null, 2),
+            'utf8'
+          );
+          logger.info(`Selector health metrics saved to ${resolvedPath}`);
+        } catch (error) {
+          logger.warn(`Error saving metrics to file: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      // Calculate summary statistics
+      const categories = new Set<string>();
+      let totalSelectors = 0;
+      let workingSelectors = 0;
+
+      for (const metrics of healthMetrics.values()) {
+        categories.add(metrics.category);
+        totalSelectors++;
+
+        if (metrics.successRate > 0) {
+          workingSelectors++;
+        }
+      }
+
+      // Return the health metrics and summary
+      return res.status(200).json({
+        success: true,
+        message: 'Selector verification completed successfully',
+        data: {
+          metrics: metricsObj,
+          summary: {
+            totalSelectors,
+            workingSelectors,
+            successRate: totalSelectors > 0 ? Math.round(workingSelectors / totalSelectors * 100) : 0,
+            categories: Array.from(categories)
+          },
+          profileUsed: targetProfileUrl
+        }
+      });
+
+    } catch (error) {
+      logger.error(`Selector verification error: ${error instanceof Error ? error.message : String(error)}`);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while verifying LinkedIn selectors',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  /**
+   * Update LinkedIn selectors
+   * Analyzes selector health metrics and allows updating/replacing poor performing selectors
+   * @param req Request object
+   * @param res Response object
+   * @param next Next function
+   */
+  public updateSelectors = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { metricsPath, threshold = 0.5, category } = req.body;
+
+      if (!metricsPath) {
+        return res.status(400).json({
+          success: false,
+          message: 'Path to selector health metrics file is required',
+        });
+      }
+
+      // Read metrics from file
+      const inputPath = path.resolve(metricsPath);
+      logger.info(`Reading metrics from: ${inputPath}`);
+
+      const metricsRaw = await fs.readFile(inputPath, 'utf8');
+      const metricsObj = JSON.parse(metricsRaw);
+
+      // Convert to Map for processing
+      const healthMetrics = new Map<string, SelectorHealthMetrics>();
+      for (const [key, value] of Object.entries(metricsObj)) {
+        healthMetrics.set(key, value as SelectorHealthMetrics);
+      }
+
+      // Group by category
+      const categorizedMetrics = new Map<string, SelectorHealthMetrics[]>();
+      for (const metrics of healthMetrics.values()) {
+        if (!categorizedMetrics.has(metrics.category)) {
+          categorizedMetrics.set(metrics.category, []);
+        }
+        categorizedMetrics.get(metrics.category)?.push(metrics);
+      }
+
+      // Filter by specified category if provided
+      const categoriesToProcess = category
+        ? (categorizedMetrics.has(category) ? [category] : [])
+        : Array.from(categorizedMetrics.keys());
+
+      if (category && categoriesToProcess.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: `Category '${category}' not found in metrics file`,
+        });
+      }
+
+      const thresholdValue = parseFloat(threshold.toString());
+
+      // Process categories and identify selectors that need attention
+      const results: any = {};
+
+      for (const categoryName of categoriesToProcess) {
+        const metrics = categorizedMetrics.get(categoryName)!;
+
+        // Sort by success rate (descending)
+        metrics.sort((a, b) => b.successRate - a.successRate);
+
+        // Find poor performing selectors
+        const poorSelectors = metrics.filter(m => m.successRate < thresholdValue);
+        const goodSelectors = metrics.filter(m => m.successRate >= thresholdValue);
+
+        results[categoryName] = {
+          totalSelectors: metrics.length,
+          goodSelectors: goodSelectors.length,
+          poorSelectors: poorSelectors.length,
+          best: goodSelectors.length > 0 ? goodSelectors[0] : null,
+          needsAttention: poorSelectors.map(selector => ({
+            selector: selector.selector,
+            successRate: selector.successRate,
+            successCount: selector.successCount,
+            failureCount: selector.failureCount,
+            lastText: selector.lastText
+          }))
+        };
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Selector analysis completed successfully',
+        threshold: thresholdValue,
+        data: results
+      });
+
+    } catch (error) {
+      logger.error(`Selector update error: ${error instanceof Error ? error.message : String(error)}`);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while analyzing LinkedIn selectors',
         error: error instanceof Error ? error.message : String(error),
       });
     }

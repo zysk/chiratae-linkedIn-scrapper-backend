@@ -7,7 +7,7 @@ import Lead from '../../models/lead.model';
 import { CONFIG } from '../../utils/config';
 
 // Define the internal API token constant if not in CONFIG
-const INTERNAL_API_TOKEN = process.env.INTERNAL_API_TOKEN || 'internal-scheduler-token';
+const INTERNAL_API_TOKEN = CONFIG.SCHEDULER.INTERNAL_API_TOKEN;
 
 /**
  * Service for managing scheduled jobs using node-schedule

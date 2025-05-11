@@ -1,0 +1,514 @@
+{
+  "h1.text-heading-xlarge.inline.t-24.v-align-middle.break-words": {
+    "selector": "h1.text-heading-xlarge.inline.t-24.v-align-middle.break-words",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.844Z"
+  },
+  "h1.text-heading-xlarge": {
+    "selector": "h1.text-heading-xlarge",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.868Z"
+  },
+  "h1.pv-text-details__title--main": {
+    "selector": "h1.pv-text-details__title--main",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.890Z"
+  },
+  "h1.top-card-layout__title": {
+    "selector": "h1.top-card-layout__title",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.912Z"
+  },
+  "h1.profile-topcard-person-entity__name": {
+    "selector": "h1.profile-topcard-person-entity__name",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.941Z"
+  },
+  "h1.artdeco-entity-lockup__title": {
+    "selector": "h1.artdeco-entity-lockup__title",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.966Z"
+  },
+  "div.pv-text-details__left-panel h1": {
+    "selector": "div.pv-text-details__left-panel h1",
+    "category": "Profile Name",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:29.985Z"
+  },
+  "div.pv-text-details__left-panel div.text-body-medium": {
+    "selector": "div.pv-text-details__left-panel div.text-body-medium",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.005Z"
+  },
+  "div.ph5 div.text-body-medium": {
+    "selector": "div.ph5 div.text-body-medium",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.046Z"
+  },
+  "div.pv-text-details__title div.text-body-medium": {
+    "selector": "div.pv-text-details__title div.text-body-medium",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.067Z"
+  },
+  "div.profile-info div.text-body-medium": {
+    "selector": "div.profile-info div.text-body-medium",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.090Z"
+  },
+  "div[data-field=\"headline\"]": {
+    "selector": "div[data-field=\"headline\"]",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.111Z"
+  },
+  "div.profile-headline": {
+    "selector": "div.profile-headline",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.131Z"
+  },
+  "div.pv-top-card-section__headline": {
+    "selector": "div.pv-top-card-section__headline",
+    "category": "Profile Headline",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.158Z"
+  },
+  "div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words": {
+    "selector": "div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.182Z"
+  },
+  "div.ph5 span.text-body-small.inline.t-black--light.break-words": {
+    "selector": "div.ph5 span.text-body-small.inline.t-black--light.break-words",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.206Z"
+  },
+  "div.pv-text-details__title span.text-body-small.inline.t-black--light.break-words": {
+    "selector": "div.pv-text-details__title span.text-body-small.inline.t-black--light.break-words",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.233Z"
+  },
+  "div.profile-info span.text-body-small.inline.t-black--light.break-words": {
+    "selector": "div.profile-info span.text-body-small.inline.t-black--light.break-words",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.260Z"
+  },
+  "div[data-field=\"location\"] span.text-body-small": {
+    "selector": "div[data-field=\"location\"] span.text-body-small",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.284Z"
+  },
+  "div.profile-location span.text-body-small": {
+    "selector": "div.profile-location span.text-body-small",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.309Z"
+  },
+  "div.pv-top-card-section__location": {
+    "selector": "div.pv-top-card-section__location",
+    "category": "Profile Location",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.330Z"
+  },
+  "section#about": {
+    "selector": "section#about",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.355Z"
+  },
+  "section[data-section=\"about\"]": {
+    "selector": "section[data-section=\"about\"]",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.375Z"
+  },
+  "section.artdeco-card.pv-profile-card.break-words": {
+    "selector": "section.artdeco-card.pv-profile-card.break-words",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 3,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.632Z"
+  },
+  "div#about": {
+    "selector": "div#about",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.417Z"
+  },
+  "div[data-field=\"about\"]": {
+    "selector": "div[data-field=\"about\"]",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.439Z"
+  },
+  "div.pvs-list__outer-container": {
+    "selector": "div.pvs-list__outer-container",
+    "category": "About Section",
+    "successCount": 0,
+    "failureCount": 3,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.694Z"
+  },
+  "section#experience": {
+    "selector": "section#experience",
+    "category": "Experience Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.481Z"
+  },
+  "section[data-section=\"experience\"]": {
+    "selector": "section[data-section=\"experience\"]",
+    "category": "Experience Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.499Z"
+  },
+  "div#experience": {
+    "selector": "div#experience",
+    "category": "Experience Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.538Z"
+  },
+  "div[data-field=\"experience\"]": {
+    "selector": "div[data-field=\"experience\"]",
+    "category": "Experience Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.562Z"
+  },
+  "section#education": {
+    "selector": "section#education",
+    "category": "Education Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.603Z"
+  },
+  "section[data-section=\"education\"]": {
+    "selector": "section[data-section=\"education\"]",
+    "category": "Education Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.622Z"
+  },
+  "div#education": {
+    "selector": "div#education",
+    "category": "Education Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.654Z"
+  },
+  "div[data-field=\"education\"]": {
+    "selector": "div[data-field=\"education\"]",
+    "category": "Education Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.680Z"
+  },
+  "section#recommendations": {
+    "selector": "section#recommendations",
+    "category": "Recommendations Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.715Z"
+  },
+  "section.recommendations-section": {
+    "selector": "section.recommendations-section",
+    "category": "Recommendations Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.734Z"
+  },
+  "div[id*=\"recommendations\"]": {
+    "selector": "div[id*=\"recommendations\"]",
+    "category": "Recommendations Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.763Z"
+  },
+  "section.artdeco-card.pv-profile-card.break-words.mt4": {
+    "selector": "section.artdeco-card.pv-profile-card.break-words.mt4",
+    "category": "Recommendations Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.786Z"
+  },
+  "div.pvs-list__outer-container[aria-label*=\"recommendation\"]": {
+    "selector": "div.pvs-list__outer-container[aria-label*=\"recommendation\"]",
+    "category": "Recommendations Section",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.806Z"
+  },
+  ".pv-top-card-profile-picture__image": {
+    "selector": ".pv-top-card-profile-picture__image",
+    "category": "Profile Picture",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.829Z"
+  },
+  ".profile-photo-edit__preview": {
+    "selector": ".profile-photo-edit__preview",
+    "category": "Profile Picture",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.855Z"
+  },
+  ".pv-top-card__photo img": {
+    "selector": ".pv-top-card__photo img",
+    "category": "Profile Picture",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.881Z"
+  },
+  ".profile-picture img": {
+    "selector": ".profile-picture img",
+    "category": "Profile Picture",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.902Z"
+  },
+  ".profile-background-image__image": {
+    "selector": ".profile-background-image__image",
+    "category": "Background Image",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.926Z"
+  },
+  ".pv-profile-top-card__background-image": {
+    "selector": ".pv-profile-top-card__background-image",
+    "category": "Background Image",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.955Z"
+  },
+  ".profile-banner img": {
+    "selector": ".profile-banner img",
+    "category": "Background Image",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.977Z"
+  },
+  ".pv-cover-photo": {
+    "selector": ".pv-cover-photo",
+    "category": "Background Image",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:30.992Z"
+  },
+  ".pvs-entity__description-text": {
+    "selector": ".pvs-entity__description-text",
+    "category": "Recommendation Text",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.015Z"
+  },
+  ".pv-recommendation-entity__text": {
+    "selector": ".pv-recommendation-entity__text",
+    "category": "Recommendation Text",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.035Z"
+  },
+  ".artdeco-list__item-description": {
+    "selector": ".artdeco-list__item-description",
+    "category": "Recommendation Text",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.051Z"
+  },
+  "div.inline-show-more-text span[aria-hidden=\"true\"]": {
+    "selector": "div.inline-show-more-text span[aria-hidden=\"true\"]",
+    "category": "Recommendation Text",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.069Z"
+  },
+  "div[data-field=\"recommendation_text\"]": {
+    "selector": "div[data-field=\"recommendation_text\"]",
+    "category": "Recommendation Text",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.087Z"
+  },
+  ".pvs-entity__title-text": {
+    "selector": ".pvs-entity__title-text",
+    "category": "Recommendation Author",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.109Z"
+  },
+  ".pv-recommendation-entity__detail__title": {
+    "selector": ".pv-recommendation-entity__detail__title",
+    "category": "Recommendation Author",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.125Z"
+  },
+  ".artdeco-list__item-title": {
+    "selector": ".artdeco-list__item-title",
+    "category": "Recommendation Author",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.142Z"
+  },
+  "a[data-field=\"recommender\"]": {
+    "selector": "a[data-field=\"recommender\"]",
+    "category": "Recommendation Author",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.168Z"
+  },
+  "span.hoverable-link-text": {
+    "selector": "span.hoverable-link-text",
+    "category": "Recommendation Author",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.189Z"
+  },
+  "li.artdeco-list__item": {
+    "selector": "li.artdeco-list__item",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.210Z"
+  },
+  "div.pvs-entity": {
+    "selector": "div.pvs-entity",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.238Z"
+  },
+  "div.pv-skill-category-entity": {
+    "selector": "div.pv-skill-category-entity",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.260Z"
+  },
+  "div.pv-profile-section__card-item": {
+    "selector": "div.pv-profile-section__card-item",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.289Z"
+  },
+  "div.pv-entity__summary-info": {
+    "selector": "div.pv-entity__summary-info",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.310Z"
+  },
+  "div.skill-item": {
+    "selector": "div.skill-item",
+    "category": "Skills",
+    "successCount": 0,
+    "failureCount": 1,
+    "successRate": 0,
+    "lastFailure": "2025-05-11T05:30:31.333Z"
+  }
+}

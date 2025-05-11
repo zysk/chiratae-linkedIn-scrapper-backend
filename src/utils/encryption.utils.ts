@@ -1,12 +1,9 @@
 import crypto from 'crypto';
-import dotenv from 'dotenv';
+import { CONFIG } from './config';
 
-dotenv.config();
-
-// Get encryption key from environment variables or use a default for development (not recommended for production)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-encryption-key-for-development-only';
-const ENCRYPTION_IV = process.env.ENCRYPTION_IV || 'default-iv-16-chars';
-const ENCRYPTION_ALGORITHM = 'aes-256-cbc';
+const ENCRYPTION_KEY = CONFIG.ENCRYPTION.KEY;
+const ENCRYPTION_IV = CONFIG.ENCRYPTION.IV;
+const ENCRYPTION_ALGORITHM = CONFIG.ENCRYPTION.ALGORITHM;
 
 /**
  * Encrypts a string using AES-256-CBC algorithm

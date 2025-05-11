@@ -163,3 +163,4 @@ old-code/*
 
 chromedriver/*
 debug-screenshots/*
+data/*

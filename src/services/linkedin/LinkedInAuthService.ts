@@ -6,6 +6,7 @@ import { IProxy } from '../../models/proxy.model';
 import fs from 'fs';
 import path from 'path';
 import { randomDelay } from '../../utils/delay';
+import { CONFIG } from '../../utils/config';
 
 /**
  * Interface for handling CAPTCHA challenges
@@ -89,33 +90,132 @@ export class LinkedInAuthService {
     try {
       // Create a WebDriver instance with the specified options
       driver = await seleniumService.createDriver({
-        headless: process.env.NODE_ENV === 'production',
+        headless: CONFIG.BROWSER.HEADLESS,
         proxy: proxy || undefined
       });
 
       // Navigate to LinkedIn login page
+      logger.info(`Navigating to LinkedIn login page: ${this.LOGIN_URL}`);
       await driver.get(this.LOGIN_URL);
 
-      // Wait for the page to load with longer timeout
-      await driver.wait(until.elementLocated(By.id('username')), 15000);
+      // Save screenshot of the landing page for diagnostics
+      await this.saveDebugScreenshot(driver, 'login-page-initial');
 
-      // Add a small random delay to mimic human behavior
-      await randomDelay(1000, 2000);
+      // Wait for the page to load and log page title
+      await driver.wait(until.titleContains('LinkedIn'), 15000);
+      const pageTitle = await driver.getTitle();
+      logger.info(`LinkedIn page title: ${pageTitle}`);
 
-      // Enter username
-      await driver.findElement(By.id('username')).sendKeys(account.username);
+      // Try to determine what page we're on
+      const isOnLoginPage = await this.isOnLoginPage(driver);
 
-      // Add another small random delay
-      await randomDelay(800, 1500);
+      if (!isOnLoginPage) {
+        logger.warn('Not on expected login page. Attempting flexible login approach');
 
-      // Enter password
-      await driver.findElement(By.id('password')).sendKeys(password);
+        // Try to find any input fields that might be for username/email
+        const possibleUsernameFields = await driver.findElements(
+          By.css('input[type="text"], input[type="email"], input[name*="email"], input[name*="username"], input[id*="email"], input[id*="username"]')
+        );
 
-      // Add another small random delay
-      await randomDelay(1000, 2000);
+        if (possibleUsernameFields.length > 0) {
+          logger.info(`Found ${possibleUsernameFields.length} potential username fields`);
 
-      // Click submit button
-      await driver.findElement(By.css('button[type="submit"]')).click();
+          // Take a screenshot to see what page we're actually on
+          await this.saveDebugScreenshot(driver, 'alternate-login-form');
+
+          // Try to find any input fields that might be for password
+          const possiblePasswordFields = await driver.findElements(
+            By.css('input[type="password"], input[name*="password"], input[id*="password"]')
+          );
+
+          if (possiblePasswordFields.length > 0) {
+            logger.info(`Found ${possiblePasswordFields.length} potential password fields`);
+
+            // Attempt login with the first username and password fields found
+            await possibleUsernameFields[0].clear();
+            await possibleUsernameFields[0].sendKeys(account.username);
+            logger.info(`Entered username: ${account.username}`);
+            await randomDelay(800, 1500);
+
+            await possiblePasswordFields[0].clear();
+            await possiblePasswordFields[0].sendKeys(password);
+            logger.info('Entered password');
+            await randomDelay(1000, 2000);
+
+            // Try to find submit button
+            const possibleSubmitButtons = await driver.findElements(
+              By.css('button[type="submit"], input[type="submit"], button[id*="login"], button[id*="sign"], button[class*="login"], button[class*="sign"]')
+            );
+
+            if (possibleSubmitButtons.length > 0) {
+              logger.info('Found potential submit button, attempting to click');
+              await possibleSubmitButtons[0].click();
+            } else {
+              logger.warn('No submit button found, trying to press Enter key on password field');
+              await possiblePasswordFields[0].sendKeys(Key.RETURN);
+            }
+          } else {
+            logger.error('No password fields found on the page');
+            throw new Error('Unable to locate password field on LinkedIn login page');
+          }
+        } else {
+          // If we can't find username/password fields, navigate directly to the known login URL
+          logger.warn('No username fields found. Trying to navigate directly to the known login URL');
+          await driver.get('https://www.linkedin.com/login');
+          await randomDelay(3000, 5000);
+
+          // Take another screenshot
+          await this.saveDebugScreenshot(driver, 'forced-login-page');
+
+          // Now try the standard login approach
+          try {
+            const usernameField = await driver.findElement(By.id('username'));
+            await usernameField.clear();
+            await usernameField.sendKeys(account.username);
+            logger.info(`Entered username: ${account.username}`);
+
+            await randomDelay(800, 1500);
+
+            const passwordField = await driver.findElement(By.id('password'));
+            await passwordField.clear();
+            await passwordField.sendKeys(password);
+            logger.info('Entered password');
+
+            await randomDelay(1000, 2000);
+
+            const submitButton = await driver.findElement(By.css('button[type="submit"]'));
+            await submitButton.click();
+            logger.info('Clicked submit button');
+          } catch (loginError) {
+            logger.error(`Error in standard login after redirect: ${loginError instanceof Error ? loginError.message : String(loginError)}`);
+            throw new Error('Unable to locate login fields even after direct navigation to login page');
+          }
+        }
+      } else {
+        // Standard login flow
+        logger.info('On standard login page, proceeding with normal login flow');
+
+        // Wait for the username field with longer timeout
+        await driver.wait(until.elementLocated(By.id('username')), 15000);
+
+        // Add a small random delay to mimic human behavior
+        await randomDelay(1000, 2000);
+
+        // Enter username
+        await driver.findElement(By.id('username')).sendKeys(account.username);
+
+        // Add another small random delay
+        await randomDelay(800, 1500);
+
+        // Enter password
+        await driver.findElement(By.id('password')).sendKeys(password);
+
+        // Add another small random delay
+        await randomDelay(1000, 2000);
+
+        // Click submit button
+        await driver.findElement(By.css('button[type="submit"]')).click();
+      }
 
       // Wait longer to check for any challenges (LinkedIn can be slow)
       await randomDelay(15000, 20000);
@@ -640,31 +740,49 @@ export class LinkedInAuthService {
   }
 
   /**
-   * Saves a screenshot for debugging authentication issues
-   * @param driver The WebDriver instance
-   * @param type The type of authentication issue (captcha, otp, phone, etc.)
+   * Saves a screenshot for debugging purposes
+   * @param driver WebDriver instance
+   * @param type Type of screenshot for naming
    */
   private async saveDebugScreenshot(driver: WebDriver, type: string): Promise<void> {
     try {
-      // Take a screenshot
-      const screenshot = await driver.takeScreenshot();
-
-      // Create directory if it doesn't exist
-      const debugDir = path.join(process.cwd(), 'debug-screenshots');
-      if (!fs.existsSync(debugDir)) {
-        fs.mkdirSync(debugDir, { recursive: true });
+      // Create screenshots directory if it doesn't exist
+      const screenshotsDir = path.join(process.cwd(), 'data', 'screenshots');
+      try {
+        // Use fs.promises for async file operations
+        await fs.promises.mkdir(screenshotsDir, { recursive: true });
+      } catch (mkdirError) {
+        logger.warn(`Could not create screenshots directory: ${mkdirError instanceof Error ? mkdirError.message : String(mkdirError)}`);
       }
 
       // Generate filename with timestamp and type
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filePath = path.join(debugDir, `${type}-${timestamp}.png`);
+      const timestamp = new Date().toISOString().replace(/[:.-]/g, '_');
+      const filename = path.join(screenshotsDir, `${type}_${timestamp}.png`);
 
-      // Write the screenshot to a file
-      fs.writeFileSync(filePath, Buffer.from(screenshot, 'base64'));
+      // Take the screenshot
+      const screenshot = await driver.takeScreenshot();
+      await fs.promises.writeFile(filename, screenshot, 'base64');
 
-      logger.info(`Debug screenshot saved to: ${filePath}`);
+      // Also save the page source for further analysis
+      try {
+        const pageSource = await driver.getPageSource();
+        const htmlFilename = path.join(screenshotsDir, `${type}_${timestamp}.html`);
+        await fs.promises.writeFile(htmlFilename, pageSource, 'utf8');
+        logger.info(`Saved page source to ${htmlFilename}`);
+      } catch (pageSourceError) {
+        logger.warn(`Could not save page source: ${pageSourceError instanceof Error ? pageSourceError.message : String(pageSourceError)}`);
+      }
+
+      // Log URL and title for context
+      try {
+        const url = await driver.getCurrentUrl();
+        const title = await driver.getTitle();
+        logger.info(`Screenshot saved to ${filename} (URL: ${url}, Title: ${title})`);
+      } catch (error) {
+        logger.info(`Screenshot saved to ${filename}`);
+      }
     } catch (error) {
-      logger.error(`Error saving debug screenshot: ${error instanceof Error ? error.message : String(error)}`);
+      logger.warn(`Error taking debug screenshot: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -744,16 +862,103 @@ export class LinkedInAuthService {
   }
 
   /**
-   * Check if the current page is the LinkedIn login page
+   * Checks if the current page is the LinkedIn login page
    * @param driver The WebDriver instance
-   * @returns True if on login page, false otherwise
+   * @returns Whether the driver is currently on the login page
    */
   public async isOnLoginPage(driver: WebDriver): Promise<boolean> {
     try {
-      // Wait briefly for the username field which is unique to the login page
-      await driver.wait(until.elementLocated(By.id('username')), 5000);
-      return true;
+      // First check the current URL and page title for quick determination
+      const currentUrl = await driver.getCurrentUrl();
+      logger.info(`Checking if on login page. Current URL: ${currentUrl}`);
+
+      if (currentUrl.includes('/login') || currentUrl.includes('/checkpoint')) {
+        logger.info('URL contains /login or /checkpoint, confirming we are on login page');
+        return true;
+      }
+
+      try {
+        const pageTitle = await driver.getTitle();
+        logger.info(`Page title: ${pageTitle}`);
+
+        if (pageTitle.toLowerCase().includes('login') ||
+            pageTitle.toLowerCase().includes('sign in') ||
+            pageTitle.toLowerCase().includes('log in')) {
+          logger.info('Page title indicates we are on a login page');
+          return true;
+        }
+      } catch (titleError) {
+        logger.warn(`Could not get page title: ${titleError instanceof Error ? titleError.message : String(titleError)}`);
+      }
+
+      // Take a screenshot to debug what page we're actually on
+      await this.saveDebugScreenshot(driver, 'login-page-detection');
+
+      // Check for any input fields that could be username/email
+      const possibleUsernameFields = await driver.findElements(
+        By.css('input[type="text"], input[type="email"], input[name*="email"], input[name*="username"], input[id*="email"], input[id*="username"]')
+      );
+
+      logger.info(`Found ${possibleUsernameFields.length} potential username/email fields`);
+
+      if (possibleUsernameFields.length > 0) {
+        // Check for any input fields that could be passwords
+        const possiblePasswordFields = await driver.findElements(
+          By.css('input[type="password"], input[name*="password"], input[id*="password"]')
+        );
+
+        logger.info(`Found ${possiblePasswordFields.length} potential password fields`);
+
+        // If we have both username and password fields, it's likely a login page
+        if (possiblePasswordFields.length > 0) {
+          logger.info('Found both username and password fields, likely on login page');
+          return true;
+        }
+      }
+
+      // Try standard login elements as a fallback
+      const standardLoginElements = [
+        { type: 'id', value: 'username' },
+        { type: 'id', value: 'password' },
+        { type: 'css', value: 'button[type="submit"]' },
+        { type: 'css', value: 'div.login__form' },
+        { type: 'css', value: 'a.join-now' }
+      ];
+
+      // Check for alternative login page indicators
+      const alternativeLoginElements = [
+        { type: 'xpath', value: '//h1[contains(text(), "Sign in")]' },
+        { type: 'xpath', value: '//h1[contains(text(), "Log in")]' },
+        { type: 'xpath', value: '//div[contains(text(), "Sign in")]' },
+        { type: 'css', value: 'form[action*="login"]' },
+        { type: 'css', value: 'form[action*="checkpoint"]' },
+        { type: 'css', value: 'form[name*="login"]' }
+      ];
+
+      for (const element of [...standardLoginElements, ...alternativeLoginElements]) {
+        try {
+          const selector = element.type === 'id' ? By.id(element.value) :
+                           element.type === 'css' ? By.css(element.value) :
+                           By.xpath(element.value);
+
+          const found = await driver.findElements(selector);
+          if (found.length > 0) {
+            for (const el of found) {
+              if (await el.isDisplayed()) {
+                logger.info(`Found login element: ${element.type}=${element.value}`);
+                return true;
+              }
+            }
+          }
+        } catch (error) {
+          // Continue checking other elements
+        }
+      }
+
+      logger.info('Could not conclusively determine if on login page');
+      return false;
     } catch (error) {
+      logger.error(`Error checking if on login page: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }

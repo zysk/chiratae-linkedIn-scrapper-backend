@@ -261,21 +261,19 @@ class LeadProcessingService {
           profileUrl,
           campaignId,
           campaign.linkedinAccountId,
-          password,
           campaign.proxyId
         );
 
-        if (result.success && result.profileData) {
+        if (result) {
           // Mark the lead as processed with status COMPLETED
           await Lead.findByIdAndUpdate(leadId, {
             processingStatus: LeadProcessingStatus.COMPLETED,
             isSearched: true,
-            name: result.profileData.name,
-            headline: result.profileData.headline,
-            location: result.profileData.location,
-            summary: result.profileData.summary,
-            imageUrl: result.profileData.imageUrl,
-            connections: result.profileData.connections
+            name: result.name,
+            headline: result.headline,
+            location: result.location,
+            summary: result.about,
+            imageUrl: result.profilePictureUrl
           });
 
           // Update campaign stats
@@ -285,12 +283,12 @@ class LeadProcessingService {
             }
           });
 
-          logger.info(`Successfully scraped profile for lead ${leadId}: ${result.profileData.name}`);
+          logger.info(`Successfully scraped profile for lead ${leadId}: ${result.name}`);
           await this.jobQueue.markJobAsCompleted(jobId);
           return true;
         } else {
           // Handle scraping failure
-          const errorMessage = result.message || 'Unknown error during profile scraping';
+          const errorMessage = 'Failed to scrape profile data';
           logger.error(`Failed to scrape profile for lead ${leadId}: ${errorMessage}`);
 
           // Update lead status
@@ -357,7 +355,7 @@ class LeadProcessingService {
 
       if (unprocessedCount === 0 && pendingJobs.length === 0) {
         // Cleanup the WebDriver for this campaign
-        await this.webDriverManager.quitDriver(campaignId);
+        await this.webDriverManager.cleanup();
         logger.info(`Cleaned up WebDriver for completed campaign ${campaignId}`);
 
         // Update campaign status to completed

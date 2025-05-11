@@ -7,7 +7,9 @@ import {
   testLoginSchema,
   searchProfilesSchema,
   getNextAccountSchema,
-  getNextProxySchema
+  getNextProxySchema,
+  verifySelectorSchema,
+  updateSelectorSchema
 } from '../utils/validation/linkedinSearch.validation';
 
 const router = Router();
@@ -39,5 +41,19 @@ router.get('/accounts/next', [authenticate, adminOnly], validate(getNextAccountS
  * @access Admin only
  */
 router.get('/proxies/next', [authenticate, adminOnly], validate(getNextProxySchema, 'query'), linkedInController.getNextProxy);
+
+/**
+ * @route POST /api/linkedin/selectors/verify
+ * @desc Verify LinkedIn selectors against a profile
+ * @access Admin only
+ */
+router.post('/selectors/verify', [authenticate, adminOnly], validate(verifySelectorSchema), linkedInController.verifySelectors);
+
+/**
+ * @route POST /api/linkedin/selectors/update
+ * @desc Analyze and update LinkedIn selectors
+ * @access Admin only
+ */
+router.post('/selectors/update', [authenticate, adminOnly], validate(updateSelectorSchema), linkedInController.updateSelectors);
 
 export default router;

@@ -7,6 +7,16 @@ import os from 'os';
 import { IProxy } from '../../models/proxy.model';
 import logger from '../../utils/logger';
 import fs from 'fs';
+import { CONFIG } from '../../utils/config';
+
+/**
+ * Driver options for creating a WebDriver instance
+ */
+interface DriverOptions {
+	headless?: boolean;
+	proxy?: IProxy;
+	userAgent?: string;
+}
 
 /**
  * SeleniumService provides methods for creating and managing WebDriver instances
@@ -85,14 +95,14 @@ export class SeleniumService {
 	 * @param headless Whether to run in headless mode
 	 * @returns Chrome options object
 	 */
-	private createDefaultChromeOptions(headless: boolean = false): Options {
+	private createDefaultChromeOptions(headless: boolean = CONFIG.BROWSER.HEADLESS): Options {
 		const options = new chrome.Options();
 
 		// Common options
 		options.addArguments('--no-sandbox');
 		options.addArguments('--disable-gpu');
 		options.addArguments('--remote-allow-origins=*');
-		options.addArguments('--window-size=1920,1080');
+		options.addArguments(`--window-size=${CONFIG.BROWSER.VIEWPORT.WIDTH},${CONFIG.BROWSER.VIEWPORT.HEIGHT}`);
 		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
 		// Set headless mode if needed
@@ -104,17 +114,17 @@ export class SeleniumService {
 	}
 
 	/**
-	 * Creates a new WebDriver instance
-	 * @param options Options for creating the WebDriver
-	 * @returns A promise that resolves to a WebDriver instance
+	 * Creates a new Selenium WebDriver with the specified options
+	 * @param options Configuration options for the driver
+	 * @returns A configured WebDriver instance
 	 */
-	public async createDriver(options: {
-		headless?: boolean,
-		proxy?: IProxy,
-		userAgent?: string
-	} = {}): Promise<WebDriver> {
+	public async createDriver(options: DriverOptions = {}): Promise<WebDriver> {
 		try {
-			const chromeOptions = this.createDefaultChromeOptions(options.headless);
+			logger.info(`Creating Chrome driver with options: ${JSON.stringify(options)}`);
+			logger.info(`Using ChromeDriver from ${process.platform} directory`);
+
+			// Create Chrome options with anti-detection enhancements
+			const chromeOptions = this.createEnhancedChromeOptions(options.headless ?? CONFIG.BROWSER.HEADLESS);
 
 			// Add proxy if provided
 			if (options.proxy) {
@@ -123,11 +133,6 @@ export class SeleniumService {
 					chromeOptions.addArguments(`--proxy-server=${proxyString}`);
 					logger.info(`Using proxy: ${options.proxy.host}:${options.proxy.port}`);
 				}
-			}
-
-			// Add custom user agent if provided
-			if (options.userAgent) {
-				chromeOptions.addArguments(`--user-agent=${options.userAgent}`);
 			}
 
 			// Get the correct chromedriver path for this platform
@@ -141,15 +146,72 @@ export class SeleniumService {
 				.setChromeOptions(chromeOptions)
 				.build();
 
+			// Set script and page load timeouts
+			await driver.manage().setTimeouts({
+				script: CONFIG.BROWSER.TIMEOUT.SCRIPT,
+				pageLoad: CONFIG.BROWSER.TIMEOUT.PAGE_LOAD,
+				implicit: CONFIG.BROWSER.TIMEOUT.ELEMENT
+			});
+
 			// Keep track of active drivers
 			this.activeDrivers.push(driver);
-
+			logger.info('Chrome driver created successfully');
 			return driver;
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
-			logger.error('Error creating WebDriver:', errorMessage);
+			logger.error(`Error creating WebDriver: ${errorMessage}`);
 			throw new Error(`Failed to create WebDriver: ${errorMessage}`);
 		}
+	}
+
+	/**
+	 * Creates enhanced Chrome options with anti-detection and stability features
+	 * @param headless Whether to run Chrome in headless mode
+	 * @returns Chrome options object
+	 */
+	private createEnhancedChromeOptions(headless: boolean): chrome.Options {
+		// Create base Chrome options
+		const chromeOptions = new chrome.Options();
+
+		// Add enhanced arguments for stability and anti-detection
+		chromeOptions.addArguments(
+			'--disable-dev-shm-usage',          // Overcome limited resource problems
+			'--no-sandbox',                      // Required for running Chrome in containers
+			'--disable-gpu',                     // Reduces CPU/GPU usage
+			'--disable-setuid-sandbox',          // Additional sandbox security
+			'--disable-infobars',                // Disable info bars that interfere with testing
+			'--disable-notifications',           // Disable notifications
+			'--disable-extensions',              // Disable extensions
+			'--disable-popup-blocking',          // Disable popup blocking
+			'--disable-web-security',            // Disable web security for login redirects
+			'--disable-software-rasterizer',     // Avoid WebGL errors
+			'--ignore-certificate-errors',       // Ignore certificate errors
+			'--enable-unsafe-swiftshader',       // Address WebGL issues in error logs
+			'--window-size=1920,1080',           // Set standard window size
+			'--start-maximized'                  // Maximize window
+		);
+
+		// Set enhanced user agent
+		const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
+		chromeOptions.addArguments(`--user-agent=${userAgent}`);
+
+		// Add headless specific options
+		if (headless) {
+			chromeOptions.addArguments(
+				'--headless=new',                  // Use new headless mode
+				'--disable-blink-features=AutomationControlled'  // Prevent automation detection
+			);
+		}
+
+		// Add experimental options to prevent detection
+		chromeOptions.addArguments('--disable-blink-features=AutomationControlled');
+		// Set preferences to prevent detection
+		chromeOptions.setUserPreferences({
+			'credentials_enable_service': false,
+			'profile.password_manager_enabled': false
+		});
+
+		return chromeOptions;
 	}
 
 	/**
