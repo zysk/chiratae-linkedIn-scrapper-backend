@@ -1561,15 +1561,15 @@
 							]
 						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}"
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
@@ -1582,8 +1582,7 @@
 								"selectors",
 								"verify"
 							]
-						},
-						"description": "Test LinkedIn selectors against a specific profile URL"
+						}
 					},
 					"response": []
 				},
@@ -1601,15 +1600,15 @@
 							]
 						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"useLatestLead\": true,\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}"
+							"raw": "{\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"useLatestLead\": true,\n    \"proxyId\": \"{{proxyId}}\",\n    \"outputPath\": \"{{selectorsOutputPath}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/verify",
@@ -1622,8 +1621,7 @@
 								"selectors",
 								"verify"
 							]
-						},
-						"description": "Test LinkedIn selectors against the most recent lead in the database"
+						}
 					},
 					"response": []
 				},
@@ -1641,15 +1639,15 @@
 							]
 						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"metricsPath\": \"{{selectorsOutputPath}}\",\n    \"threshold\": \"{{selectorThreshold}}\",\n    \"updateSelectorFile\": true,\n    \"selectorFile\": \"./data/selectors.json\",\n    \"category\": [\"Profile Headline\", \"Experience Section\"]\n}"
+							"raw": "{\n    \"metricsPath\": \"{{selectorsOutputPath}}\",\n    \"threshold\": \"{{selectorThreshold}}\",\n    \"updateSelectorFile\": true,\n    \"selectorFile\": \"./data/selectors.json\",\n    \"category\": [\"Profile Headline\", \"Experience Section\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/linkedin/selectors/update",
@@ -1662,8 +1660,46 @@
 								"selectors",
 								"update"
 							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Selectors with Generation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
 						},
-						"description": "Analyze selector health metrics and get recommendations for updates"
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"metricsPath\": \"{{selectorsOutputPath}}\",\n    \"threshold\": \"{{selectorThreshold}}\",\n    \"updateSelectorFile\": true,\n    \"selectorFile\": \"./data/selectors.json\",\n    \"category\": [\"Profile Headline\", \"Experience Section\"],\n    \"generateNewSelectors\": true,\n    \"profileUrl\": \"https://www.linkedin.com/in/ganapati-moger-804b1b1a4/\",\n    \"linkedinAccountId\": \"{{linkedinAccountId}}\",\n    \"password\": \"{{linkedinAccountPass}}\",\n    \"proxyId\": \"{{proxyId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/linkedin/selectors/update",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"linkedin",
+								"selectors",
+								"update"
+							]
+						}
 					},
 					"response": []
 				}

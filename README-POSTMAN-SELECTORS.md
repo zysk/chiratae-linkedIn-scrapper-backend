@@ -16,11 +16,11 @@ Ensure the following environment variables are set:
 |----------|-------------|---------------|
 | `baseUrl` | Base URL of your API | `http://localhost:4001` |
 | `adminToken` | Admin JWT token for authentication | *will be set automatically after login* |
-| `linkedinAccountId` | MongoDB ID of your LinkedIn account | `6818bff2b7e52b5311125963` |
-| `linkedinAccountPass` | Password for your LinkedIn account | `YourPassword123` |
-| `proxyId` | MongoDB ID of your proxy (optional) | `681bffb42016c9d82a043a47` |
-| `selectorsOutputPath` | Path to save selector metrics | `./output/selector-metrics.json` |
-| `selectorThreshold` | Threshold for selector health (0-1) | `0.5` |
+| `linkedinAccountId` | MongoDB ID of your LinkedIn account | `6818bff2b770ad95a07b5e05` |
+| `linkedinAccountPass` | Password for your LinkedIn account | `YourSecurePassword` |
+| `proxyId` | MongoDB ID of a proxy to use (optional) | `6818bff2b770ad95a07b5e06` |
+| `selectorsOutputPath` | Path to save selector metrics | `./output/selectors-metrics.json` |
+| `selectorThreshold` | Success rate threshold (0-1) | `0.5` |
 
 ## Authentication
 
@@ -29,88 +29,100 @@ Ensure the following environment variables are set:
 
 ## Available Requests
 
-### 1. Verify Selectors with ProfileURL
+### LinkedIn Selectors Folder
 
-This request tests LinkedIn selectors against a specific profile URL.
+#### 1. Verify Selectors with ProfileURL
 
-**Request Details:**
-- **Method:** POST
-- **Endpoint:** `{{baseUrl}}/api/linkedin/selectors/verify`
-- **Authentication:** Bearer Token (`{{adminToken}}`)
-- **Body:**
+Tests selectors against a specific LinkedIn profile URL.
+
+**Request:**
+- Method: `POST`
+- Endpoint: `{{baseUrl}}/api/linkedin/selectors/verify`
+- Body:
 ```json
 {
-  "linkedinAccountId": "{{linkedinAccountId}}",
-  "password": "{{linkedinAccountPass}}",
-  "profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
-  "proxyId": "{{proxyId}}",
-  "outputPath": "{{selectorsOutputPath}}"
+    "linkedinAccountId": "{{linkedinAccountId}}",
+    "password": "{{linkedinAccountPass}}",
+    "profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
+    "proxyId": "{{proxyId}}",
+    "outputPath": "{{selectorsOutputPath}}"
 }
 ```
 
-### 2. Verify Selectors with Latest Lead
+#### 2. Verify Selectors with Latest Lead
 
-This request tests LinkedIn selectors against the most recent lead in your database.
+Tests selectors against the latest lead in your database that has a LinkedIn profile URL.
 
-**Request Details:**
-- **Method:** POST
-- **Endpoint:** `{{baseUrl}}/api/linkedin/selectors/verify`
-- **Authentication:** Bearer Token (`{{adminToken}}`)
-- **Body:**
+**Request:**
+- Method: `POST`
+- Endpoint: `{{baseUrl}}/api/linkedin/selectors/verify`
+- Body:
 ```json
 {
-  "linkedinAccountId": "{{linkedinAccountId}}",
-  "password": "{{linkedinAccountPass}}",
-  "useLatestLead": true,
-  "proxyId": "{{proxyId}}",
-  "outputPath": "{{selectorsOutputPath}}"
+    "linkedinAccountId": "{{linkedinAccountId}}",
+    "password": "{{linkedinAccountPass}}",
+    "useLatestLead": true,
+    "proxyId": "{{proxyId}}",
+    "outputPath": "{{selectorsOutputPath}}"
 }
 ```
 
-### 3. Update Selectors
+#### 3. Update Selectors
 
-This request analyzes selector health metrics and provides recommendations for updates.
+Analyzes selector metrics and updates selectors in your selectors.json file.
 
-**Request Details:**
-- **Method:** POST
-- **Endpoint:** `{{baseUrl}}/api/linkedin/selectors/update`
-- **Authentication:** Bearer Token (`{{adminToken}}`)
-- **Body:**
+**Request:**
+- Method: `POST`
+- Endpoint: `{{baseUrl}}/api/linkedin/selectors/update`
+- Body:
 ```json
 {
-  "metricsPath": "{{selectorsOutputPath}}",
-  "threshold": "{{selectorThreshold}}",
-  "updateSelectorFile": true,
-  "selectorFile": "./data/selectors.json",
-  "category": ["Profile Headline", "Experience Section"]
+    "metricsPath": "{{selectorsOutputPath}}",
+    "threshold": "{{selectorThreshold}}",
+    "updateSelectorFile": true,
+    "selectorFile": "./data/selectors.json",
+    "category": ["Profile Headline", "Experience Section"]
 }
 ```
 
-#### Category Parameter Options
+#### 4. Update Selectors with Generation
 
-The `category` parameter can be provided in two ways:
+Analyzes selector metrics and automatically generates new selectors for categories where all selectors are failing.
 
-1. As a single string to process one category:
+**Request:**
+- Method: `POST`
+- Endpoint: `{{baseUrl}}/api/linkedin/selectors/update`
+- Body:
 ```json
-"category": "Profile Headline"
+{
+    "metricsPath": "{{selectorsOutputPath}}",
+    "threshold": "{{selectorThreshold}}",
+    "updateSelectorFile": true,
+    "selectorFile": "./data/selectors.json",
+    "category": ["Profile Headline", "Experience Section"],
+    "generateNewSelectors": true,
+    "profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
+    "linkedinAccountId": "{{linkedinAccountId}}",
+    "password": "{{linkedinAccountPass}}",
+    "proxyId": "{{proxyId}}"
+}
 ```
 
-2. As an array of strings to process multiple categories:
-```json
-"category": ["Profile Headline", "Experience Section", "About Section"]
-```
+## Workflow Example
 
-If you omit the `category` parameter, all categories will be processed.
+1. **Log in as admin** to get your authentication token
+2. **Verify selectors** against a specific profile or the latest lead
+3. **Review the verification results** to identify poor-performing selectors
+4. **Update selectors** to replace poor-performing ones with better ones
+5. **Generate new selectors** for categories where all selectors are failing
 
-## Usage Workflow
+## Tips for Successful Usage
 
-1. **First, verify selectors** using either "Verify Selectors with ProfileURL" or "Verify Selectors with Latest Lead"
-   - This generates metrics about which selectors are working and which need attention
-   - Results are saved to the file specified in `{{selectorsOutputPath}}`
-
-2. **Then, analyze and update selectors** using "Update Selectors"
-   - This analyzes the metrics file and provides recommendations
-   - If `updateSelectorFile` is true, it will automatically update your selectors file
+- Always run the verification before updating to get fresh metrics
+- The selector generation feature requires the profile URL and LinkedIn credentials
+- Generation works best on public or 1st-degree connection profiles
+- You can focus on specific categories by passing an array of category names
+- All requests use Bearer token authentication with the admin token
 
 ## Troubleshooting
 

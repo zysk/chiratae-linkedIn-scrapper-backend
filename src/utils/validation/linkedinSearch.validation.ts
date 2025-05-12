@@ -77,5 +77,10 @@ export const updateSelectorSchema = Joi.object({
     Joi.array().items(Joi.string())
   ).optional(),
   updateSelectorFile: Joi.boolean().default(true),
-  selectorFile: Joi.string().optional()
+  selectorFile: Joi.string().optional(),
+  generateNewSelectors: Joi.boolean().default(false),
+  profileUrl: Joi.string().optional(),
+  linkedinAccountId: Joi.string().optional(),
+  password: Joi.string().optional(),
+  proxyId: Joi.string().optional()
 });

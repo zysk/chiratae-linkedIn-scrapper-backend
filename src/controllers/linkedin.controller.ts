@@ -10,9 +10,11 @@ import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
 import Campaign, { CampaignStatus } from '../models/campaign.model';
 import Lead, { ILead } from '../models/lead.model';
 import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
+import { SelectorGenerator } from '../services/linkedin/SelectorGenerator';
 import fs from 'fs/promises';
 import path from 'path';
 import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
+import * as selectorsUtil from '../utils/selectors';
 
 /**
  * Controller for LinkedIn operations
@@ -621,13 +623,26 @@ class LinkedInController {
   /**
    * Update LinkedIn selectors
    * Analyzes selector health metrics and updates/replaces poor performing selectors
+   * Also generates new selectors for categories that have no working selectors
    * @param req Request object
    * @param res Response object
    * @param next Next function
    */
   public updateSelectors = async (req: Request, res: Response, next: NextFunction) => {
+    let loginResult: LoginResult | null = null;
     try {
-      const { metricsPath, threshold = 0.5, category, updateSelectorFile = true, selectorFile } = req.body;
+      const {
+        metricsPath,
+        threshold = 0.5,
+        category,
+        updateSelectorFile = true,
+        selectorFile,
+        profileUrl,
+        linkedinAccountId,
+        password,
+        proxyId,
+        generateNewSelectors = false
+      } = req.body;
 
       if (!metricsPath) {
         return res.status(400).json({
@@ -687,6 +702,7 @@ class LinkedInController {
       // Process categories and identify selectors that need attention
       const results: any = {};
       const selectorUpdates: any = {};
+      const categoriesNeedingNewSelectors: string[] = [];
 
       for (const categoryName of categoriesToProcess) {
         const metrics = categorizedMetrics.get(categoryName)!;
@@ -719,6 +735,69 @@ class LinkedInController {
             replacedSelectors: poorSelectors.map(s => s.selector),
             effectiveSelectors: goodSelectors.map(s => s.selector)
           };
+        } else if (goodSelectors.length === 0 && generateNewSelectors) {
+          // If we have no good selectors for this category, we'll need to generate new ones
+          categoriesNeedingNewSelectors.push(categoryName);
+        }
+      }
+
+      // If there are categories with no working selectors and we want to generate new ones
+      let generatedSelectors: Record<string, string[]> = {};
+      if (generateNewSelectors && categoriesNeedingNewSelectors.length > 0 && profileUrl && linkedinAccountId) {
+        logger.info(`Generating new selectors for ${categoriesNeedingNewSelectors.length} categories`);
+
+        try {
+          // Get LinkedIn account
+          const account = await LinkedInAccount.findById(linkedinAccountId);
+          if (!account) {
+            logger.error('LinkedIn account not found for selector generation');
+          } else {
+            // Get proxy if provided
+            let proxy = undefined;
+            if (proxyId) {
+              proxy = await Proxy.findById(proxyId);
+            }
+
+            // Login to LinkedIn
+            loginResult = await LinkedInAuthService.login(account, password, proxy);
+
+            if (loginResult.driver && await LinkedInAuthService.isLoggedIn(loginResult.driver)) {
+              // Navigate to the profile URL
+              await loginResult.driver.get(profileUrl);
+
+              // Wait for page to load
+              await loginResult.driver.sleep(5000);
+
+              // Create selector generator
+              const generator = new SelectorGenerator(loginResult.driver);
+
+              // Generate selectors for all categories that need them
+              generatedSelectors = await generator.generateSelectorsForCategories(categoriesNeedingNewSelectors);
+
+              // Test the generated selectors
+              for (const category of categoriesNeedingNewSelectors) {
+                const selectors = generatedSelectors[category] || [];
+                if (selectors.length > 0) {
+                  // Test the selectors
+                  const workingSelectors = await generator.testGeneratedSelectors(category, selectors);
+
+                  if (workingSelectors.length > 0) {
+                    logger.info(`Generated ${workingSelectors.length} working selectors for ${category}`);
+
+                    // Add generated selectors to the updates
+                    selectorUpdates[category] = {
+                      newlyGeneratedSelectors: true,
+                      effectiveSelectors: workingSelectors
+                    };
+                  }
+                }
+              }
+            } else {
+              logger.error('Failed to login to LinkedIn for selector generation');
+            }
+          }
+        } catch (error) {
+          logger.error(`Error during selector generation: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -745,24 +824,44 @@ class LinkedInController {
             // Keep track of which selectors we've updated
             const updatedOriginalSelectors = new Set<string>();
 
-            // Update poor-performing selectors with the best working selector
-            const bestSelector = (update as any).bestSelector;
-            const effectiveSelectors = (update as any).effectiveSelectors || [];
-            const replacedSelectors = (update as any).replacedSelectors || [];
+            if ((update as any).newlyGeneratedSelectors) {
+              // For newly generated selectors, add them to the list
+              const effectiveSelectors = (update as any).effectiveSelectors || [];
 
-            // Add all effective selectors if they're not already in the list
-            for (const selector of effectiveSelectors) {
-              if (!selectorData[category].includes(selector)) {
-                selectorData[category].push(selector);
+              // Add newly generated working selectors
+              for (const selector of effectiveSelectors) {
+                if (!selectorData[category].includes(selector)) {
+                  selectorData[category].push(selector);
+                }
               }
-            }
 
-            // Remove and replace the poor performing selectors
-            for (const selector of replacedSelectors) {
-              const index = selectorData[category].indexOf(selector);
-              if (index !== -1) {
-                selectorData[category].splice(index, 1);
-                updatedOriginalSelectors.add(selector);
+              // If we generated new selectors, also add some default ones as backup
+              const defaultsForCategory = selectorsUtil.defaultSelectors[category] || [];
+              for (const defaultSelector of defaultsForCategory) {
+                if (!selectorData[category].includes(defaultSelector)) {
+                  selectorData[category].push(defaultSelector);
+                }
+              }
+            } else {
+              // Update poor-performing selectors with the best working selector
+              const bestSelector = (update as any).bestSelector;
+              const effectiveSelectors = (update as any).effectiveSelectors || [];
+              const replacedSelectors = (update as any).replacedSelectors || [];
+
+              // Add all effective selectors if they're not already in the list
+              for (const selector of effectiveSelectors) {
+                if (!selectorData[category].includes(selector)) {
+                  selectorData[category].push(selector);
+                }
+              }
+
+              // Remove and replace the poor performing selectors
+              for (const selector of replacedSelectors) {
+                const index = selectorData[category].indexOf(selector);
+                if (index !== -1) {
+                  selectorData[category].splice(index, 1);
+                  updatedOriginalSelectors.add(selector);
+                }
               }
             }
           }
@@ -781,6 +880,11 @@ class LinkedInController {
         }
       }
 
+      // Add information about generated selectors to the results
+      if (Object.keys(generatedSelectors).length > 0) {
+        results.generatedSelectors = generatedSelectors;
+      }
+
       return res.status(200).json({
         success: true,
         message: 'Selector analysis completed successfully',
@@ -796,6 +900,15 @@ class LinkedInController {
         message: 'An error occurred while analyzing LinkedIn selectors',
         error: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      // Clean up WebDriver if used
+      if (loginResult && loginResult.driver) {
+        try {
+          await SeleniumService.quitDriver(loginResult.driver);
+        } catch (error) {
+          logger.error(`Error quitting driver: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
     }
   };
 }
