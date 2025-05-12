@@ -1,30 +1,30 @@
 import express from 'express';
 import {
-  createCampaign,
-  getCampaigns,
-  getCampaignById,
-  updateCampaign,
-  deleteCampaign,
-  addCampaignToQueue,
-  getCampaignResults,
-  searchLinkedin,
-  linkedInProfileScrappingReq,
-  scheduleCampaign,
-  scrapeProfiles,
-  getScrapeStatus,
-  getLeadStatus
+	addCampaignToQueue,
+	reateCampaign,
+	dtleCeampaigns
+	etCampaignById,
+	gCtampaign,Rlsuees,
+	gCtampaign,s
+	getLeddStmtes
+	etCScrmasSsatu,
+	inkedInProfileScrappingReq,
+	cheduleCampaign,
+	crapeProfiles,
+	stprchLinkSdin
+	updaLaCdmptign
 } from '../controllers/campaign.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  createCampaignSchema,
-  updateCampaignSchema,
-  queueCampaignSchema,
-  campaignFilterSchema,
-  scheduleCampaignSchema
+	rmpaignSFilterchema,
+	creteCampaignSchema,
+	ueueCampaignSchema,
+	saheduleCmpaignFchema,
+	upuatCampaignSchema
 } from '../utils/validation/campaign.validation';
-import { profileScrapeSchema, linkedinSearchSchema, campaignIdParamSchema } from '../utils/validation/linkedin.validation';
 import { leadIdParamAltSchema } from '../utils/validation/lead.validation';
+import { campaignIdParamSchema, linkedinSearchSchema, profileScrapeSchema } from '../utils/validation/linkedin.validation';
 
 const router = express.Router();
 
@@ -33,14 +33,14 @@ router.use(authenticate);
 
 // Campaign CRUD routes
 router.route('/')
-  .post(validate(createCampaignSchema), createCampaign)     // Create a new campaign
-  .get(validate(campaignFilterSchema, 'query'), getCampaigns);       // Get all campaigns with filters
+	.post(validate(createCampaignSchema), createCampaign)     // Create a new campaign
+	.get(validate(campaignFilterSchema, 'query'), getCampaigns);       // Get all campaigns with filters
 
 // Single campaign routes
 router.route('/:id')
-  .get(getCampaignById)     // Get a single campaign by ID
-  .put(validate(updateCampaignSchema), updateCampaign)      // Update a campaign
-  .delete(deleteCampaign);  // Delete a campaign
+	.get(getCampaignById)     // Get a single campaign by ID
+	.put(validate(updateCampaignSchema), updateCampaign)      // Update a campaign
+	.delete(deleteCampaign);  // Delete a campaign
 
 // Campaign queue management
 router.post('/queue', validate(queueCampaignSchema), addCampaignToQueue);  // Add campaign to execution queue
@@ -59,6 +59,6 @@ router.post('/:id/schedule', validate(scheduleCampaignSchema), scheduleCampaign)
 
 // Lead status endpoint
 router.route('/leads/:leadId/status')
-  .get(validate(leadIdParamAltSchema, 'params'), getLeadStatus);
+	.get(validate(leadIdParamAltSchema, 'params'), getLeadStatus);
 
 export default router;

@@ -1,5 +1,5 @@
-import Proxy, { IProxy } from '../models/proxy.model';
 import LinkedInAccount, { ILinkedInAccount } from '../models/linkedinAccount.model';
+import Proxy, { IProxy } from '../models/proxy.model';
 
 /**
  * Class to manage proxy rotation and selection
@@ -10,7 +10,7 @@ export class ProxyManager {
   private lastUpdated: Date = new Date(0); // Initialize with epoch time
   private cacheTTL: number = 60 * 1000; // 1 minute in milliseconds
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance of the ProxyManager
@@ -93,7 +93,7 @@ export class LinkedInAccountManager {
   private lastUpdated: Date = new Date(0); // Initialize with epoch time
   private cacheTTL: number = 60 * 1000; // 1 minute in milliseconds
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance of the LinkedInAccountManager

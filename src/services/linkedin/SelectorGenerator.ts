@@ -1,6 +1,5 @@
-import { WebDriver, By, WebElement } from 'selenium-webdriver';
+import { By, WebDriver, WebElement } from 'selenium-webdriver';
 import logger from '../../utils/logger';
-import * as selectorsUtil from '../../utils/selectors';
 
 /**
  * Class for generating and recommending CSS selectors from HTML analysis

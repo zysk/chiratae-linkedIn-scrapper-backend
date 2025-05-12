@@ -1,10 +1,10 @@
 import { WebDriver } from 'selenium-webdriver';
+import { ILinkedInAccount } from '../../models/linkedinAccount.model';
 import { IProxy } from '../../models/proxy.model';
-import { SeleniumService } from './SeleniumService';
+import { CONFIG } from '../../utils/config';
 import logger from '../../utils/logger';
 import { LinkedInAuthService } from '../linkedin/LinkedInAuthService';
-import { ILinkedInAccount } from '../../models/linkedinAccount.model';
-import { CONFIG } from '../../utils/config';
+import { SeleniumService } from './SeleniumService';
 
 /**
  * Interface for session information

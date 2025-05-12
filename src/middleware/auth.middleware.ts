@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyToken, extractTokenFromHeader, JwtPayload } from '../utils/auth.utils';
-import { CONFIG } from '../utils/config';
+import { NextFunction, Request, Response } from 'express';
 import User from '../models/user.model';
+import { extractTokenFromHeader, JwtPayload, verifyToken } from '../utils/auth.utils';
+import { CONFIG } from '../utils/config';
 import { ApiError } from './errorHandler';
 
 // Extend Express Request to include user property

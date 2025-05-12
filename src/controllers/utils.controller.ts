@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
+import { IAuthRequest } from '../middleware/auth.middleware';
+import ScreenshotCleanupService from '../services/utils/ScreenshotCleanupService';
 import { ApiError } from '../utils/error.utils';
 import logger from '../utils/logger';
-import ScreenshotCleanupService from '../services/utils/ScreenshotCleanupService';
-import { IAuthRequest } from '../middleware/auth.middleware';
-import { isValidObjectId } from 'mongoose';
 
 /**
  * Controller for utility operations

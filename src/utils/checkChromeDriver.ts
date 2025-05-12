@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import { execSync } from 'child_process';
-import logger from './logger';
+import fs from 'fs';
 import os from 'os';
+import path from 'path';
+import logger from './logger';
 
 /**
  * Checks if ChromeDriver is installed and compatible with current Chrome version

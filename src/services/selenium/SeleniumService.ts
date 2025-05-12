@@ -1,13 +1,12 @@
-import { Builder, WebDriver } from 'selenium-webdriver';
-import chrome from 'selenium-webdriver/chrome';
-import { Options } from 'selenium-webdriver/chrome';
-import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
-import path from 'path';
-import os from 'os';
-import { IProxy } from '../../models/proxy.model';
-import logger from '../../utils/logger';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { Builder, WebDriver } from 'selenium-webdriver';
+import chrome, { Options } from 'selenium-webdriver/chrome';
+import { PageLoadStrategy } from 'selenium-webdriver/lib/capabilities';
+import { IProxy } from '../../models/proxy.model';
 import { CONFIG } from '../../utils/config';
+import logger from '../../utils/logger';
 
 /**
  * Driver options for creating a WebDriver instance

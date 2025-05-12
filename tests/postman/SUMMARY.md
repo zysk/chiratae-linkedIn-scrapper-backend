@@ -29,36 +29,41 @@ The Chiratae LinkedIn Scraper is a TypeScript/Node.js application designed to au
 ### Key Models
 
 1. **User Model**:
-   - Handles user authentication, multiple roles (User, Admin)
-   - Manages user metadata and permissions
-   - Includes fields for performance tracking
+
+    - Handles user authentication, multiple roles (User, Admin)
+    - Manages user metadata and permissions
+    - Includes fields for performance tracking
 
 2. **Campaign Model**:
-   - Represents a LinkedIn search campaign
-   - Stores search parameters, status, results
-   - Supports scheduling and priority settings
-   - Tracks statistics like profiles found/scraped
+
+    - Represents a LinkedIn search campaign
+    - Stores search parameters, status, results
+    - Supports scheduling and priority settings
+    - Tracks statistics like profiles found/scraped
 
 3. **Lead Model**:
-   - Bridges campaigns and scraped profiles
-   - Tracks status and assignments
-   - Includes client ID from LinkedIn
-   - Supports comment and follow-up functionality
+
+    - Bridges campaigns and scraped profiles
+    - Tracks status and assignments
+    - Includes client ID from LinkedIn
+    - Supports comment and follow-up functionality
 
 4. **LinkedIn Account Model**:
-   - Manages LinkedIn credentials
-   - Handles encryption for sensitive data
-   - Tracks usage statistics and last used timestamp
+
+    - Manages LinkedIn credentials
+    - Handles encryption for sensitive data
+    - Tracks usage statistics and last used timestamp
 
 5. **Proxy Model**:
-   - Configures proxy servers for avoiding rate limits
-   - Manages rotation and usage tracking
-   - Supports different protocols
+
+    - Configures proxy servers for avoiding rate limits
+    - Manages rotation and usage tracking
+    - Supports different protocols
 
 6. **User Rating Model**:
-   - Performance evaluation system
-   - Allows rating users on a scale
-   - Includes comments and feedback
+    - Performance evaluation system
+    - Allows rating users on a scale
+    - Includes comments and feedback
 
 ### API Routes
 
@@ -86,40 +91,46 @@ Analysis of the MongoDB database reveals:
 A comprehensive Postman collection has been created to test and document all API endpoints. The collection includes:
 
 1. **Authentication Endpoints**:
-   - User registration and login
-   - Admin registration and login
-   - Token refresh
-   - User profile management
+
+    - User registration and login
+    - Admin registration and login
+    - Token refresh
+    - User profile management
 
 2. **Campaign Management**:
-   - Create, read, update, delete campaigns
-   - Queue campaigns for execution
-   - Schedule campaigns
-   - LinkedIn search and scraping triggers
-   - Results retrieval
+
+    - Create, read, update, delete campaigns
+    - Queue campaigns for execution
+    - Schedule campaigns
+    - LinkedIn search and scraping triggers
+    - Results retrieval
 
 3. **Account Management**:
-   - LinkedIn account creation and management
-   - Proxy configuration
-   - User management (admin only)
+
+    - LinkedIn account creation and management
+    - Proxy configuration
+    - User management (admin only)
 
 4. **Lead Management**:
-   - Lead listing and filtering
-   - Status updates
-   - Comments and follow-ups
+
+    - Lead listing and filtering
+    - Status updates
+    - Comments and follow-ups
 
 5. **LinkedIn API**:
-   - Direct LinkedIn interactions
-   - Account testing
-   - Profile searching
+
+    - Direct LinkedIn interactions
+    - Account testing
+    - Profile searching
 
 6. **Utils API**:
-   - System maintenance operations
-   - Screenshot cleanup
+
+    - System maintenance operations
+    - Screenshot cleanup
 
 7. **User Rating API**:
-   - Performance rating system
-   - Rating retrieval
+    - Performance rating system
+    - Rating retrieval
 
 ### Collection Features
 

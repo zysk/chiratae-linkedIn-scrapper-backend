@@ -13,9 +13,9 @@ This guide provides instructions for using the Postman collections to test the C
 1. Open Postman
 2. Click on **Import** button in the top left
 3. Choose **Upload Files** and select the following files from the `postman` directory:
-   - `ChirataeScraper_Auth_Tests.postman_collection.json`
-   - `ChirataeScraper_LinkedIn_Proxy_Tests.postman_collection.json`
-   - `ChirataeScraper_Environment.postman_environment.json`
+    - `ChirataeScraper_Auth_Tests.postman_collection.json`
+    - `ChirataeScraper_LinkedIn_Proxy_Tests.postman_collection.json`
+    - `ChirataeScraper_Environment.postman_environment.json`
 4. Click **Import**
 
 ## Setting Up Environment
@@ -32,14 +32,14 @@ This guide provides instructions for using the Postman collections to test the C
 2. Expand the **Authentication** folder
 3. First run the **Register Admin** request (if an admin doesn't exist yet)
 4. Then run the **Login Admin** request to authenticate
-   - This will automatically set the `adminAccessToken` and `adminRefreshToken` variables
+    - This will automatically set the `adminAccessToken` and `adminRefreshToken` variables
 5. Test other endpoints in the collection that require authentication
 
 ## Running LinkedIn Account and Proxy Tests
 
 1. In the **Collections** tab, open the **Chiratae LinkedIn Scraper - LinkedIn & Proxy Tests** collection
 2. Expand the **Authentication** folder and run the **Login Admin** request first
-   - This will set the necessary access token for subsequent requests
+    - This will set the necessary access token for subsequent requests
 3. Expand the **LinkedIn Accounts** folder to test LinkedIn account endpoints
 4. Expand the **Proxies** folder to test proxy endpoints
 
@@ -61,6 +61,7 @@ npm run test:linkedin-proxy
 ```
 
 This script will:
+
 1. Authenticate as admin
 2. Test all LinkedIn account endpoints
 3. Test all proxy endpoints
@@ -71,16 +72,18 @@ This script will:
 If you encounter issues:
 
 1. **Port conflicts**: Use the port management scripts
-   ```bash
-   npm run port:check 4000  # Check if port 4000 is available
-   npm run port:find        # Find the next available port
-   npm run dev:4001         # Run server on port 4001
-   ```
+
+    ```bash
+    npm run port:check 4000  # Check if port 4000 is available
+    npm run port:find        # Find the next available port
+    npm run dev:4001         # Run server on port 4001
+    ```
 
 2. **Authentication errors**: Verify admin user exists
-   ```bash
-   node scripts/check-users.js
-   node scripts/create-admin-user.js
-   ```
+
+    ```bash
+    node scripts/check-users.js
+    node scripts/create-admin-user.js
+    ```
 
 3. **Response format issues**: Check the API response format in the [API_ENDPOINTS.md](API_ENDPOINTS.md) document

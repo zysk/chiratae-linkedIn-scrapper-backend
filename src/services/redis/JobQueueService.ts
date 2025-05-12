@@ -1,6 +1,6 @@
-import RedisService from './RedisService';
-import logger from '../../utils/logger';
 import { ObjectId } from 'mongodb';
+import logger from '../../utils/logger';
+import RedisService from './RedisService';
 
 /**
  * Types of jobs in the queue

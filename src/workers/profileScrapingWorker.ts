@@ -1,7 +1,6 @@
-import logger from '../utils/logger';
-import JobQueueService, { JobType, QueueName } from '../services/redis/JobQueueService';
 import LeadProcessingService from '../services/linkedin/LeadProcessingService';
-import { Job } from '../services/redis/JobQueueService';
+import JobQueueService, { Job, JobType } from '../services/redis/JobQueueService';
+import logger from '../utils/logger';
 
 /**
  * Profile Scraping Worker

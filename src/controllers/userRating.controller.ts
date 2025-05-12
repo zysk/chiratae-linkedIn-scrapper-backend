@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import UserRating from '../models/userRating.model';
-import User from '../models/user.model';
 import { ApiError } from '../middleware/errorHandler';
+import User from '../models/user.model';
+import UserRating from '../models/userRating.model';
 import { rolesObj } from '../utils/constants';
 
 /**

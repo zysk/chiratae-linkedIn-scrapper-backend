@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IUserRating extends Document {
   userId: mongoose.Types.ObjectId;      // User receiving the rating

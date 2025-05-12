@@ -5,6 +5,7 @@
 This document summarizes the testing performed on the LinkedIn Account and Proxy Management System.
 
 ### Test Environment
+
 - **Server URL**: http://localhost:4001/api
 - **Admin Credentials**: admin2@example.com / adminpass123
 - **Test Date**: May 4, 2025
@@ -12,10 +13,12 @@ This document summarizes the testing performed on the LinkedIn Account and Proxy
 ### Test Results
 
 #### Authentication Tests
+
 - ✅ **Admin Login**: Successfully authenticated and received JWT token
 - ✅ **Token Management**: Token successfully used for authenticated requests
 
 #### LinkedIn Account Tests
+
 - ✅ **Create LinkedIn Account**: Successfully created with unique credentials
 - ✅ **List LinkedIn Accounts**: Successfully retrieved all LinkedIn accounts
 - ✅ **Get LinkedIn Account by ID**: Successfully fetched details of a specific account
@@ -24,6 +27,7 @@ This document summarizes the testing performed on the LinkedIn Account and Proxy
 - ✅ **Delete LinkedIn Account**: Successfully deleted test account
 
 #### Proxy Tests
+
 - ✅ **Create Proxy**: Successfully created with unique host/port/protocol
 - ✅ **List Proxies**: Successfully retrieved all proxies
 - ✅ **Get Proxy by ID**: Successfully fetched details of a specific proxy

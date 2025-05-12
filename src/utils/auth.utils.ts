@@ -1,5 +1,5 @@
-import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { CONFIG } from './config';
 
 export interface JwtPayload {

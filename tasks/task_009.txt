@@ -65,4 +65,3 @@
 2. Modify the email service to enqueue email messages instead of sending them directly.
 3. Implement a background worker process to dequeue and send the email messages.
 4. Implement retry logic and error handling for failed email deliveries.
-

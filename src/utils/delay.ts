@@ -12,7 +12,7 @@ import { WebElement } from 'selenium-webdriver';
  * @returns A promise that resolves after the specified time
  */
 export const sleep = (ms: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 /**
@@ -24,15 +24,15 @@ export const sleep = (ms: number): Promise<void> => {
  * @returns A promise that resolves after a random time between minMs and maxMs
  */
 export const randomDelay = async (minMs: number = 1000, maxMs: number = 3000): Promise<void> => {
-  // Ensure valid range
-  if (minMs < 0) minMs = 0;
-  if (maxMs < minMs) maxMs = minMs;
+	// Ensure valid range
+	if (minMs < 0) minMs = 0;
+	if (maxMs < minMs) maxMs = minMs;
 
-  // Calculate a random delay within the range
-  const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+	// Calculate a random delay within the range
+	const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
 
-  // Sleep for the calculated time
-  return sleep(delay);
+	// Sleep for the calculated time
+	return sleep(delay);
 };
 
 /**
@@ -43,25 +43,25 @@ export const randomDelay = async (minMs: number = 1000, maxMs: number = 3000): P
  * @returns The delay in milliseconds
  */
 export const typingDelay = (text: string, wpm?: number): number => {
-  // Default to a random typing speed between 30-70 WPM if not specified
-  const wordsPerMinute = wpm || Math.floor(Math.random() * 41) + 30;
+	// Default to a random typing speed between 30-70 WPM if not specified
+	const wordsPerMinute = wpm || Math.floor(Math.random() * 41) + 30;
 
-  // Calculate typing time - average word is 5 characters
-  const numWords = text.length / 5;
+	// Calculate typing time - average word is 5 characters
+	const numWords = text.length / 5;
 
-  // Convert WPM to characters per millisecond
-  const cpm = wordsPerMinute * 5;  // characters per minute
-  const cps = cpm / 60;            // characters per second
-  const cpms = cps / 1000;         // characters per millisecond
+	// Convert WPM to characters per millisecond
+	const cpm = wordsPerMinute * 5;  // characters per minute
+	const cps = cpm / 60;            // characters per second
+	const cpms = cps / 1000;         // characters per millisecond
 
-  // Calculate ideal time to type the text
-  let baseTime = Math.round(text.length / cpms);
+	// Calculate ideal time to type the text
+	let baseTime = Math.round(text.length / cpms);
 
-  // Add some randomness (±15%)
-  const variance = baseTime * 0.15;
-  baseTime += Math.floor(Math.random() * variance * 2) - variance;
+	// Add some randomness (±15%)
+	const variance = baseTime * 0.15;
+	baseTime += Math.floor(Math.random() * variance * 2) - variance;
 
-  return Math.max(baseTime, 100);  // Ensure at least 100ms
+	return Math.max(baseTime, 100);  // Ensure at least 100ms
 };
 
 /**
@@ -72,25 +72,25 @@ export const typingDelay = (text: string, wpm?: number): number => {
  * @param getElementFn Function to get the element (used to handle stale elements)
  */
 export const humanTypeText = async (
-  element: WebElement | (() => Promise<WebElement>),
-  text: string
+	element: WebElement | (() => Promise<WebElement>),
+	text: string
 ): Promise<void> => {
-  try {
-    // Get the element
-    const inputElement = typeof element === 'function' ? await element() : element;
+	try {
+		// Get the element
+		const inputElement = typeof element === 'function' ? await element() : element;
 
-    // Clear the field first
-    await inputElement.clear();
-    await randomDelay(100, 300);
+		// Clear the field first
+		await inputElement.clear();
+		await randomDelay(100, 300);
 
-    // Type characters one by one with random delays
-    for (const char of text) {
-      await inputElement.sendKeys(char);
-      await randomDelay(50, 150);
-    }
-  } catch (error) {
-    throw new Error(`Error typing text "${text}": ${error instanceof Error ? error.message : String(error)}`);
-  }
+		// Type characters one by one with random delays
+		for (const char of text) {
+			await inputElement.sendKeys(char);
+			await randomDelay(50, 150);
+		}
+	} catch (error) {
+		throw new Error(`Error typing text "${text}": ${error instanceof Error ? error.message : String(error)}`);
+	}
 };
 
 /**
@@ -101,18 +101,18 @@ export const humanTypeText = async (
  * @returns Promise that resolves when scrolling is complete
  */
 export async function smoothScroll(
-  driver: any,
-  distance: number,
-  steps = 10
+	driver: any,
+	distance: number,
+	steps = 10
 ): Promise<void> {
-  try {
-    const scrollPerStep = Math.floor(distance / steps);
+	try {
+		const scrollPerStep = Math.floor(distance / steps);
 
-    for (let i = 0; i < steps; i++) {
-      await driver.executeScript(`window.scrollBy(0, ${scrollPerStep});`);
-      await randomDelay(50, 100);
-    }
-  } catch (error) {
-    throw new Error(`Error scrolling: ${error instanceof Error ? error.message : String(error)}`);
-  }
+		for (let i = 0; i < steps; i++) {
+			await driver.executeScript(`window.scrollBy(0, ${scrollPerStep});`);
+			await randomDelay(50, 100);
+		}
+	} catch (error) {
+		throw new Error(`Error scrolling: ${error instanceof Error ? error.message : String(error)}`);
+	}
 }

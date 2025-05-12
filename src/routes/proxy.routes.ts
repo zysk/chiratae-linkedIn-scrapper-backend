@@ -1,20 +1,20 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.middleware';
+import {
+	createProxy,
+	deleteProxy,
+	getNextAvailableProxy,
+	getProxies,
+	getProxyById,
+	updateProxy,
+} from '../controllers/proxy.controller';
 import { adminOnly } from '../middleware/admin.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  createProxy,
-  getProxies,
-  getProxyById,
-  updateProxy,
-  deleteProxy,
-  getNextAvailableProxy,
-} from '../controllers/proxy.controller';
-import {
-  createProxySchema,
-  updateProxySchema,
-  proxyIdParamSchema,
-  listProxiesSchema
+	createProxySchema,
+	listProxiesSchema,
+	proxyIdParamSchema,
+	updateProxySchema
 } from '../utils/validation/proxy.validation';
 
 const router = express.Router();

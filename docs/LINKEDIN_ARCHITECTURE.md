@@ -22,6 +22,7 @@ The `WebDriverManager` is a singleton class responsible for creating, tracking, 
 - Active drivers are reused across requests within the same campaign
 
 **Key Methods:**
+
 - `getDriver(campaignId, options)` - Get an existing driver or create a new one
 - `quitDriver(campaignId)` - Quit a specific campaign's driver
 - `quitAllDrivers()` - Quit all active drivers (used during shutdown)
@@ -38,6 +39,7 @@ The `LinkedInProfileScraper` handles the actual scraping of LinkedIn profiles. I
 - Handle different LinkedIn profile page layouts through multiple selectors
 
 **Key Methods:**
+
 - `scrapeProfile(profileUrl, campaignId, useExistingDriver)` - Extract data from a LinkedIn profile
 - Multiple extraction methods for different profile components (name, headline, etc.)
 
@@ -51,6 +53,7 @@ The `LeadProcessingService` manages the queue of LinkedIn profiles to be scraped
 - Manages campaign-level concurrency
 
 **Key Methods:**
+
 - `queueCampaignLeads(campaignId, priority)` - Queue all leads in a campaign for scraping
 - `processProfileScrapingJob(jobId, campaignId, leadId, profileUrl)` - Process a single lead
 - `checkCampaignCompletion(campaignId)` - Check if all leads in a campaign have been processed
@@ -70,15 +73,15 @@ The `LinkedInAuthService` handles LinkedIn authentication. It now:
 1. When a campaign is initiated, `LeadProcessingService.queueCampaignLeads()` queues all leads for processing
 2. For each lead, a job is added to the queue
 3. `LeadProcessingService.processProfileScrapingJob()` processes each job:
-   - It checks if the campaign is already being processed
-   - If so, it requeues the job with a delay
-   - If not, it marks the campaign as being processed
-   - It gets or creates a WebDriver instance via the `WebDriverManager`
-   - It uses `LinkedInProfileScraper` to extract profile data
-   - It updates the lead with the extracted data
-   - It updates campaign statistics
-   - It marks the job as completed
-   - It marks the campaign as not being processed
+    - It checks if the campaign is already being processed
+    - If so, it requeues the job with a delay
+    - If not, it marks the campaign as being processed
+    - It gets or creates a WebDriver instance via the `WebDriverManager`
+    - It uses `LinkedInProfileScraper` to extract profile data
+    - It updates the lead with the extracted data
+    - It updates campaign statistics
+    - It marks the job as completed
+    - It marks the campaign as not being processed
 4. When all jobs are completed, `LeadProcessingService.checkCampaignCompletion()` cleans up resources
 
 ### LinkedIn Account Verification

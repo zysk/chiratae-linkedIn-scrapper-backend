@@ -3,13 +3,13 @@ import leadController from '../controllers/lead.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  getLeadsSchema,
-  leadIdParamSchema,
-  leadIdParamAltSchema,
-  updateLeadSchema,
-  commentIdParamSchema,
-  createLeadCommentSchema,
-  updateLeadCommentSchema
+	commentIdParamSchema,
+	createLeadCommentSchema,
+	getLeadsSchema,
+	leadIdParamAltSchema,
+	leadIdParamSchema,
+	updateLeadCommentSchema,
+	updateLeadSchema
 } from '../utils/validation/lead.validation';
 
 const router = express.Router();

@@ -74,4 +74,3 @@
 3. Define the LeadLogs model with fields like id, lead_id, user_id, action, created_at.
 4. Implement the logic to automatically create lead logs during key events like lead creation, assignment, status change, etc.
 5. Expose the lead logs through a dedicated API endpoint.
-

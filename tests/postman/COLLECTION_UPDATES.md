@@ -7,25 +7,29 @@
 The original collection was missing several important endpoints that are now included:
 
 #### User Ratings API
+
 - `POST /api/userRatings` - Rate a user's performance
 - `GET /api/userRatings/:userId` - Get all ratings for a specific user
 
 #### LinkedIn API
+
 - `POST /api/linkedin/test-login` - Test LinkedIn account login (admin only)
 - `POST /api/linkedin/search` - Search LinkedIn profiles directly
 - `GET /api/linkedin/accounts/next` - Get the next available LinkedIn account (admin only)
 - `GET /api/linkedin/proxies/next` - Get the next available proxy (admin only)
 
 #### Utils API
+
 - `POST /api/utils/screenshots/cleanup` - Clean up all screenshot files (admin only)
 - `POST /api/utils/screenshots/cleanup/campaign/:campaignId` - Clean up screenshots for a specific campaign
 - `POST /api/utils/screenshots/cleanup/old` - Clean up screenshots older than specified days
 
 #### Lead API (Updated Routes)
+
 - Updated route paths to match actual implementation (`/api/lead/...`)
 - Added missing lead comment management endpoints:
-  - `PATCH /api/lead/comments/:commentId` - Update a lead comment
-  - `DELETE /api/lead/comments/:commentId` - Delete a lead comment
+    - `PATCH /api/lead/comments/:commentId` - Update a lead comment
+    - `DELETE /api/lead/comments/:commentId` - Delete a lead comment
 
 ### 2. Updated Request/Response Examples with Real Data
 
@@ -50,6 +54,7 @@ The environment variables file has been updated with real MongoDB document IDs:
 ### 4. Corrected API Base URL
 
 Updated the base URL to match the actual server configuration in `.env`:
+
 - Original: `http://localhost:5000`
 - Updated: `http://localhost:4001`
 
@@ -62,6 +67,7 @@ Updated the base URL to match the actual server configuration in `.env`:
 ### 6. Made Proxy Optional in Campaigns
 
 Updated the campaign model and endpoints to make proxies optional:
+
 - Modified campaign examples in the collection to show that proxyId is optional
 - Added a specific "Create Campaign Without Proxy" example request to clearly demonstrate this feature
 - This change reflects updates made to the backend code where proxies are no longer required when creating campaigns
@@ -69,8 +75,9 @@ Updated the campaign model and endpoints to make proxies optional:
 ## How to Use the Updated Collection
 
 1. Import the files from:
-   - `collections/chiratae-linkedin-scraper-api-updated.json`
-   - `environments/chiratae-linkedin-scraper-environment-updated.json`
+
+    - `collections/chiratae-linkedin-scraper-api-updated.json`
+    - `environments/chiratae-linkedin-scraper-environment-updated.json`
 
 2. The updated collection is ready to use with real IDs from the database, so most endpoints should work immediately after authentication.
 

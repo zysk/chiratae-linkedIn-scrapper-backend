@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
-import { encrypt, decrypt } from '../utils/encryption.utils';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { decrypt, encrypt } from '../utils/encryption.utils';
 
 // Interface representing the LinkedIn Account document
 export interface ILinkedInAccount extends Document {
@@ -100,7 +100,7 @@ linkedInAccountSchema.statics.incrementUsage = async function (
 };
 
 // Pre-save hook to check for duplicate accounts based on username
-linkedInAccountSchema.pre('save', async function(next) {
+linkedInAccountSchema.pre('save', async function (next) {
   if (this.isNew) {
     const LinkedInAccount = mongoose.model<ILinkedInAccount, ILinkedInAccountModel>('LinkedInAccount', linkedInAccountSchema);
     const existingAccount = await LinkedInAccount.findOne({

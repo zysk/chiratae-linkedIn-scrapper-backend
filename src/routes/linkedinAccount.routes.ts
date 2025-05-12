@@ -1,20 +1,20 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.middleware';
+import {
+	createLinkedInAccount,
+	deleteLinkedInAccount,
+	getLinkedInAccountById,
+	getLinkedInAccounts,
+	getNextAvailableAccount,
+	updateLinkedInAccount,
+} from '../controllers/linkedinAccount.controller';
 import { adminOnly } from '../middleware/admin.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  createLinkedInAccount,
-  getLinkedInAccounts,
-  getLinkedInAccountById,
-  updateLinkedInAccount,
-  deleteLinkedInAccount,
-  getNextAvailableAccount,
-} from '../controllers/linkedinAccount.controller';
-import {
-  createLinkedinAccountSchema,
-  updateLinkedinAccountSchema,
-  linkedinAccountIdParamSchema,
-  listLinkedinAccountsSchema
+	createLinkedinAccountSchema,
+	linkedinAccountIdParamSchema,
+	listLinkedinAccountsSchema,
+	updateLinkedinAccountSchema
 } from '../utils/validation/linkedinAccount.validation';
 
 const router = express.Router();

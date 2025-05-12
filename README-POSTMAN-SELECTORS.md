@@ -12,15 +12,15 @@ This guide explains how to use the updated Postman collection to work with the L
 
 Ensure the following environment variables are set:
 
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `baseUrl` | Base URL of your API | `http://localhost:4001` |
-| `adminToken` | Admin JWT token for authentication | *will be set automatically after login* |
-| `linkedinAccountId` | MongoDB ID of your LinkedIn account | `6818bff2b770ad95a07b5e05` |
-| `linkedinAccountPass` | Password for your LinkedIn account | `YourSecurePassword` |
-| `proxyId` | MongoDB ID of a proxy to use (optional) | `6818bff2b770ad95a07b5e06` |
-| `selectorsOutputPath` | Path to save selector metrics | `./output/selectors-metrics.json` |
-| `selectorThreshold` | Success rate threshold (0-1) | `0.5` |
+| Variable              | Description                             | Example Value                           |
+| --------------------- | --------------------------------------- | --------------------------------------- |
+| `baseUrl`             | Base URL of your API                    | `http://localhost:4001`                 |
+| `adminToken`          | Admin JWT token for authentication      | _will be set automatically after login_ |
+| `linkedinAccountId`   | MongoDB ID of your LinkedIn account     | `6818bff2b770ad95a07b5e05`              |
+| `linkedinAccountPass` | Password for your LinkedIn account      | `YourSecurePassword`                    |
+| `proxyId`             | MongoDB ID of a proxy to use (optional) | `6818bff2b770ad95a07b5e06`              |
+| `selectorsOutputPath` | Path to save selector metrics           | `./output/selectors-metrics.json`       |
+| `selectorThreshold`   | Success rate threshold (0-1)            | `0.5`                                   |
 
 ## Authentication
 
@@ -36,16 +36,18 @@ Ensure the following environment variables are set:
 Tests selectors against a specific LinkedIn profile URL.
 
 **Request:**
+
 - Method: `POST`
 - Endpoint: `{{baseUrl}}/api/linkedin/selectors/verify`
 - Body:
+
 ```json
 {
-    "linkedinAccountId": "{{linkedinAccountId}}",
-    "password": "{{linkedinAccountPass}}",
-    "profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
-    "proxyId": "{{proxyId}}",
-    "outputPath": "{{selectorsOutputPath}}"
+	"linkedinAccountId": "{{linkedinAccountId}}",
+	"password": "{{linkedinAccountPass}}",
+	"profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
+	"proxyId": "{{proxyId}}",
+	"outputPath": "{{selectorsOutputPath}}"
 }
 ```
 
@@ -54,16 +56,18 @@ Tests selectors against a specific LinkedIn profile URL.
 Tests selectors against the latest lead in your database that has a LinkedIn profile URL.
 
 **Request:**
+
 - Method: `POST`
 - Endpoint: `{{baseUrl}}/api/linkedin/selectors/verify`
 - Body:
+
 ```json
 {
-    "linkedinAccountId": "{{linkedinAccountId}}",
-    "password": "{{linkedinAccountPass}}",
-    "useLatestLead": true,
-    "proxyId": "{{proxyId}}",
-    "outputPath": "{{selectorsOutputPath}}"
+	"linkedinAccountId": "{{linkedinAccountId}}",
+	"password": "{{linkedinAccountPass}}",
+	"useLatestLead": true,
+	"proxyId": "{{proxyId}}",
+	"outputPath": "{{selectorsOutputPath}}"
 }
 ```
 
@@ -72,16 +76,18 @@ Tests selectors against the latest lead in your database that has a LinkedIn pro
 Analyzes selector metrics and updates selectors in your selectors.json file.
 
 **Request:**
+
 - Method: `POST`
 - Endpoint: `{{baseUrl}}/api/linkedin/selectors/update`
 - Body:
+
 ```json
 {
-    "metricsPath": "{{selectorsOutputPath}}",
-    "threshold": "{{selectorThreshold}}",
-    "updateSelectorFile": true,
-    "selectorFile": "./data/selectors.json",
-    "category": ["Profile Headline", "Experience Section"]
+	"metricsPath": "{{selectorsOutputPath}}",
+	"threshold": "{{selectorThreshold}}",
+	"updateSelectorFile": true,
+	"selectorFile": "./data/selectors.json",
+	"category": ["Profile Headline", "Experience Section"]
 }
 ```
 
@@ -90,21 +96,23 @@ Analyzes selector metrics and updates selectors in your selectors.json file.
 Analyzes selector metrics and automatically generates new selectors for categories where all selectors are failing.
 
 **Request:**
+
 - Method: `POST`
 - Endpoint: `{{baseUrl}}/api/linkedin/selectors/update`
 - Body:
+
 ```json
 {
-    "metricsPath": "{{selectorsOutputPath}}",
-    "threshold": "{{selectorThreshold}}",
-    "updateSelectorFile": true,
-    "selectorFile": "./data/selectors.json",
-    "category": ["Profile Headline", "Experience Section"],
-    "generateNewSelectors": true,
-    "profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
-    "linkedinAccountId": "{{linkedinAccountId}}",
-    "password": "{{linkedinAccountPass}}",
-    "proxyId": "{{proxyId}}"
+	"metricsPath": "{{selectorsOutputPath}}",
+	"threshold": "{{selectorThreshold}}",
+	"updateSelectorFile": true,
+	"selectorFile": "./data/selectors.json",
+	"category": ["Profile Headline", "Experience Section"],
+	"generateNewSelectors": true,
+	"profileUrl": "https://www.linkedin.com/in/ganapati-moger-804b1b1a4/",
+	"linkedinAccountId": "{{linkedinAccountId}}",
+	"password": "{{linkedinAccountPass}}",
+	"proxyId": "{{proxyId}}"
 }
 ```
 

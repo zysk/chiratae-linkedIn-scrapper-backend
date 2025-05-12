@@ -22,54 +22,54 @@ server.on('listening', onListening);
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val: string | number): number | string | boolean {
-  if (typeof val === 'number') return val;
+	if (typeof val === 'number') return val;
 
-  const port = parseInt(val, 10);
+	const port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+	if (isNaN(port)) {
+		// named pipe
+		return val;
+	}
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+	if (port >= 0) {
+		// port number
+		return port;
+	}
 
-  return false;
+	return false;
 }
 
 /**
  * Event listener for HTTP server "error" event.
  */
 function onError(error: NodeJS.ErrnoException): void {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
+	if (error.syscall !== 'listen') {
+		throw error;
+	}
 
-  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+	const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
 
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(`${bind} is already in use. Try setting a different port in your .env file with PORT=<another-port>`);
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
+	// handle specific listen errors with friendly messages
+	switch (error.code) {
+		case 'EACCES':
+			console.error(bind + ' requires elevated privileges');
+			process.exit(1);
+			break;
+		case 'EADDRINUSE':
+			console.error(`${bind} is already in use. Try setting a different port in your .env file with PORT=<another-port>`);
+			process.exit(1);
+			break;
+		default:
+			throw error;
+	}
 }
 
 /**
  * Event listener for HTTP server "listening" event.
  */
 function onListening(): void {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr?.port || 'unknown');
-  console.log(`Server listening on ${bind}`);
-  console.log(`To change the port, set PORT environment variable in .env file or use PORT=<port> yarn start`);
+	const addr = server.address();
+	const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr?.port || 'unknown');
+	console.log(`Server listening on ${bind}`);
+	console.log(`To change the port, set PORT environment variable in .env file or use PORT=<port> yarn start`);
 }

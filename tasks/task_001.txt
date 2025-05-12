@@ -68,4 +68,3 @@
 2. Create a `.env` file in the project root and define the required environment variables.
 3. Implement the environment variable configuration in the application.
 4. Create a health check endpoint to verify the application's status.
-

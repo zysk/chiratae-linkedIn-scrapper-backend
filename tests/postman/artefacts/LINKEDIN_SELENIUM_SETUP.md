@@ -6,9 +6,9 @@ This guide details how to set up and use the LinkedIn Selenium integration compo
 
 1. **Chrome Browser**: A recent version of Google Chrome must be installed on your system.
 2. **ChromeDriver**: The appropriate ChromeDriver version for your Chrome browser must be available in the `chromedriver` directory, organized by platform:
-   - Windows: `chromedriver/chromedriver-win64/chromedriver.exe`
-   - macOS: `chromedriver/chromedriver-mac`
-   - Linux: `chromedriver/chromedriver-linux64/chromedriver-linux`
+    - Windows: `chromedriver/chromedriver-win64/chromedriver.exe`
+    - macOS: `chromedriver/chromedriver-mac`
+    - Linux: `chromedriver/chromedriver-linux64/chromedriver-linux`
 3. **Node.js**: Node.js 14+ is required to run the application.
 4. **MongoDB**: A MongoDB instance for storing accounts, proxies, and session data.
 5. **LinkedIn Account**: Valid LinkedIn account(s) for testing and scraping.
@@ -94,6 +94,7 @@ POST /api/linkedin/test-login
 ```
 
 This will:
+
 1. Initialize the WebDriver with optional proxy
 2. Attempt to log in to LinkedIn
 3. Verify that login was successful
@@ -120,6 +121,7 @@ POST /api/linkedin/search
 ```
 
 This will:
+
 1. Initialize the WebDriver with optional proxy
 2. Log in to LinkedIn
 3. Perform the search with specified filters
@@ -165,20 +167,23 @@ All errors are properly logged with the Winston logger to facilitate debugging.
 ### Common Issues:
 
 1. **WebDriver Path Issues**:
-   - Ensure chromedriver is in the correct path for your platform
-   - Check that chromedriver version matches your Chrome browser version
+
+    - Ensure chromedriver is in the correct path for your platform
+    - Check that chromedriver version matches your Chrome browser version
 
 2. **Proxy Authentication**:
-   - Verify proxy credentials are correct
-   - Check that proxy is reachable and operational
+
+    - Verify proxy credentials are correct
+    - Check that proxy is reachable and operational
 
 3. **LinkedIn Rate Limiting**:
-   - If seeing frequent login challenges, implement longer delays
-   - Rotate accounts and proxies more frequently
+
+    - If seeing frequent login challenges, implement longer delays
+    - Rotate accounts and proxies more frequently
 
 4. **CAPTCHA Challenges**:
-   - Implement CAPTCHA handling or manual intervention
-   - Consider using more aged LinkedIn accounts to reduce CAPTCHA frequency
+    - Implement CAPTCHA handling or manual intervention
+    - Consider using more aged LinkedIn accounts to reduce CAPTCHA frequency
 
 ## Additional Resources
 

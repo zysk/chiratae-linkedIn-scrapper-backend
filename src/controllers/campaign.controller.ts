@@ -1,30 +1,27 @@
-import { Request, Response, NextFunction } from 'express';
-import Campaign, { CampaignStatus, ICampaign, CampaignPriority, CampaignRecurrence } from '../models/campaign.model';
-import LinkedInAccount from '../models/linkedinAccount.model';
-import Proxy, { IProxy } from '../models/proxy.model';
-import Lead from '../models/lead.model';
+import { NextFunction, Response } from 'express';
 import mongoose from 'mongoose';
-import { ApiError } from '../utils/error.utils';
 import { IAuthRequest } from '../middleware/auth.middleware';
+import Campaign, { CampaignPriority, CampaignRecurrence, CampaignStatus } from '../models/campaign.model';
+import Lead from '../models/lead.model';
+import LinkedInAccount, { ILinkedInAccount } from '../models/linkedinAccount.model';
+import Proxy, { IProxy } from '../models/proxy.model';
+import LeadProcessingService from '../services/linkedin/LeadProcessingService';
+import LinkedInAuthService from '../services/linkedin/LinkedInAuthService';
+import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
+import LinkedInSearchService from '../services/linkedin/LinkedInSearchService';
+import JobQueueService, { JobPriority, JobType } from '../services/redis/JobQueueService';
+import SeleniumService from '../services/selenium/SeleniumService';
+import { rolesObj } from '../utils/constants';
+import { ApiError } from '../utils/error.utils';
 import logger from '../utils/logger';
 import {
-  createCampaignSchema,
-  updateCampaignSchema,
-  queueCampaignSchema,
   campaignFilterSchema,
-  scheduleCampaignSchema
+  createCampaignSchema,
+  queueCampaignSchema,
+  scheduleCampaignSchema,
+  updateCampaignSchema
 } from '../utils/validation/campaign.validation';
-import { By } from 'selenium-webdriver';
-import SeleniumService from '../services/selenium/SeleniumService';
-import LinkedInAuthService, { LoginResult } from '../services/linkedin/LinkedInAuthService';
-import JobQueueService, { JobType, JobPriority, QueueName } from '../services/redis/JobQueueService';
-import LinkedInSearchService from '../services/linkedin/LinkedInSearchService';
-import { LinkedInProfileScraper } from '../services/linkedin/LinkedInProfileScraper';
-import ScreenshotCleanupService from '../services/utils/ScreenshotCleanupService';
-import LeadProcessingService from '../services/linkedin/LeadProcessingService';
-import { rolesObj } from '../utils/constants';
 import { profileScrapeSchema } from '../utils/validation/linkedin.validation';
-import { ILinkedInAccount } from '../models/linkedinAccount.model';
 
 // Simple proxy config interface for the login function
 interface ProxyConfig {

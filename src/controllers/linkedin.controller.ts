@@ -1,19 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
+import { NextFunction, Request, Response } from 'express';
+import fs from 'fs/promises';
+import path from 'path';
+import Campaign, { CampaignStatus } from '../models/campaign.model';
+import Lead, { ILead } from '../models/lead.model';
 import LinkedInAccount from '../models/linkedinAccount.model';
 import Proxy from '../models/proxy.model';
 import LinkedInAuthService, { LoginResult } from '../services/linkedin/LinkedInAuthService';
+import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
 import LinkedInSearchService, { SearchParams } from '../services/linkedin/LinkedInSearchService';
+import { SelectorGenerator } from '../services/linkedin/SelectorGenerator';
+import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
 import SeleniumService from '../services/selenium/SeleniumService';
 import logger from '../utils/logger';
-import { normalizeLinkedInUrl } from '../utils/linkedin.utils';
-import Campaign, { CampaignStatus } from '../models/campaign.model';
-import Lead, { ILead } from '../models/lead.model';
-import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
-import { SelectorGenerator } from '../services/linkedin/SelectorGenerator';
-import fs from 'fs/promises';
-import path from 'path';
-import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
 import * as selectorsUtil from '../utils/selectors';
 
 /**
@@ -63,7 +61,7 @@ class LinkedInController {
       // Attempt login
       loginResult = await LinkedInAuthService.login(account, password, proxy);
 
-		logger.info(`Login result: ${JSON.stringify(loginResult)}`);
+      logger.info(`Login result: ${JSON.stringify(loginResult)}`);
       // Check if login was successful
       if (!loginResult.driver) {
         return res.status(500).json({
@@ -223,7 +221,7 @@ class LinkedInController {
       // Login to LinkedIn
       loginResult = await LinkedInAuthService.login(account, password, proxy);
 
-		logger.info(`Login result: ${JSON.stringify(loginResult)}`);
+      logger.info(`Login result: ${JSON.stringify(loginResult)}`);
 
       if (!loginResult.driver) {
         return res.status(500).json({

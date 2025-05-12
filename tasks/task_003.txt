@@ -73,4 +73,3 @@
 ### Details:
 1. Implement middleware to authenticate and authorize users accessing the LinkedIn account and proxy management API endpoints.
 2. Ensure only authorized admin users can perform CRUD operations and access the usage tracking data.
-

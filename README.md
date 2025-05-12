@@ -14,26 +14,28 @@ This backend service provides APIs for LinkedIn profile scraping, authentication
 ## Setup
 
 1. Install dependencies:
-   ```
-   npm install
-   ```
+
+    ```
+    npm install
+    ```
 
 2. Create a `.env` file in the root directory with the following variables:
-   ```
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/linkedin-scraper
-   JWT_SECRET=your_jwt_secret
-   REDIS_URL=redis://localhost:6379
-   ENCRYPTION_KEY=your_encryption_key_32_chars
-   ```
+
+    ```
+    NODE_ENV=development
+    PORT=5000
+    MONGODB_URI=mongodb://localhost:27017/linkedin-scraper
+    JWT_SECRET=your_jwt_secret
+    REDIS_URL=redis://localhost:6379
+    ENCRYPTION_KEY=your_encryption_key_32_chars
+    ```
 
 3. Install Chrome and ChromeDriver (compatible versions)
 
 4. Start the server:
-   ```
-   npm run dev
-   ```
+    ```
+    npm run dev
+    ```
 
 ## Selector Management System
 
@@ -59,48 +61,52 @@ The system follows this process:
 Two main endpoints are available:
 
 1. **Verify Selectors**: `/api/linkedin/selectors/verify`
-   ```
-   POST /api/linkedin/selectors/verify
-   {
-     "profileUrl": "https://www.linkedin.com/in/username",
-     "linkedinAccountId": "account_id",
-     "password": "password",
-     "outputPath": "optional/path/to/output.json"
-   }
-   ```
+
+    ```
+    POST /api/linkedin/selectors/verify
+    {
+      "profileUrl": "https://www.linkedin.com/in/username",
+      "linkedinAccountId": "account_id",
+      "password": "password",
+      "outputPath": "optional/path/to/output.json"
+    }
+    ```
 
 2. **Update Selectors**: `/api/linkedin/selectors/update`
-   ```
-   POST /api/linkedin/selectors/update
-   {
-     "metricsPath": "path/to/metrics.json",
-     "threshold": 0.5,
-     "updateSelectorFile": true,
-     "selectorFile": "optional/path/to/selectors.json"
-   }
-   ```
+    ```
+    POST /api/linkedin/selectors/update
+    {
+      "metricsPath": "path/to/metrics.json",
+      "threshold": 0.5,
+      "updateSelectorFile": true,
+      "selectorFile": "optional/path/to/selectors.json"
+    }
+    ```
 
 #### Using the Test Script
 
 A convenience script is provided for testing and managing selectors:
 
 1. **Verify Mode**: Tests selectors against a LinkedIn profile
-   ```
-   npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
-   ```
-   Or:
-   ```
-   node scripts/test-selectors.js --mode verify --url https://www.linkedin.com/in/username --account accountId
-   ```
+
+    ```
+    npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
+    ```
+
+    Or:
+
+    ```
+    node scripts/test-selectors.js --mode verify --url https://www.linkedin.com/in/username --account accountId
+    ```
 
 2. **Update Mode**: Updates selectors based on metrics
-   ```
-   npm run test:selectors:update -- --input path/to/metrics.json
-   ```
-   Or:
-   ```
-   node scripts/test-selectors.js --mode update --input path/to/metrics.json --threshold 0.5
-   ```
+    ```
+    npm run test:selectors:update -- --input path/to/metrics.json
+    ```
+    Or:
+    ```
+    node scripts/test-selectors.js --mode update --input path/to/metrics.json --threshold 0.5
+    ```
 
 ### Selector File Structure
 
@@ -108,14 +114,8 @@ Selectors are organized by category in `config/linkedin-selectors.json`:
 
 ```json
 {
-  "Profile Name": [
-    "h1.text-heading-xlarge",
-    "div.pv-text-details__left-panel h1"
-  ],
-  "Profile Headline": [
-    "div.pv-text-details__left-panel div.text-body-medium",
-    "div.ph5 div.text-body-medium"
-  ]
+	"Profile Name": ["h1.text-heading-xlarge", "div.pv-text-details__left-panel h1"],
+	"Profile Headline": ["div.pv-text-details__left-panel div.text-body-medium", "div.ph5 div.text-body-medium"]
 }
 ```
 
@@ -124,16 +124,20 @@ Selectors are organized by category in `config/linkedin-selectors.json`:
 ### LinkedIn APIs
 
 #### Profile Scraping
+
 - `POST /api/linkedin/search`: Search LinkedIn profiles
 
 #### Account Management
+
 - `POST /api/linkedin/next-account`: Get the next available LinkedIn account
 - `POST /api/linkedin/test-login`: Test LinkedIn account login
 
 #### Proxy Management
+
 - `POST /api/linkedin/next-proxy`: Get the next available proxy
 
 #### Selector Management
+
 - `POST /api/linkedin/selectors/verify`: Verify LinkedIn selectors
 - `POST /api/linkedin/selectors/update`: Update LinkedIn selectors
 
@@ -142,26 +146,30 @@ Selectors are organized by category in `config/linkedin-selectors.json`:
 ### Common Issues
 
 1. **ChromeDriver Errors**: Make sure Chrome and ChromeDriver versions are compatible
-   ```
-   npm run setup-chromedriver
-   ```
+
+    ```
+    npm run setup-chromedriver
+    ```
 
 2. **LinkedIn Authentication Failures**: Check account status and update cookies if needed
 
 3. **Selector Issues**: If profiles aren't being scraped correctly:
-   ```
-   npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
-   ```
+    ```
+    npm run test:selectors:verify -- --url https://www.linkedin.com/in/username --account accountId
+    ```
 
 ## License
 
 Copyright © 2023 Chiratae Ventures
 
 # Using email/password:
+
 npm run verify-selectors -- -u https://www.linkedin.com/in/some-profile -e your-linkedin@email.com -p yourpassword
 
 # Using an account ID from the database:
+
 npm run verify-selectors -- -u https://www.linkedin.com/in/some-profile -i 61234567890abcdef1234567
 
 # Update selectors with authentication:
+
 npm run update-selectors -- -i ./selector-health.json -e your-linkedin@email.com -p yourpassword

@@ -15,24 +15,26 @@ Before running the tests, ensure you have the following set up:
 ## Environment Setup
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-organization/linkedin-scraper-api.git
-   cd linkedin-scraper-api
-   ```
+
+    ```bash
+    git clone https://github.com/your-organization/linkedin-scraper-api.git
+    cd linkedin-scraper-api
+    ```
 
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 3. Start the MongoDB and Redis services (if not already running)
 
 4. Configure the .env file (use .env.example as a template)
 
 5. Start the API server:
-   ```bash
-   npm run dev
-   ```
+    ```bash
+    npm run dev
+    ```
 
 ## Running the Tests
 
@@ -46,6 +48,7 @@ node consolidated-tests.js
 ```
 
 This script will run the following tests in sequence:
+
 - Authentication System Tests (`test-api.js`)
 - LinkedIn Account and Proxy Management Tests (`test-linkedin-proxy.js`)
 - MongoDB Validation (`check-mongo.js`)
@@ -84,6 +87,7 @@ newman run tests/postman/collections/LinkedIn\ Scraper.postman_collection.json -
 ## Test Reports
 
 After running the tests, you can find the test report in:
+
 - `tests/postman/artifacts/test-report.md`
 
 ## Adding New Tests

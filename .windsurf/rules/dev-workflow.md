@@ -9,14 +9,15 @@ This guide outlines using Task Master for managing software development projects
 ## Interaction Methods
 
 1. **MCP Server (Preferred for Integrated Tools)**:
-   - Recommended for AI agents and integrated environments.
-   - Offers structured data exchange and error handling.
-   - Restart if core logic or tool definitions change.
+
+    - Recommended for AI agents and integrated environments.
+    - Offers structured data exchange and error handling.
+    - Restart if core logic or tool definitions change.
 
 2. **`task-master` CLI (For Users & Fallback)**:
-   - User-friendly terminal interface.
-   - Install globally or use locally via `npx`.
-   - Mirrors MCP tools for functionality.
+    - User-friendly terminal interface.
+    - Install globally or use locally via `npx`.
+    - Mirrors MCP tools for functionality.
 
 ## Development Workflow
 

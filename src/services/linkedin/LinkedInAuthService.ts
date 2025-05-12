@@ -1,12 +1,12 @@
-import { WebDriver, By, Key, until } from 'selenium-webdriver';
-import { ILinkedInAccount } from '../../models/linkedinAccount.model';
-import seleniumService from '../selenium/SeleniumService';
-import logger from '../../utils/logger';
-import { IProxy } from '../../models/proxy.model';
 import fs from 'fs';
 import path from 'path';
-import { randomDelay } from '../../utils/delay';
+import { By, Key, until, WebDriver } from 'selenium-webdriver';
+import { ILinkedInAccount } from '../../models/linkedinAccount.model';
+import { IProxy } from '../../models/proxy.model';
 import { CONFIG } from '../../utils/config';
+import { randomDelay } from '../../utils/delay';
+import logger from '../../utils/logger';
+import seleniumService from '../selenium/SeleniumService';
 
 /**
  * Interface for handling CAPTCHA challenges
@@ -61,7 +61,7 @@ export class LinkedInAuthService {
   private readonly LOGIN_URL = 'https://www.linkedin.com/login';
   private readonly HOME_URL = 'https://www.linkedin.com/feed/';
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get the singleton instance of the LinkedInAuthService
@@ -487,7 +487,7 @@ export class LinkedInAuthService {
       // Get current URL to check for verification pages
       const currentUrl = await driver.getCurrentUrl();
       const isOnVerificationPage = currentUrl.includes('checkpoint') ||
-                                  currentUrl.includes('two-step-verification');
+        currentUrl.includes('two-step-verification');
 
       // More specific OTP input field selectors
       const otpInputs = await driver.findElements(
@@ -882,8 +882,8 @@ export class LinkedInAuthService {
         logger.info(`Page title: ${pageTitle}`);
 
         if (pageTitle.toLowerCase().includes('login') ||
-            pageTitle.toLowerCase().includes('sign in') ||
-            pageTitle.toLowerCase().includes('log in')) {
+          pageTitle.toLowerCase().includes('sign in') ||
+          pageTitle.toLowerCase().includes('log in')) {
           logger.info('Page title indicates we are on a login page');
           return true;
         }
@@ -938,8 +938,8 @@ export class LinkedInAuthService {
       for (const element of [...standardLoginElements, ...alternativeLoginElements]) {
         try {
           const selector = element.type === 'id' ? By.id(element.value) :
-                           element.type === 'css' ? By.css(element.value) :
-                           By.xpath(element.value);
+            element.type === 'css' ? By.css(element.value) :
+              By.xpath(element.value);
 
           const found = await driver.findElements(selector);
           if (found.length > 0) {

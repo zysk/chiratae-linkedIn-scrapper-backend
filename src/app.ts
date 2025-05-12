@@ -34,60 +34,60 @@ const app = express();
 
 // Connect to MongoDB
 mongoose.connect(CONFIG.MONGOURI)
-  .then(() => {
-    appLogger.info('Connected to MongoDB');
-  })
-  .catch((err) => {
-    appLogger.error(`MongoDB connection error: ${err}`);
-  });
+	.then(() => {
+		appLogger.info('Connected to MongoDB');
+	})
+	.catch((err) => {
+		appLogger.error(`MongoDB connection error: ${err}`);
+	});
 
 // Initialize LinkedIn selectors
 const selectorsFilePath = path.join(__dirname, '../config/linkedin-selectors.json');
 selectorsUtil.initializeSelectors(selectorsFilePath)
-  .then(() => {
-    appLogger.info(`LinkedIn selectors initialized from ${selectorsFilePath}`);
-  })
-  .catch((err) => {
-    appLogger.warn(`Error initializing LinkedIn selectors: ${err.message}. Using default selectors.`);
-  });
+	.then(() => {
+		appLogger.info(`LinkedIn selectors initialized from ${selectorsFilePath}`);
+	})
+	.catch((err) => {
+		appLogger.warn(`Error initializing LinkedIn selectors: ${err.message}. Using default selectors.`);
+	});
 
 // Check ChromeDriver installation on startup
 (async () => {
-  try {
-    await checkChromeDriver();
-  } catch (error) {
-    appLogger.warn(`ChromeDriver check failed, LinkedIn automation might not work correctly: ${error instanceof Error ? error.message : String(error)}`);
-  }
+	try {
+		await checkChromeDriver();
+	} catch (error) {
+		appLogger.warn(`ChromeDriver check failed, LinkedIn automation might not work correctly: ${error instanceof Error ? error.message : String(error)}`);
+	}
 })();
 
 // Initialize Redis services
 (async () => {
-  try {
-    // Initialize Redis
-    const redisService = RedisService.getInstance();
-    const client = await redisService.getClient();
-    await client.set('app:status', 'online');
-    appLogger.info('Redis initialized successfully');
+	try {
+		// Initialize Redis
+		const redisService = RedisService.getInstance();
+		const client = await redisService.getClient();
+		await client.set('app:status', 'online');
+		appLogger.info('Redis initialized successfully');
 
-    // Initialize job scheduler if enabled in config
-    if (CONFIG.ENABLE_CRON) {
-      const scheduler = SchedulerService.getInstance();
-      await scheduler.initialize();
-      appLogger.info('Scheduler service initialized successfully');
-    } else {
-      appLogger.info('Scheduler service not enabled - ENABLE_CRON is set to false');
-    }
+		// Initialize job scheduler if enabled in config
+		if (CONFIG.ENABLE_CRON) {
+			const scheduler = SchedulerService.getInstance();
+			await scheduler.initialize();
+			appLogger.info('Scheduler service initialized successfully');
+		} else {
+			appLogger.info('Scheduler service not enabled - ENABLE_CRON is set to false');
+		}
 
-    // Start the worker processes for background jobs
-    if (CONFIG.ENABLE_WORKERS !== false) {
-      WorkerManager.startAll();
-      appLogger.info('Background workers started successfully');
-    } else {
-      appLogger.info('Background workers not enabled - ENABLE_WORKERS is set to false');
-    }
-  } catch (error) {
-    appLogger.error(`Failed to initialize services: ${error instanceof Error ? error.message : String(error)}`);
-  }
+		// Start the worker processes for background jobs
+		if (CONFIG.ENABLE_WORKERS !== false) {
+			WorkerManager.startAll();
+			appLogger.info('Background workers started successfully');
+		} else {
+			appLogger.info('Background workers not enabled - ENABLE_WORKERS is set to false');
+		}
+	} catch (error) {
+		appLogger.error(`Failed to initialize services: ${error instanceof Error ? error.message : String(error)}`);
+	}
 })();
 
 // Middleware
@@ -110,43 +110,43 @@ app.use('/api/utils', utilsRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
-  try {
-    // Check MongoDB connection
-    const isMongoConnected = mongoose.connection.readyState === 1;
+	try {
+		// Check MongoDB connection
+		const isMongoConnected = mongoose.connection.readyState === 1;
 
-    // Check Redis connection
-    let isRedisConnected = false;
-    try {
-      const redisService = RedisService.getInstance();
-      isRedisConnected = redisService.isRedisConnected();
-    } catch (error) {
-      appLogger.error(`Error checking Redis connection: ${error instanceof Error ? error.message : String(error)}`);
-    }
+		// Check Redis connection
+		let isRedisConnected = false;
+		try {
+			const redisService = RedisService.getInstance();
+			isRedisConnected = redisService.isRedisConnected();
+		} catch (error) {
+			appLogger.error(`Error checking Redis connection: ${error instanceof Error ? error.message : String(error)}`);
+		}
 
-    res.status(200).json({
-      status: 'success',
-      message: 'API is running',
-      timestamp: new Date(),
-      environment: CONFIG.NODE_ENV,
-      services: {
-        mongodb: isMongoConnected ? 'connected' : 'disconnected',
-        redis: isRedisConnected ? 'connected' : 'disconnected',
-        scheduler: CONFIG.ENABLE_CRON ? 'enabled' : 'disabled',
-        workers: CONFIG.ENABLE_WORKERS !== false ? 'enabled' : 'disabled'
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Error checking service health',
-      error: error instanceof Error ? error.message : String(error)
-    });
-  }
+		res.status(200).json({
+			status: 'success',
+			message: 'API is running',
+			timestamp: new Date(),
+			environment: CONFIG.NODE_ENV,
+			services: {
+				mongodb: isMongoConnected ? 'connected' : 'disconnected',
+				redis: isRedisConnected ? 'connected' : 'disconnected',
+				scheduler: CONFIG.ENABLE_CRON ? 'enabled' : 'disabled',
+				workers: CONFIG.ENABLE_WORKERS !== false ? 'enabled' : 'disabled'
+			}
+		});
+	} catch (error) {
+		res.status(500).json({
+			status: 'error',
+			message: 'Error checking service health',
+			error: error instanceof Error ? error.message : String(error)
+		});
+	}
 });
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {
-  next(new ApiError(`Not Found - ${req.originalUrl}`, 404));
+	next(new ApiError(`Not Found - ${req.originalUrl}`, 404));
 });
 
 // Error handler
@@ -154,33 +154,33 @@ app.use(errorHandler);
 
 // Handle graceful shutdown
 process.on('SIGTERM', async () => {
-  appLogger.info('SIGTERM received, shutting down gracefully');
+	appLogger.info('SIGTERM received, shutting down gracefully');
 
-  try {
-    // Shutdown scheduler if enabled
-    if (CONFIG.ENABLE_CRON) {
-      const scheduler = SchedulerService.getInstance();
-      await scheduler.shutdown();
-    }
+	try {
+		// Shutdown scheduler if enabled
+		if (CONFIG.ENABLE_CRON) {
+			const scheduler = SchedulerService.getInstance();
+			await scheduler.shutdown();
+		}
 
-    // Stop background workers
-    if (CONFIG.ENABLE_WORKERS !== false) {
-      WorkerManager.stopAll();
-      appLogger.info('Background workers stopped successfully');
-    }
+		// Stop background workers
+		if (CONFIG.ENABLE_WORKERS !== false) {
+			WorkerManager.stopAll();
+			appLogger.info('Background workers stopped successfully');
+		}
 
-    // Close Redis connection
-    const redisService = RedisService.getInstance();
-    await redisService.close();
+		// Close Redis connection
+		const redisService = RedisService.getInstance();
+		await redisService.close();
 
-    // Close MongoDB connection
-    await mongoose.connection.close();
-    appLogger.info('Services gracefully closed');
-  } catch (error) {
-    appLogger.error(`Error during graceful shutdown: ${error instanceof Error ? error.message : String(error)}`);
-  }
+		// Close MongoDB connection
+		await mongoose.connection.close();
+		appLogger.info('Services gracefully closed');
+	} catch (error) {
+		appLogger.error(`Error during graceful shutdown: ${error instanceof Error ? error.message : String(error)}`);
+	}
 
-  process.exit(0);
+	process.exit(0);
 });
 
 export default app;

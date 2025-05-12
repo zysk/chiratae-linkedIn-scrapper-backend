@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import Proxy, { IProxy } from '../models/proxy.model';
+import { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../middleware/errorHandler';
+import Proxy from '../models/proxy.model';
 import { ProxyManager } from '../utils/proxy.utils';
 
 /**

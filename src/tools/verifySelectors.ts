@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
-import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
-import LinkedInAuthService from '../services/linkedin/LinkedInAuthService';
-import LinkedInAccount from '../models/linkedinAccount.model';
-import logger from '../utils/logger';
 import fs from 'fs/promises';
 import path from 'path';
+import LinkedInAccount from '../models/linkedinAccount.model';
+import LinkedInProfileScraper from '../services/linkedin/LinkedInProfileScraper';
+import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
+import logger from '../utils/logger';
 
 /**
  * Tool for testing LinkedIn selectors against real profiles

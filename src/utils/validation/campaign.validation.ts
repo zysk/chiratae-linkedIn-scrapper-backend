@@ -1,6 +1,6 @@
 import Joi from 'joi';
-import { CampaignStatus, CampaignRecurrence, CampaignPriority } from '../../models/campaign.model';
 import mongoose from 'mongoose';
+import { CampaignPriority, CampaignRecurrence, CampaignStatus } from '../../models/campaign.model';
 
 // Helper function to validate MongoDB ObjectId
 const objectIdValidator = (value: string, helpers: Joi.CustomHelpers<any>) => {

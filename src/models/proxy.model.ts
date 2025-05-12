@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
-import { encrypt, decrypt } from '../utils/encryption.utils';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { decrypt, encrypt } from '../utils/encryption.utils';
 
 /**
  * Interface for Proxy document
@@ -82,17 +82,17 @@ const ProxySchema = new Schema({
 ProxySchema.index({ host: 1, port: 1 }, { unique: true });
 
 // Method to set encrypted password
-ProxySchema.methods.setPassword = function(password: string): void {
+ProxySchema.methods.setPassword = function (password: string): void {
   this.encryptedPassword = encrypt(password);
 };
 
 // Method to get decrypted password
-ProxySchema.methods.getPassword = function(): string | null {
+ProxySchema.methods.getPassword = function (): string | null {
   return this.encryptedPassword ? decrypt(this.encryptedPassword) : null;
 };
 
 // Method to get proxy connection string
-ProxySchema.methods.getProxyString = function(): string {
+ProxySchema.methods.getProxyString = function (): string {
   let proxyString = `${this.protocol}://${this.host}:${this.port}`;
 
   if (this.username && this.encryptedPassword) {
@@ -104,14 +104,14 @@ ProxySchema.methods.getProxyString = function(): string {
 };
 
 // Static method to find available proxies
-ProxySchema.statics.findAvailable = async function(): Promise<IProxy[]> {
+ProxySchema.statics.findAvailable = async function (): Promise<IProxy[]> {
   return this.find({ isActive: true })
     .sort({ usageCount: 1, lastUsed: 1 })
     .limit(10);
 };
 
 // Static method to increment usage count for a proxy
-ProxySchema.statics.incrementUsage = async function(
+ProxySchema.statics.incrementUsage = async function (
   proxyId: mongoose.Types.ObjectId
 ): Promise<void> {
   await this.findByIdAndUpdate(
@@ -125,7 +125,7 @@ ProxySchema.statics.incrementUsage = async function(
 };
 
 // Pre-save hook to check for duplicate proxies
-ProxySchema.pre('save', async function(next) {
+ProxySchema.pre('save', async function (next) {
   if (this.isNew) {
     const ProxyModel = mongoose.model<IProxy, IProxyModel>('Proxy', ProxySchema);
     ProxyModel.findOne({
@@ -134,13 +134,13 @@ ProxySchema.pre('save', async function(next) {
       protocol: this.protocol,
       _id: { $ne: this._id }
     })
-    .then((existingProxy: IProxy | null) => {
-      if (existingProxy) {
-        return next(new Error('Proxy with this host, port, and protocol already exists'));
-      }
-      next();
-    })
-    .catch((err: Error) => next(err));
+      .then((existingProxy: IProxy | null) => {
+        if (existingProxy) {
+          return next(new Error('Proxy with this host, port, and protocol already exists'));
+        }
+        next();
+      })
+      .catch((err: Error) => next(err));
   } else {
     next();
   }

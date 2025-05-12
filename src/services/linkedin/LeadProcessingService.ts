@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
 import fs from 'fs/promises';
+import mongoose from 'mongoose';
 import path from 'path';
-import logger from '../../utils/logger';
-import { LinkedInProfileScraper } from './LinkedInProfileScraper';
-import Lead, { LeadProcessingStatus } from '../../models/lead.model';
 import Campaign, { CampaignStatus } from '../../models/campaign.model';
-import JobQueueService, { JobType, JobPriority, QueueName } from '../redis/JobQueueService';
-import { normalizeLinkedInUrl, constructProfileUrl } from '../../utils/linkedin.utils';
-import WebDriverManager from '../selenium/WebDriverManager';
+import Lead, { LeadProcessingStatus } from '../../models/lead.model';
 import { ILinkedInAccount } from '../../models/linkedinAccount.model';
 import { IProxy } from '../../models/proxy.model';
+import { constructProfileUrl, normalizeLinkedInUrl } from '../../utils/linkedin.utils';
+import logger from '../../utils/logger';
+import JobQueueService, { JobPriority, JobType } from '../redis/JobQueueService';
+import WebDriverManager from '../selenium/WebDriverManager';
+import { LinkedInProfileScraper } from './LinkedInProfileScraper';
 
 /**
  * Service for cleaning up screenshots after campaign completion
@@ -251,7 +251,7 @@ class LeadProcessingService {
         }
 
         // Get the LinkedIn account password from environment or secure storage
-		  const password = campaign.linkedinAccountId.getPassword(); // Get decrypted password
+        const password = campaign.linkedinAccountId.getPassword(); // Get decrypted password
         if (!password) {
           throw new Error('LinkedIn account password not configured');
         }

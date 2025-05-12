@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import LinkedInAccount, { ILinkedInAccount } from '../models/linkedinAccount.model';
+import { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../middleware/errorHandler';
-import { LinkedInAccountManager } from '../utils/proxy.utils';
+import LinkedInAccount, { ILinkedInAccount } from '../models/linkedinAccount.model';
 import LinkedInAuthService from '../services/linkedin/LinkedInAuthService';
-import logger from '../utils/logger';
 import SeleniumService from '../services/selenium/SeleniumService';
+import logger from '../utils/logger';
+import { LinkedInAccountManager } from '../utils/proxy.utils';
 
 /**
  * Create a new LinkedIn account

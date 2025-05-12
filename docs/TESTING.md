@@ -42,16 +42,18 @@ We've created Postman collections to simplify testing. Two collections are avail
 ### Setting Up Postman
 
 1. Import the environment file
-   - File: `postman/ChirataeScraper_Environment.postman_environment.json`
-   - This sets up variables needed for testing
+
+    - File: `postman/ChirataeScraper_Environment.postman_environment.json`
+    - This sets up variables needed for testing
 
 2. Import the collections
-   - Authentication: `postman/ChirataeScraper_Auth_Tests.postman_collection.json`
-   - LinkedIn & Proxy: `postman/ChirataeScraper_LinkedIn_Proxy_Tests.postman_collection.json`
+
+    - Authentication: `postman/ChirataeScraper_Auth_Tests.postman_collection.json`
+    - LinkedIn & Proxy: `postman/ChirataeScraper_LinkedIn_Proxy_Tests.postman_collection.json`
 
 3. Verify the `baseUrl` environment variable is set correctly
-   - Default: `http://localhost:4001`
-   - Update this if your server is running on a different port
+    - Default: `http://localhost:4001`
+    - Update this if your server is running on a different port
 
 ## Testing Flow
 
@@ -60,58 +62,68 @@ We've created Postman collections to simplify testing. Two collections are avail
 Before testing the LinkedIn Account and Proxy endpoints, you need to authenticate.
 
 1. In the Authentication collection, run the "Login Admin" request
-   - This will save the admin token to the environment variable `adminToken`
-   - Without this token, you won't be able to access the protected endpoints
+    - This will save the admin token to the environment variable `adminToken`
+    - Without this token, you won't be able to access the protected endpoints
 
 ### Step 2: Test LinkedIn Account Endpoints
 
 Run these requests in order from the LinkedIn Accounts folder:
 
 1. **Create LinkedIn Account**
-   - Creates a new LinkedIn account with encrypted password
-   - Saves the account ID to `linkedinAccountId` environment variable
+
+    - Creates a new LinkedIn account with encrypted password
+    - Saves the account ID to `linkedinAccountId` environment variable
 
 2. **Get All LinkedIn Accounts**
-   - Retrieves all LinkedIn accounts
-   - Verifies that the created account appears in the list
+
+    - Retrieves all LinkedIn accounts
+    - Verifies that the created account appears in the list
 
 3. **Get LinkedIn Account by ID**
-   - Retrieves a specific account using the ID from previous request
+
+    - Retrieves a specific account using the ID from previous request
 
 4. **Update LinkedIn Account**
-   - Updates the account details
-   - Verifies that fields are correctly updated
+
+    - Updates the account details
+    - Verifies that fields are correctly updated
 
 5. **Get Next Available LinkedIn Account**
-   - Tests the account rotation functionality
+
+    - Tests the account rotation functionality
 
 6. **Delete LinkedIn Account**
-   - Deletes the test account
+    - Deletes the test account
 
 ### Step 3: Test Proxy Endpoints
 
 Run these requests in order from the Proxies folder:
 
 1. **Create Proxy**
-   - Creates a new proxy with encrypted credentials
-   - Saves the proxy ID to `proxyId` environment variable
+
+    - Creates a new proxy with encrypted credentials
+    - Saves the proxy ID to `proxyId` environment variable
 
 2. **Get All Proxies**
-   - Retrieves all proxies
-   - Verifies that the created proxy appears in the list
+
+    - Retrieves all proxies
+    - Verifies that the created proxy appears in the list
 
 3. **Get Proxy by ID**
-   - Retrieves a specific proxy using the ID from previous request
+
+    - Retrieves a specific proxy using the ID from previous request
 
 4. **Update Proxy**
-   - Updates the proxy details
-   - Verifies that fields are correctly updated
+
+    - Updates the proxy details
+    - Verifies that fields are correctly updated
 
 5. **Get Next Available Proxy**
-   - Tests the proxy rotation functionality
+
+    - Tests the proxy rotation functionality
 
 6. **Delete Proxy**
-   - Deletes the test proxy
+    - Deletes the test proxy
 
 ## Automated Testing with Node.js
 
@@ -136,6 +148,7 @@ npm run port:find
 ### Authentication Errors
 
 If you receive 401 Unauthorized errors:
+
 - Make sure you've run the "Login Admin" request first
 - Check that the admin token is correctly set in the environment
 - Verify that the token hasn't expired (tokens expire after 1 hour by default)
@@ -143,6 +156,7 @@ If you receive 401 Unauthorized errors:
 ### Test Data Cleanup
 
 The tests create and delete test data. If a test fails midway, you might need to manually clean up:
+
 - Re-run the Delete requests for any created resources
 - Or restart the server (this clears in-memory test data)
 

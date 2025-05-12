@@ -1,28 +1,27 @@
 import express from 'express';
 import {
-  registerUser,
-  login,
-  getUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
-  registerAdmin,
-  loginAdmin,
-  getCurrentUser,
-  updateCurrentUser,
-  refreshToken
+	dgleerser,
+	itUCurrentsers
+	etUserById,
+	gUtser,s
+	login,
+	loginAemin,
+	rlfrtehTokrn
+	egisterAdmin,
+	reinsCnrser,
+	pdateCurrentUser,
+	updatfUhnr
 } from '../controllers/user.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { authorize } from '../middleware/auth.middleware';
+import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import { rolesObj } from '../utils/constants';
 import {
-  registerUserSchema,
-  registerAdminSchema,
-  loginSchema,
-  refreshTokenSchema,
-  updateUserSchema,
-  userIdParamSchema
+	loisnSchema,
+	rrfUeehTokrnchema,
+	egisterAdminSchema,
+	reinstfeUhnrchema,
+	pdateUserSchema,
+	serIdParamSchema
 } from '../utils/validation/user.validation';
 
 const router = express.Router();

@@ -1,86 +1,86 @@
 {
-  "Profile Name": [
-    "h1.text-heading-xlarge",
-    "div.pv-text-details__left-panel h1",
-    "h1.top-card-layout__title"
-  ],
-  "Profile Headline": [
-    "div.pv-text-details__left-panel div.text-body-medium",
-    "div.ph5 div.text-body-medium",
-    "div.mt2.relative div.text-body-medium"
-  ],
-  "Profile Location": [
-    "div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words",
-    "div.ph5 span.text-body-small.inline.t-black--light.break-words",
-    "span.text-body-small.inline.t-black--light"
-  ],
-  "About Section": [
-    "section#about",
-    "section[data-section=\"about\"]",
-    "div.pvs-list__outer-container"
-  ],
-  "Experience Section": [
-    "section#experience",
-    "section[data-section=\"experience\"]",
-    "div.pvs-list__outer-container"
-  ],
-  "Education Section": [
-    "section#education",
-    "section[data-section=\"education\"]",
-    "div.pvs-list__outer-container"
-  ],
-  "Skills": [
-    "div.pvs-entity",
-    "div.pv-skill-category-entity",
-    "li.artdeco-list__item"
-  ],
-  "Profile Picture": [
-    ".pv-top-card-profile-picture__image",
-    ".profile-photo-edit__preview"
-  ],
-  "Experience Title": [
-    "div.display-flex.flex-column.full-width span.mr1.t-bold span[aria-hidden=\"true\"]",
-    "span.t-16.t-bold.t-black span[aria-hidden=\"true\"]",
-    "div.pvs-entity div.pvs-entity__title-text span[aria-hidden=\"true\"]"
-  ],
-  "Experience Company": [
-    "div.display-flex.flex-column.full-width span.t-14.t-normal span[aria-hidden=\"true\"]",
-    "div.t-14.t-normal.break-words span[aria-hidden=\"true\"]",
-    "div.pvs-entity div.pvs-entity__caption-text span[aria-hidden=\"true\"]"
-  ],
-  "Education School": [
-    "div.display-flex.flex-column.full-width span.mr1.hoverable-link-text.t-bold span[aria-hidden=\"true\"]",
-    "div.pvs-entity__title-text span.t-16.t-bold span[aria-hidden=\"true\"]",
-    "span.t-16.t-bold.t-black span[aria-hidden=\"true\"]"
-  ],
-  "Skills Section": [
-    "section#skills",
-    "section[data-section=\"skills\"]",
-    "section.artdeco-card.pv-profile-section.skills-section"
-  ],
-  "Volunteering Section": [
-    "section#volunteering",
-    "section[data-section=\"volunteering\"]",
-    "section.artdeco-card.pv-profile-section.volunteering-section"
-  ],
-  "Certifications Section": [
-    "section#certifications",
-    "section[data-section=\"certifications\"]",
-    "section.artdeco-card.pv-profile-section.certifications-section"
-  ],
-  "Company Name": [
-    "span.pv-entity__secondary-title",
-    "h4.pv-entity__secondary-title",
-    "div.inline-show-more-text span[aria-hidden=\"true\"]"
-  ],
-  "Job Title": [
-    "div.pv-entity__summary-info h3",
-    "div.pv-entity__summary-info-v2 h3",
-    "span.pv-entity__job-title"
-  ],
-  "School Name": [
-    "h3.pv-entity__school-name",
-    "div.pv-entity__degree-info a",
-    "span.pv-entity__school-name"
-  ]
+	"Profile Name": [
+		"h1.text-heading-xlarge",
+		"div.pv-text-details__left-panel h1",
+		"h1.top-card-layout__title"
+	],
+	"Profile Headline": [
+		"div.pv-text-details__left-panel div.text-body-medium",
+		"div.ph5 div.text-body-medium",
+		"div.mt2.relative div.text-body-medium"
+	],
+	"Profile Location": [
+		"div.pv-text-details__left-panel span.text-body-small.inline.t-black--light.break-words",
+		"div.ph5 span.text-body-small.inline.t-black--light.break-words",
+		"span.text-body-small.inline.t-black--light"
+	],
+	"About Section": [
+		"section#about",
+		"section[data-section=\"about\"]",
+		"div.pvs-list__outer-container"
+	],
+	"Experience Section": [
+		"section#experience",
+		"section[data-section=\"experience\"]",
+		"div.pvs-list__outer-container"
+	],
+	"Education Section": [
+		"section#education",
+		"section[data-section=\"education\"]",
+		"div.pvs-list__outer-container"
+	],
+	"Skills": [
+		"div.pvs-entity",
+		"div.pv-skill-category-entity",
+		"li.artdeco-list__item"
+	],
+	"Profile Picture": [
+		".pv-top-card-profile-picture__image",
+		".profile-photo-edit__preview"
+	],
+	"Experience Title": [
+		"div.display-flex.flex-column.full-width span.mr1.t-bold span[aria-hidden=\"true\"]",
+		"span.t-16.t-bold.t-black span[aria-hidden=\"true\"]",
+		"div.pvs-entity div.pvs-entity__title-text span[aria-hidden=\"true\"]"
+	],
+	"Experience Company": [
+		"div.display-flex.flex-column.full-width span.t-14.t-normal span[aria-hidden=\"true\"]",
+		"div.t-14.t-normal.break-words span[aria-hidden=\"true\"]",
+		"div.pvs-entity div.pvs-entity__caption-text span[aria-hidden=\"true\"]"
+	],
+	"Education School": [
+		"div.display-flex.flex-column.full-width span.mr1.hoverable-link-text.t-bold span[aria-hidden=\"true\"]",
+		"div.pvs-entity__title-text span.t-16.t-bold span[aria-hidden=\"true\"]",
+		"span.t-16.t-bold.t-black span[aria-hidden=\"true\"]"
+	],
+	"Skills Section": [
+		"section#skills",
+		"section[data-section=\"skills\"]",
+		"section.artdeco-card.pv-profile-section.skills-section"
+	],
+	"Volunteering Section": [
+		"section#volunteering",
+		"section[data-section=\"volunteering\"]",
+		"section.artdeco-card.pv-profile-section.volunteering-section"
+	],
+	"Certifications Section": [
+		"section#certifications",
+		"section[data-section=\"certifications\"]",
+		"section.artdeco-card.pv-profile-section.certifications-section"
+	],
+	"Company Name": [
+		"span.pv-entity__secondary-title",
+		"h4.pv-entity__secondary-title",
+		"div.inline-show-more-text span[aria-hidden=\"true\"]"
+	],
+	"Job Title": [
+		"div.pv-entity__summary-info h3",
+		"div.pv-entity__summary-info-v2 h3",
+		"span.pv-entity__job-title"
+	],
+	"School Name": [
+		"h3.pv-entity__school-name",
+		"div.pv-entity__degree-info a",
+		"span.pv-entity__school-name"
+	]
 }

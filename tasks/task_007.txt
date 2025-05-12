@@ -74,4 +74,3 @@
 2. Create a retry mechanism that automatically attempts to re-run failed jobs after a specified delay.
 3. Implement a dead-letter queue or similar mechanism to store and process jobs that fail repeatedly and cannot be automatically recovered.
 4. Develop a monitoring and alerting system to notify the team about recurring job failures or other issues with the scheduling system.
-

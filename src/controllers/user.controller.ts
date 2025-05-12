@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import User, { IUser } from '../models/user.model';
-import { generateAccessToken, generateRefreshToken, validateEmail, comparePasswords, hashPassword, JwtPayload, verifyToken } from '../utils/auth.utils';
-import { rolesObj } from '../utils/constants';
-import { ApiError } from '../middleware/errorHandler';
-import mongoose from 'mongoose';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import { ApiError } from '../middleware/errorHandler';
+import User from '../models/user.model';
+import { generateAccessToken, generateRefreshToken, hashPassword, JwtPayload, validateEmail } from '../utils/auth.utils';
 import { CONFIG } from '../utils/config';
+import { rolesObj } from '../utils/constants';
 
 /**
  * Register a new user

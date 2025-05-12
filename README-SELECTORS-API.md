@@ -22,12 +22,12 @@ This endpoint tests all LinkedIn selectors against a profile and returns health 
 
 ```json
 {
-  "linkedinAccountId": "6123456789abcdef01234567",  // MongoDB ID of your LinkedIn account
-  "password": "your-linkedin-password",             // LinkedIn account password
-  "profileUrl": "https://www.linkedin.com/in/johndoe/",  // URL of LinkedIn profile to test against
-  "useLatestLead": false,                           // Alternatively, set to true to use latest lead's profile
-  "proxyId": "6123456789abcdef01234567",           // Optional: MongoDB ID of proxy to use
-  "outputPath": "./selectors-health.json"           // Where to save the metrics results
+	"linkedinAccountId": "6123456789abcdef01234567", // MongoDB ID of your LinkedIn account
+	"password": "your-linkedin-password", // LinkedIn account password
+	"profileUrl": "https://www.linkedin.com/in/johndoe/", // URL of LinkedIn profile to test against
+	"useLatestLead": false, // Alternatively, set to true to use latest lead's profile
+	"proxyId": "6123456789abcdef01234567", // Optional: MongoDB ID of proxy to use
+	"outputPath": "./selectors-health.json" // Where to save the metrics results
 }
 ```
 
@@ -43,16 +43,16 @@ This endpoint analyzes selector health metrics and updates poor-performing selec
 
 ```json
 {
-  "metricsPath": "./selectors-health.json",  // Path to metrics file from verify endpoint
-  "threshold": 0.5,                          // Success rate threshold (0-1)
-  "category": ["Profile Headline", "Skills"], // Optional: Categories to focus on (string or array)
-  "updateSelectorFile": true,                // Whether to update the selectors file
-  "selectorFile": "./data/selectors.json",   // Path to selectors file to update
-  "generateNewSelectors": true,              // Whether to generate new selectors for failing categories
-  "profileUrl": "https://www.linkedin.com/in/johndoe/", // Required for generating new selectors
-  "linkedinAccountId": "6123456789abcdef01234567",     // Required for generating new selectors
-  "password": "your-linkedin-password",                // Required for generating new selectors
-  "proxyId": "6123456789abcdef01234567"               // Optional: Proxy for generating new selectors
+	"metricsPath": "./selectors-health.json", // Path to metrics file from verify endpoint
+	"threshold": 0.5, // Success rate threshold (0-1)
+	"category": ["Profile Headline", "Skills"], // Optional: Categories to focus on (string or array)
+	"updateSelectorFile": true, // Whether to update the selectors file
+	"selectorFile": "./data/selectors.json", // Path to selectors file to update
+	"generateNewSelectors": true, // Whether to generate new selectors for failing categories
+	"profileUrl": "https://www.linkedin.com/in/johndoe/", // Required for generating new selectors
+	"linkedinAccountId": "6123456789abcdef01234567", // Required for generating new selectors
+	"password": "your-linkedin-password", // Required for generating new selectors
+	"proxyId": "6123456789abcdef01234567" // Optional: Proxy for generating new selectors
 }
 ```
 
@@ -66,12 +66,12 @@ When using the `generateNewSelectors: true` option, the system will:
 2. Login to LinkedIn using the provided account credentials
 3. Navigate to the specified profile URL
 4. For each failing category:
-   - Try multiple selector generation strategies:
-     - Test basic selectors (h1, h2, common class patterns, etc.)
-     - Enhance working selectors with more specific attributes and context
-     - Use semantic search to find elements containing relevant keywords
-   - Test all generated selectors to verify they work
-   - Keep only the selectors that successfully find visible elements with content
+    - Try multiple selector generation strategies:
+        - Test basic selectors (h1, h2, common class patterns, etc.)
+        - Enhance working selectors with more specific attributes and context
+        - Use semantic search to find elements containing relevant keywords
+    - Test all generated selectors to verify they work
+    - Keep only the selectors that successfully find visible elements with content
 5. Update the selectors file with the newly generated selectors
 6. Add fallback selectors from defaults as a safety measure
 
@@ -107,13 +107,13 @@ The LinkedIn selector API endpoints have been integrated into the existing "Link
 1. Use the latest version of the "LinkedIn Scraper API.postman_collection.json" collection
 2. Use the "LinkedIn Scraper API Environment.postman_environment.json" environment
 3. Make sure the following environment variables are set:
-   - `baseUrl`: Your API base URL (e.g., `http://localhost:4001`)
-   - `adminToken`: Admin JWT token for authentication (required for these endpoints)
-   - `linkedinAccountId`: MongoDB ID of the LinkedIn account to use
-   - `linkedinAccountPass`: Password for the LinkedIn account
-   - `proxyId`: MongoDB ID of a proxy to use (optional)
-   - `selectorsOutputPath`: Path where selector metrics will be saved
-   - `selectorThreshold`: Threshold value for identifying poor selectors (default: 0.5)
+    - `baseUrl`: Your API base URL (e.g., `http://localhost:4001`)
+    - `adminToken`: Admin JWT token for authentication (required for these endpoints)
+    - `linkedinAccountId`: MongoDB ID of the LinkedIn account to use
+    - `linkedinAccountPass`: Password for the LinkedIn account
+    - `proxyId`: MongoDB ID of a proxy to use (optional)
+    - `selectorsOutputPath`: Path where selector metrics will be saved
+    - `selectorThreshold`: Threshold value for identifying poor selectors (default: 0.5)
 
 ### Using the Endpoints:
 
@@ -144,6 +144,7 @@ For a detailed guide on using these endpoints in Postman, refer to the `README-P
 ---
 
 For detailed implementation of these APIs, see:
+
 - `src/routes/linkedin.routes.ts` - API routes
 - `src/controllers/linkedin.controller.ts` - Controller logic
 - `src/services/linkedin/SelectorVerifier.ts` - Verification implementation

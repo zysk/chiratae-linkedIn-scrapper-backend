@@ -1,5 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import mongoose, { Document, Schema } from 'mongoose';
 import { rolesObj } from '../utils/constants';
 
 // Define interface for User document
@@ -80,7 +80,7 @@ const UserSchema: Schema = new Schema(
 );
 
 // Pre-save middleware to hash password before saving
-UserSchema.pre<IUser>('save', async function(next) {
+UserSchema.pre<IUser>('save', async function (next) {
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
 
@@ -95,7 +95,7 @@ UserSchema.pre<IUser>('save', async function(next) {
 });
 
 // Method to compare password for login
-UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {

@@ -3,10 +3,10 @@
 import { program } from 'commander';
 import fs from 'fs/promises';
 import path from 'path';
-import logger from '../utils/logger';
 import prompt from 'prompts';
 import LinkedInAccount from '../models/linkedinAccount.model';
 import { SelectorHealthMetrics } from '../services/linkedin/SelectorVerifier';
+import logger from '../utils/logger';
 
 /**
  * Tool for analyzing selector health metrics and helping

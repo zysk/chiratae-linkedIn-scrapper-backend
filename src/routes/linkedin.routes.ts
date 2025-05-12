@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import linkedInController from '../controllers/linkedin.controller';
-import { authenticate } from '../middleware/auth.middleware';
 import { adminOnly } from '../middleware/admin.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  testLoginSchema,
-  searchProfilesSchema,
-  getNextAccountSchema,
-  getNextProxySchema,
-  verifySelectorSchema,
-  updateSelectorSchema
+	getNextAccountSchema,
+	getNextProxySchema,
+	searchProfilesSchema,
+	testLoginSchema,
+	updateSelectorSchema,
+	verifySelectorSchema
 } from '../utils/validation/linkedinSearch.validation';
 
 const router = Router();

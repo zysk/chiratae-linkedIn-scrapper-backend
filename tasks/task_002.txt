@@ -68,4 +68,3 @@
 3. Ensure that users can only rate other users, not themselves.
 4. Display the average rating and number of ratings on each user's profile.
 5. Write integration tests to verify the user rating system functionality.
-

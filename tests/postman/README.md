@@ -14,12 +14,12 @@ This directory contains Postman collection and environment files for testing the
 
 1. Install [Postman](https://www.postman.com/downloads/) if you haven't already.
 2. Import the updated collection file:
-   - Open Postman
-   - Click on "Import" button
-   - Upload or paste the contents of `collections/chiratae-linkedin-scraper-api-updated.json`
+    - Open Postman
+    - Click on "Import" button
+    - Upload or paste the contents of `collections/chiratae-linkedin-scraper-api-updated.json`
 3. Import the updated environment file:
-   - Click on "Import" button again
-   - Upload or paste the contents of `environments/chiratae-linkedin-scraper-environment-updated.json`
+    - Click on "Import" button again
+    - Upload or paste the contents of `environments/chiratae-linkedin-scraper-environment-updated.json`
 4. Select the imported environment from the environment dropdown (top right corner)
 5. Make sure the API server is running (defaults to `http://localhost:4001` as per .env file)
 6. Update the `baseUrl` environment variable if your server is running on a different port
@@ -30,13 +30,13 @@ If you need to start the API server locally:
 
 1. Make sure MongoDB and Redis are running on your system
 2. Create a `.env` file in the project root with the following variables (or use the existing one):
-   ```
-   PORT=4001
-   MONGOURI=mongodb://root:Root123@localhost:27017/linkedin-scrapper?authSource=admin
-   JWT_ACCESS_TOKEN_SECRET=dev_jwt_secret_replace_in_production
-   JWT_REFRESH_TOKEN_SECRET=dev_jwt_refresh_secret_replace_in_production
-   REDIS_URL=redis://localhost:6379
-   ```
+    ```
+    PORT=4001
+    MONGOURI=mongodb://root:Root123@localhost:27017/linkedin-scrapper?authSource=admin
+    JWT_ACCESS_TOKEN_SECRET=dev_jwt_secret_replace_in_production
+    JWT_REFRESH_TOKEN_SECRET=dev_jwt_refresh_secret_replace_in_production
+    REDIS_URL=redis://localhost:6379
+    ```
 3. Install dependencies with `npm install`
 4. Start the server with `npm run dev`
 
@@ -47,8 +47,8 @@ If you need to start the API server locally:
 1. Start by registering a user with the "Register User" request
 2. Log in with the "Login" request - this will automatically set the `authToken` variable
 3. For admin operations, you'll need to either:
-   - Register an admin (if you already have an admin token)
-   - Log in as an admin using "Login Admin" if you already have admin credentials
+    - Register an admin (if you already have an admin token)
+    - Log in as an admin using "Login Admin" if you already have admin credentials
 
 ### Testing with Real Data
 

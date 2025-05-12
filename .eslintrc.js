@@ -20,10 +20,7 @@ module.exports = {
 		'@typescript-eslint/no-empty-function': 'error',
 		'@typescript-eslint/explicit-function-return-type': 'warn',
 		'@typescript-eslint/no-explicit-any': 'warn',
-		'@typescript-eslint/no-unused-vars':  [
-			"error",
-			{ "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
-		  ],
+		'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
 		'@typescript-eslint/no-var-requires': 'error',
 		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
 		'@typescript-eslint/explicit-member-accessibility': 'off',

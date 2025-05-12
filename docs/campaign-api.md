@@ -29,13 +29,13 @@ Creates a new LinkedIn search campaign.
 
 ```json
 {
-  "name": "Software Engineers at Google",
-  "searchQuery": "Software Engineer",
-  "company": "Google",
-  "location": "United States",
-  "keywords": ["React", "Node.js", "JavaScript"],
-  "maxResults": 100,
-  "connectionDegree": "2nd"
+	"name": "Software Engineers at Google",
+	"searchQuery": "Software Engineer",
+	"company": "Google",
+	"location": "United States",
+	"keywords": ["React", "Node.js", "JavaScript"],
+	"maxResults": 100,
+	"connectionDegree": "2nd"
 }
 ```
 
@@ -51,20 +51,20 @@ Creates a new LinkedIn search campaign.
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "_id": "60d21b4667d0d8992e610c85",
-    "name": "Software Engineers at Google",
-    "searchQuery": "Software Engineer",
-    "company": "Google",
-    "location": "United States",
-    "keywords": ["React", "Node.js", "JavaScript"],
-    "maxResults": 100,
-    "status": "CREATED",
-    "createdAt": "2023-06-22T14:30:45.123Z",
-    "updatedAt": "2023-06-22T14:30:45.123Z",
-    "user": "60d21b4667d0d8992e610c80"
-  }
+	"status": "success",
+	"data": {
+		"_id": "60d21b4667d0d8992e610c85",
+		"name": "Software Engineers at Google",
+		"searchQuery": "Software Engineer",
+		"company": "Google",
+		"location": "United States",
+		"keywords": ["React", "Node.js", "JavaScript"],
+		"maxResults": 100,
+		"status": "CREATED",
+		"createdAt": "2023-06-22T14:30:45.123Z",
+		"updatedAt": "2023-06-22T14:30:45.123Z",
+		"user": "60d21b4667d0d8992e610c80"
+	}
 }
 ```
 
@@ -89,24 +89,24 @@ Retrieves a list of campaigns with optional filtering and pagination.
 
 ```json
 {
-  "status": "success",
-  "data": [
-    {
-      "_id": "60d21b4667d0d8992e610c85",
-      "name": "Software Engineers at Google",
-      "searchQuery": "Software Engineer",
-      "status": "CREATED",
-      "createdAt": "2023-06-22T14:30:45.123Z",
-      "updatedAt": "2023-06-22T14:30:45.123Z",
-      "resultsCount": 0
-    }
-  ],
-  "pagination": {
-    "total": 1,
-    "page": 1,
-    "pages": 1,
-    "limit": 10
-  }
+	"status": "success",
+	"data": [
+		{
+			"_id": "60d21b4667d0d8992e610c85",
+			"name": "Software Engineers at Google",
+			"searchQuery": "Software Engineer",
+			"status": "CREATED",
+			"createdAt": "2023-06-22T14:30:45.123Z",
+			"updatedAt": "2023-06-22T14:30:45.123Z",
+			"resultsCount": 0
+		}
+	],
+	"pagination": {
+		"total": 1,
+		"page": 1,
+		"pages": 1,
+		"limit": 10
+	}
 }
 ```
 
@@ -123,24 +123,24 @@ Retrieves detailed information about a specific campaign.
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "_id": "60d21b4667d0d8992e610c85",
-    "name": "Software Engineers at Google",
-    "searchQuery": "Software Engineer",
-    "company": "Google",
-    "location": "United States",
-    "keywords": ["React", "Node.js", "JavaScript"],
-    "maxResults": 100,
-    "status": "CREATED",
-    "createdAt": "2023-06-22T14:30:45.123Z",
-    "updatedAt": "2023-06-22T14:30:45.123Z",
-    "resultsCount": 0,
-    "user": {
-      "_id": "60d21b4667d0d8992e610c80",
-      "name": "John Doe"
-    }
-  }
+	"status": "success",
+	"data": {
+		"_id": "60d21b4667d0d8992e610c85",
+		"name": "Software Engineers at Google",
+		"searchQuery": "Software Engineer",
+		"company": "Google",
+		"location": "United States",
+		"keywords": ["React", "Node.js", "JavaScript"],
+		"maxResults": 100,
+		"status": "CREATED",
+		"createdAt": "2023-06-22T14:30:45.123Z",
+		"updatedAt": "2023-06-22T14:30:45.123Z",
+		"resultsCount": 0,
+		"user": {
+			"_id": "60d21b4667d0d8992e610c80",
+			"name": "John Doe"
+		}
+	}
 }
 ```
 
@@ -157,10 +157,10 @@ Updates an existing campaign.
 
 ```json
 {
-  "name": "Updated Campaign Name",
-  "searchQuery": "Software Engineer Senior",
-  "maxResults": 150,
-  "keywords": ["React", "Node.js", "TypeScript", "AWS"]
+	"name": "Updated Campaign Name",
+	"searchQuery": "Software Engineer Senior",
+	"maxResults": 150,
+	"keywords": ["React", "Node.js", "TypeScript", "AWS"]
 }
 ```
 
@@ -168,19 +168,19 @@ Updates an existing campaign.
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "_id": "60d21b4667d0d8992e610c85",
-    "name": "Updated Campaign Name",
-    "searchQuery": "Software Engineer Senior",
-    "company": "Google",
-    "location": "United States",
-    "keywords": ["React", "Node.js", "TypeScript", "AWS"],
-    "maxResults": 150,
-    "status": "CREATED",
-    "createdAt": "2023-06-22T14:30:45.123Z",
-    "updatedAt": "2023-06-22T15:45:22.987Z"
-  }
+	"status": "success",
+	"data": {
+		"_id": "60d21b4667d0d8992e610c85",
+		"name": "Updated Campaign Name",
+		"searchQuery": "Software Engineer Senior",
+		"company": "Google",
+		"location": "United States",
+		"keywords": ["React", "Node.js", "TypeScript", "AWS"],
+		"maxResults": 150,
+		"status": "CREATED",
+		"createdAt": "2023-06-22T14:30:45.123Z",
+		"updatedAt": "2023-06-22T15:45:22.987Z"
+	}
 }
 ```
 
@@ -197,8 +197,8 @@ Deletes a campaign.
 
 ```json
 {
-  "status": "success",
-  "message": "Campaign deleted successfully"
+	"status": "success",
+	"message": "Campaign deleted successfully"
 }
 ```
 
@@ -215,8 +215,8 @@ Adds a campaign to the processing queue for execution.
 
 ```json
 {
-  "campaignId": "60d21b4667d0d8992e610c85",
-  "priority": "high"
+	"campaignId": "60d21b4667d0d8992e610c85",
+	"priority": "high"
 }
 ```
 
@@ -224,14 +224,14 @@ Adds a campaign to the processing queue for execution.
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "_id": "60d21b4667d0d8992e610c85",
-    "name": "Updated Campaign Name",
-    "status": "QUEUED",
-    "updatedAt": "2023-06-22T16:10:05.432Z"
-  },
-  "message": "Campaign added to queue successfully"
+	"status": "success",
+	"data": {
+		"_id": "60d21b4667d0d8992e610c85",
+		"name": "Updated Campaign Name",
+		"status": "QUEUED",
+		"updatedAt": "2023-06-22T16:10:05.432Z"
+	},
+	"message": "Campaign added to queue successfully"
 }
 ```
 
@@ -254,26 +254,26 @@ Retrieves the LinkedIn profiles found for a specific campaign.
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "results": [
-      {
-        "_id": "60d21b4667d0d8992e610d01",
-        "profileId": "john-doe-123456",
-        "profileUrl": "https://www.linkedin.com/in/john-doe-123456/",
-        "name": "John Doe",
-        "scrapeStatus": "COMPLETED",
-        "scraped": true,
-        "createdAt": "2023-06-22T17:30:45.123Z"
-      }
-    ],
-    "pagination": {
-      "total": 1,
-      "page": 1,
-      "pages": 1,
-      "limit": 25
-    }
-  }
+	"status": "success",
+	"data": {
+		"results": [
+			{
+				"_id": "60d21b4667d0d8992e610d01",
+				"profileId": "john-doe-123456",
+				"profileUrl": "https://www.linkedin.com/in/john-doe-123456/",
+				"name": "John Doe",
+				"scrapeStatus": "COMPLETED",
+				"scraped": true,
+				"createdAt": "2023-06-22T17:30:45.123Z"
+			}
+		],
+		"pagination": {
+			"total": 1,
+			"page": 1,
+			"pages": 1,
+			"limit": 25
+		}
+	}
 }
 ```
 
@@ -304,7 +304,7 @@ Error responses have the following format:
 
 ```json
 {
-  "status": "error",
-  "message": "Error message describing what went wrong"
+	"status": "error",
+	"message": "Error message describing what went wrong"
 }
 ```
