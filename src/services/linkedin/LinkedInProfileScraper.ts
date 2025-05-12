@@ -1,6 +1,6 @@
 import { rolesObj } from '../../utils/constants';
 import fs from 'fs/promises';
-import { WebDriver, By, until, WebElement } from 'selenium-webdriver';
+import { WebDriver, By, until, WebElement, Key } from 'selenium-webdriver';
 import logger from '../../utils/logger';
 import { normalizeLinkedInUrl, extractProfileId, extractCleanName } from '../../utils/linkedin.utils';
 import User from '../../models/user.model';
@@ -18,6 +18,7 @@ import { CONFIG } from '../../utils/config';
 import { Builder } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome';
 import { SelectorVerifier, SelectorHealthMetrics } from './SelectorVerifier';
+import { getXPathSelectors } from '../../constants/selectors';
 
 interface Experience {
   title: string;
@@ -98,7 +99,7 @@ interface IScrapeResult {
 interface LinkedInProfile {
   firstName?: string;
   lastName?: string;
-  name?: string;
+  name: string;
   headline?: string;
   location?: string;
   about?: string;
@@ -161,6 +162,28 @@ interface LinkedInProfile {
     twitter?: string;
   };
   endorsements?: Endorsement[];
+  // Additional fields
+  profileUrl: string;
+  projects?: any[];
+  connections?: number;
+  timestamp?: string;
+  campaignId?: string;
+  metadataId?: string;
+}
+
+// Add LinkedInProfileBasic interface
+interface LinkedInProfileBasic {
+  profileUrl: string;
+  name: string;
+  headline: string;
+  location: string;
+  connectionDegree: string;
+  metadataId: string;
+}
+
+// Extended LinkedIn account interface with password
+interface LinkedInAccountWithPassword extends ILinkedInAccount {
+  password?: string;
 }
 
 /**
@@ -180,16 +203,7 @@ export class LinkedInProfileScraper {
     this.webDriverManager = WebDriverManager;
     this.linkedInAuthService = linkedInAuthService;
     this.selectorVerifier = new SelectorVerifier();
-
-    // Make sure selectors are up to date
-    this.refreshSelectors();
-  }
-
-  /**
-   * Refresh selectors from the centralized selector system
-   */
-  private refreshSelectors(): void {
-    this.selectorVerifier.refreshSelectors();
+    logger.info('LinkedIn Profile Scraper initialized');
   }
 
   /**
@@ -222,136 +236,453 @@ export class LinkedInProfileScraper {
       await this.navigateToProfile(driver, profileUrl, linkedInAccount);
       // No need to call scrollProfile here as it's already called inside navigateToProfile
 
-      // Extract profile data
-      const [
-        nameResult,
+      // Extract all profile sections
+      const nameResult = await this.extractName(driver);
+      const name = typeof nameResult === 'string' ? nameResult :
+                   nameResult?.firstName && nameResult?.lastName ?
+                   `${nameResult.firstName} ${nameResult.lastName}` :
+                   nameResult?.firstName || nameResult?.lastName || 'Unknown';
+
+      const headline = await this.extractHeadline(driver);
+      const location = await this.extractLocation(driver);
+      const about = await this.extractAbout(driver);
+      const experience = await this.extractExperience(driver);
+      const education = await this.extractEducation(driver);
+      const skills = await this.extractSkills(driver);
+      const certifications = await this.extractCertifications(driver);
+      const projects = await this.extractProjects(driver);
+      const languages = await this.extractLanguages(driver);
+      const connections = await this.extractConnections(driver);
+
+      logger.info(`Profile scraping complete for: ${name || profileUrl}`);
+
+      // Construct the profile object
+      const profile: LinkedInProfile = {
+        profileUrl,
+        name,
         headline,
         location,
         about,
-        profilePicture,
-        backgroundImage,
         experience,
         education,
         skills,
         certifications,
-        volunteering,
-        awards,
-        publications,
-        recommendations,
-        interests,
+        projects,
         languages,
-        contactInfo,
-        endorsements
-      ] = await Promise.all([
-        this.extractName(driver).catch(error => {
-          logger.warn(`Error extracting name: ${error instanceof Error ? error.message : String(error)}`);
-          return { firstName: undefined, lastName: undefined };
-        }),
-        this.extractHeadline(driver).catch(error => {
-          logger.warn(`Error extracting headline: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractLocation(driver).catch(error => {
-          logger.warn(`Error extracting location: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractAbout(driver).catch(error => {
-          logger.warn(`Error extracting about: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractProfilePicture(driver).catch(error => {
-          logger.warn(`Error extracting profile picture: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractBackgroundImage(driver).catch(error => {
-          logger.warn(`Error extracting background image: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractExperience(driver).catch(error => {
-          logger.warn(`Error extracting experience: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractEducation(driver).catch(error => {
-          logger.warn(`Error extracting education: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractSkills(driver).catch(error => {
-          logger.warn(`Error extracting skills: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractCertifications(driver).catch(error => {
-          logger.warn(`Error extracting certifications: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractVolunteering(driver).catch(error => {
-          logger.warn(`Error extracting volunteering: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractAwards(driver).catch(error => {
-          logger.warn(`Error extracting awards: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractPublications(driver).catch(error => {
-          logger.warn(`Error extracting publications: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractRecommendations(driver).catch(error => {
-          logger.warn(`Error extracting recommendations: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractInterests(driver).catch(error => {
-          logger.warn(`Error extracting interests: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        }),
-        this.extractLanguages(driver).catch(error => {
-          logger.warn(`Error extracting languages: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractContactInfo(driver).catch(error => {
-          logger.warn(`Error extracting contact info: ${error instanceof Error ? error.message : String(error)}`);
-          return undefined;
-        }),
-        this.extractEndorsements(driver).catch(error => {
-          logger.warn(`Error extracting endorsements: ${error instanceof Error ? error.message : String(error)}`);
-          return [];
-        })
-      ]);
-
-      // Construct and return the profile
-      return {
-        firstName: nameResult?.firstName,
-        lastName: nameResult?.lastName,
-        name: nameResult?.firstName && nameResult?.lastName
-          ? `${nameResult.firstName} ${nameResult.lastName}`
-          : (nameResult?.firstName || nameResult?.lastName || 'Unknown Profile'),
-        headline,
-        location,
-        about,
-        profilePictureUrl: profilePicture,
-        backgroundImageUrl: backgroundImage,
-        experience: experience || [],
-        education: education || [],
-        skills: skills || [],
-        certifications,
-        volunteering,
-        awards,
-        publications,
-        recommendations,
-        interests,
-        languages,
-        contactInfo,
-        endorsements
+        connections,
+        timestamp: new Date().toISOString(),
+        // Additional fields
+        campaignId: campaignId || '',
+        metadataId: this.generateMetadataId(profileUrl)
       };
+
+      // Clean up screenshots directory if needed
+      await this.cleanupScreenshots();
+
+      return profile;
     } catch (error) {
-      logger.error('Error scraping profile:', error);
+      logger.error(`Error scraping LinkedIn profile: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     } finally {
       try {
-        await driver.quit();
-      } catch (error) {
-        logger.error('Error closing driver:', error);
+        if (driver) {
+          await driver.quit();
+          logger.info('Browser closed successfully');
+        }
+      } catch (closeError) {
+        logger.warn(`Error closing browser: ${closeError instanceof Error ? closeError.message : String(closeError)}`);
       }
     }
+  }
+
+  /**
+   * Search LinkedIn profiles
+   * @param searchQuery The query to search for
+   * @param linkedInAccount LinkedIn account to use for authentication
+   * @param campaignId Campaign ID for tracking
+   * @param maxResults Maximum number of results to return
+   * @param proxy Optional proxy to use
+   * @returns Array of basic profile data
+   */
+  public async searchProfiles(
+    searchQuery: string,
+    linkedInAccount: ILinkedInAccount,
+    campaignId?: string,
+    maxResults: number = 10,
+    proxy?: IProxy
+  ): Promise<LinkedInProfileBasic[]> {
+    const driver = await this.setupDriver(linkedInAccount, proxy);
+    try {
+      await this.login(driver, linkedInAccount);
+
+      // Take a screenshot of the logged-in state for debugging
+      await this.takeScreenshot(driver, 'logged-in-state');
+
+      // Navigate to the search page
+      await driver.get('https://www.linkedin.com/search/results/people/');
+      await this.takeScreenshot(driver, 'search-page-initial');
+
+      // Find and use the search input
+      await this.findAndUseSearchInput(driver, searchQuery);
+
+      // Wait for search results to load
+      await driver.wait(until.elementLocated(By.xpath(
+        "//div[contains(@class, 'search-results-container')]"
+      )), 10000);
+
+      await this.takeScreenshot(driver, 'search-results-loaded');
+
+      // Extract profile data from search results
+      const profiles = await this.extractProfilesFromSearch(driver, maxResults);
+      logger.info(`Found ${profiles.length} profiles for search: "${searchQuery}"`);
+
+      // Clean up screenshots directory
+      await this.cleanupScreenshots();
+
+      return profiles;
+    } catch (error) {
+      logger.error(`Error searching LinkedIn profiles: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    } finally {
+      try {
+        if (driver) {
+          await driver.quit();
+          logger.info('Browser closed successfully');
+        }
+      } catch (closeError) {
+        logger.warn(`Error closing browser: ${closeError instanceof Error ? closeError.message : String(closeError)}`);
+      }
+    }
+  }
+
+  /**
+   * Clean up screenshots directory after scraping is complete
+   * Only deletes files older than the specified age (default: 24 hours)
+   */
+  private async cleanupScreenshots(maxAgeHours: number = 24): Promise<void> {
+    try {
+      const screenshotsDir = path.join(process.cwd(), 'data', 'screenshots');
+      const selectorDebugDir = path.join(process.cwd(), 'data', 'selector-debug');
+      const elementScreenshotsDir = path.join(process.cwd(), 'data', 'element-screenshots');
+
+      // Create an array of directories to clean
+      const dirsToClean = [
+        screenshotsDir,
+        selectorDebugDir,
+        elementScreenshotsDir
+      ];
+
+      const now = new Date();
+      const maxAgeMs = maxAgeHours * 60 * 60 * 1000; // Convert hours to milliseconds
+
+      for (const dir of dirsToClean) {
+        try {
+          // Check if directory exists
+          await fs.access(dir);
+
+          // Get all files in the directory
+          const files = await fs.readdir(dir);
+          let deletedCount = 0;
+
+          for (const file of files) {
+            try {
+              const filePath = path.join(dir, file);
+              const stats = await fs.stat(filePath);
+
+              // Check if the file is older than the max age
+              if (now.getTime() - stats.mtime.getTime() > maxAgeMs) {
+                await fs.unlink(filePath);
+                deletedCount++;
+              }
+            } catch (fileError) {
+              logger.warn(`Error processing file during cleanup: ${fileError instanceof Error ? fileError.message : String(fileError)}`);
+            }
+          }
+
+          if (deletedCount > 0) {
+            logger.info(`Cleaned up ${deletedCount} old files from ${path.basename(dir)}`);
+          }
+        } catch (dirError: unknown) {
+          // Directory doesn't exist or can't be accessed, that's fine
+          if (dirError instanceof Error) {
+            // Check if it's just a "file not found" error which we can ignore
+            const errorMessage = dirError.message || '';
+            if (!errorMessage.includes('ENOENT') && !errorMessage.includes('no such file')) {
+              logger.warn(`Error accessing directory during cleanup: ${dirError.message}`);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      logger.warn(`Error cleaning up screenshots: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Find and use the search input field
+   * @param driver WebDriver instance
+   * @param searchQuery The query to search for
+   */
+  private async findAndUseSearchInput(driver: WebDriver, searchQuery: string): Promise<void> {
+    try {
+      // Try to find the search input using our selector verifier
+      const searchInput = await this.selectorVerifier.findElementByCategory(
+        driver,
+        'Search Input',
+        false,
+        true // Take screenshot to debug
+      ) as WebElement;
+
+      if (searchInput) {
+        // Clear any existing text and enter the search query
+        await searchInput.clear();
+        await searchInput.sendKeys(searchQuery, Key.ENTER);
+        logger.info(`Entered search query: "${searchQuery}"`);
+
+        // Wait for search results to load
+        await driver.sleep(3000);
+        await this.takeScreenshot(driver, 'after-search-input');
+
+        // Check if we need to click on the "People" tab
+        try {
+          const peopleTab = await this.selectorVerifier.findElementByCategory(
+            driver,
+            'People Tab',
+            false,
+            true // Take screenshot to debug
+          ) as WebElement;
+
+          if (peopleTab) {
+            await peopleTab.click();
+            logger.info('Clicked on "People" tab');
+            await driver.sleep(2000);
+            await this.takeScreenshot(driver, 'after-people-tab-click');
+          }
+        } catch (tabError) {
+          logger.warn(`Could not find or click "People" tab: ${tabError instanceof Error ? tabError.message : String(tabError)}`);
+        }
+
+        return;
+      }
+
+      // Fallback to direct search URL if the input field wasn't found
+      logger.warn('Search input not found, using direct URL search');
+      const encodedQuery = encodeURIComponent(searchQuery);
+      await driver.get(`https://www.linkedin.com/search/results/people/?keywords=${encodedQuery}`);
+      await driver.sleep(3000);
+      await this.takeScreenshot(driver, 'direct-search-url');
+    } catch (error) {
+      logger.error(`Error finding/using search input: ${error instanceof Error ? error.message : String(error)}`);
+
+      // Last resort: try direct URL
+      const encodedQuery = encodeURIComponent(searchQuery);
+      await driver.get(`https://www.linkedin.com/search/results/people/?keywords=${encodedQuery}`);
+      await driver.sleep(3000);
+      await this.takeScreenshot(driver, 'direct-search-url-fallback');
+    }
+  }
+
+  /**
+   * Extract profile data from search results
+   * @param driver WebDriver instance
+   * @param maxResults Maximum number of results to return
+   * @returns Array of basic profile data
+   */
+  private async extractProfilesFromSearch(
+    driver: WebDriver,
+    maxResults: number
+  ): Promise<LinkedInProfileBasic[]> {
+    const profiles: LinkedInProfileBasic[] = [];
+    let currentPage = 1;
+
+    while (profiles.length < maxResults) {
+      // Take a screenshot of the current search results page
+      await this.takeScreenshot(driver, `search-results-page-${currentPage}`, true, 'debug-screenshots');
+      logger.info(`Searching for profile cards on the page...`);
+
+      // Find all profile cards using the selector verifier
+      const profileCards = await this.selectorVerifier.findElementByCategory(
+        driver,
+        'Search Result Cards',
+        true, // Get multiple
+        true  // Take screenshot
+      ) as WebElement[];
+
+      if (!profileCards || profileCards.length === 0) {
+        logger.warn('No profile cards found with any selector');
+        logger.warn(`No results found on page ${currentPage}. Taking screenshot for debugging.`);
+        await this.takeScreenshot(driver, `empty-results-page-${currentPage}`, true, 'debug-screenshots');
+        break;
+      }
+
+      logger.info(`Found ${profileCards.length} profile cards on page ${currentPage}`);
+
+      // Process each profile card
+      for (let i = 0; i < profileCards.length && profiles.length < maxResults; i++) {
+        try {
+          const card = profileCards[i];
+
+          // Extract profile URL using SelectorVerifier
+          const urlElement = await this.selectorVerifier.findElementWithinContext(
+            card,
+            'Search Result Profile URL',
+            false
+          );
+
+          let profileUrl = '';
+          if (urlElement && urlElement instanceof WebElement) {
+            profileUrl = await urlElement.getAttribute('href');
+            // If URL contains a "?" parameter, remove it
+            profileUrl = profileUrl.split('?')[0];
+          }
+
+          if (!profileUrl) {
+            logger.warn(`No profile URL found for card ${i+1}`);
+            continue;
+          }
+
+          // Extract name using SelectorVerifier
+          const nameElement = await this.selectorVerifier.findElementWithinContext(
+            card,
+            'Search Result Name',
+            false
+          );
+
+          let name = '';
+          if (nameElement && nameElement instanceof WebElement) {
+            name = await nameElement.getText();
+          }
+
+          if (!name) {
+            try {
+              // Try getting text from the link directly as fallback
+              const links = await card.findElements(By.xpath(".//a[contains(@href, '/in/')]"));
+              if (links.length > 0) {
+                name = await links[0].getText();
+              }
+            } catch (e) {
+              // Ignore errors in fallback
+            }
+          }
+
+          // Extract headline using SelectorVerifier
+          const headlineElement = await this.selectorVerifier.findElementWithinContext(
+            card,
+            'Search Result Headline',
+            false
+          );
+
+          let headline = '';
+          if (headlineElement && headlineElement instanceof WebElement) {
+            headline = await headlineElement.getText();
+          }
+
+          // Extract location using SelectorVerifier
+          const locationElement = await this.selectorVerifier.findElementWithinContext(
+            card,
+            'Search Result Location',
+            false
+          );
+
+          let location = '';
+          if (locationElement && locationElement instanceof WebElement) {
+            location = await locationElement.getText();
+          }
+
+          // Try to extract connection degree
+          let connectionDegree = '';
+          try {
+            // Common location for connection degree info
+            const degreeElement = await card.findElement(By.xpath(".//span[contains(text(), '1st') or contains(text(), '2nd') or contains(text(), '3rd')]"));
+            connectionDegree = await degreeElement.getText();
+          } catch (e) {
+            // Ignore errors
+          }
+
+          // Add to profiles array if we at least have a URL
+          if (profileUrl) {
+            profiles.push({
+              profileUrl,
+              name: name || 'Unknown',
+              headline: headline || '',
+              location: location || '',
+              connectionDegree: connectionDegree || '',
+              metadataId: this.generateMetadataId(profileUrl)
+            });
+
+            // Log the found profile
+            logger.info(`Found profile: ${name || 'Unknown'} - ${profileUrl}`);
+
+            if (profiles.length >= maxResults) {
+              break;
+            }
+          }
+        } catch (cardError) {
+          logger.warn(`Error processing profile card: ${cardError instanceof Error ? cardError.message : String(cardError)}`);
+        }
+      }
+
+      // If we have enough profiles or we're on the last page, break
+      if (profiles.length >= maxResults) {
+        break;
+      }
+
+      // Take a screenshot before looking for pagination
+      await this.takeScreenshot(driver, `before-pagination-${currentPage}`, true, 'debug-screenshots');
+
+      // Try to navigate to the next page
+      try {
+        // Try to find the "Next" button using selector verifier
+        const nextButton = await this.selectorVerifier.findElementByCategory(
+          driver,
+          'Search Pagination',
+          false,
+          true
+        ) as WebElement;
+
+        if (nextButton) {
+          logger.info(`Found next button after scrolling with selector: button[aria-label="Next"]`);
+          const isEnabled = await nextButton.isEnabled();
+          if (isEnabled) {
+            await nextButton.click();
+            logger.info(`Clicked next page button`);
+            await driver.sleep(5000);
+
+            // Take another screenshot after pagination
+            await this.takeScreenshot(driver, `after-pagination-${currentPage}`, true, 'debug-screenshots');
+
+            // Verify we actually navigated to a new page by finding the results container again
+            const resultsContainer = await this.selectorVerifier.findElementByCategory(
+              driver,
+              'Search Container',
+              false,
+              false
+            );
+
+            if (resultsContainer) {
+              logger.info(`Found results container after pagination with selector: .search-results-container`);
+              // Successfully navigated to the next page
+              currentPage++;
+            } else {
+              logger.warn('Failed to find results container after pagination. May have reached the end of results.');
+              break;
+            }
+          } else {
+            logger.info('Next button is disabled, reached last page of search results');
+            break;
+          }
+        } else {
+          logger.info('Next button not found, reached last page of search results');
+          break;
+        }
+      } catch (nextError) {
+        logger.warn(`Error navigating to next page: ${nextError instanceof Error ? nextError.message : String(nextError)}`);
+        break;
+      }
+    }
+
+    logger.info(`Total profiles: ${JSON.stringify(profiles.map(p => p.profileUrl))} || Campaign ID: N/A`);
+    return profiles;
   }
 
   /**
@@ -367,9 +698,6 @@ export class LinkedInProfileScraper {
     // Reset health metrics before running tests
     instance.selectorVerifier.resetHealthMetrics();
 
-    // Refresh selectors to ensure we have the latest
-    instance.refreshSelectors();
-
     logger.info(`Starting LinkedIn selector verification for profile: ${profileUrl}`);
     logger.info(`Using LinkedIn account: ${linkedInAccount?.username || 'None provided'}`);
 
@@ -378,36 +706,16 @@ export class LinkedInProfileScraper {
 
     try {
       // Set up a new web driver with extended timeouts for verification
-      logger.info('Creating new WebDriver instance for selector verification');
       driver = await instance.setupDriver(linkedInAccount);
       driverCreated = true;
 
-      logger.info('WebDriver initialized successfully');
-
       try {
-        // Navigate to profile and wait for load
+        // Navigate to the profile
         logger.info(`Navigating to LinkedIn profile: ${profileUrl}`);
-        if (linkedInAccount) {
-          logger.info(`Logging in with account ${linkedInAccount.username}`);
-        }
+        await instance.navigateToProfile(driver, profileUrl, linkedInAccount, password);
+        logger.info('Profile navigation completed');
 
-        // Navigate to the profile, which may return a new driver instance after login
-        const navigatedDriver = await instance.navigateToProfile(driver, profileUrl, linkedInAccount, password);
-
-        // If we got a different driver back (due to authentication), update our reference
-        // and don't quit the original as it was already handled in navigateToProfile
-        if (navigatedDriver !== driver) {
-          logger.info('Driver instance changed during navigation/authentication');
-          driver = navigatedDriver;
-          driverCreated = true; // We're now responsible for this new driver
-        }
-
-        logger.info('Successfully navigated to profile, waiting for page to load');
-
-        await instance.waitForProfileLoad(driver);
-        logger.info('Profile page loaded successfully');
-
-        // Take screenshot of the profile page for debugging
+        // Take screenshot of the loaded profile page
         await instance.takeScreenshot(driver, 'profile-page-loaded');
 
         // Scroll through profile to load all dynamic content
@@ -415,10 +723,24 @@ export class LinkedInProfileScraper {
         await instance.scrollToBottom(driver);
         logger.info('Profile scrolling completed');
 
-        // Run verification on all selectors
-        logger.info('Starting selector verification tests');
-        await instance.selectorVerifier.testAllSelectors(driver);
-        logger.info('Selector verification tests completed');
+        // Test all selectors by calling the various extract methods
+        logger.info('Testing selectors by extracting profile data');
+
+        // Extract some key profile elements to verify selectors
+        try {
+          await instance.extractName(driver);
+          await instance.extractHeadline(driver);
+          await instance.extractLocation(driver);
+          await instance.extractAbout(driver);
+          await instance.extractExperience(driver);
+          await instance.extractEducation(driver);
+          await instance.extractSkills(driver);
+          await instance.extractContactInfo(driver);
+        } catch (error) {
+          logger.warn(`Error during selector testing: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        logger.info('Selector testing completed');
 
         // Return health metrics
         const metrics = instance.selectorVerifier.getHealthMetrics();
@@ -748,52 +1070,27 @@ export class LinkedInProfileScraper {
     }
   }
 
+  /**
+   * Extract profile name
+   * @param driver WebDriver instance
+   * @returns First and last name
+   */
   private async extractName(driver: WebDriver): Promise<{ firstName?: string; lastName?: string }> {
     try {
-      const nameSelectors = [
-        // 2024 Updated LinkedIn Profile Name Selectors
-        'div.display-flex.justify-space-between div.ph5 h1.text-heading-xlarge',
-        'div.pv-profile h1.text-heading-xlarge',
-        'div.profile-top-card h1.text-heading-xlarge',
-        'div.profile-content h1.text-heading-xlarge',
-        'div.core-section-container__content h1',
-        'div[data-member-id] h1.text-heading-xlarge',
-        'div.profile-badge h1.text-heading-xlarge',
-        'main[aria-label*="profile"] h1.text-heading-xlarge',
-        // Keep some original selectors as fallbacks
-        'h1.text-heading-xlarge',
-        'div.pv-text-details__left-panel h1',
-        'h1.top-card-layout__title',
-        'h1.artdeco-entity-lockup__title'
-      ];
+      // Use the centralized XPath selectors via the getTextByCategory helper
+      const fullName = await this.getTextByCategory(driver, "Profile Name");
 
-      for (const selector of nameSelectors) {
-        try {
-          const elements = await driver.findElements(By.css(selector));
-          for (const element of elements) {
-            if (await element.isDisplayed()) {
-              const fullName = await element.getText();
-              if (fullName && fullName.trim()) {
-                logger.info(`Successfully extracted name using selector: ${selector}`);
-                const nameParts = fullName.trim().split(/\s+/);
-                return {
-                  firstName: nameParts[0],
-                  lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : undefined
-                };
-              }
-            }
-          }
-        } catch (error) {
-          continue;
-        }
+      if (fullName) {
+        logger.info(`Successfully extracted name: ${fullName}`);
+        const nameParts = fullName.split(/\s+/);
+        return {
+          firstName: nameParts[0],
+          lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : undefined
+        };
       }
 
-      // Try XPath as fallback
-      const xpathSelectors = [
-        "//div[contains(@class, 'pv-text-details__left-panel')]//h1[contains(@class, 'text-heading-xlarge')]",
-        "//div[contains(@class, 'ph5')]//h1[contains(@class, 'text-heading-xlarge')]",
-        "//div[contains(@class, 'profile-info')]//h1[contains(@class, 'text-heading-xlarge')]"
-      ];
+      // Fallback to direct XPath approach if the selector verifier didn't work
+      const xpathSelectors = getXPathSelectors("Profile Name");
 
       for (const xpath of xpathSelectors) {
         try {
@@ -1026,30 +1323,42 @@ export class LinkedInProfileScraper {
     }
   }
 
-  private async extractConnections(driver: WebDriver): Promise<string | undefined> {
+  /**
+   * Extract connections count
+   * @param driver WebDriver instance
+   * @returns Connection count or undefined
+   */
+  private async extractConnections(driver: WebDriver): Promise<number | undefined> {
     try {
-      const selectors = [
-        'span.distance-badge',
-        'span.top-card__connections',
-        'span.top-card-layout__first-subline',
-        'div.pv-top-card--list span'
-      ];
+      logger.info('Extracting connections data');
 
-      for (const selector of selectors) {
-        try {
-          const element = await driver.findElement(By.css(selector));
-          if (await element.isDisplayed()) {
-            const text = await element.getText();
-            const match = text.match(/(\d+,?\d*)\+?\s*connections?/i);
-            if (match) return match[1];
-          }
-        } catch (error) {
-          continue;
-        }
+      // Try to find the connections section
+      const connectionsElement = await this.selectorVerifier.findElementByCategory(
+        driver,
+        'Connections',
+        false,
+        true // Take a screenshot for debugging
+      ) as WebElement;
+
+      if (!connectionsElement) {
+        logger.info('No connections element found');
+        return undefined;
       }
+
+      // Extract the text
+      const connectionsText = await connectionsElement.getText();
+
+      // Extract numbers from the text
+      const matches = connectionsText.match(/(\d+)/);
+      if (matches && matches[1]) {
+        const count = parseInt(matches[1], 10);
+        logger.info(`Found ${count} connections`);
+        return count;
+      }
+
       return undefined;
     } catch (error) {
-      logger.warn(`Error extracting connections: ${error instanceof Error ? error.message : String(error)}`);
+      logger.warn(`Error in extractConnections: ${error instanceof Error ? error.message : String(error)}`);
       return undefined;
     }
   }
@@ -1859,19 +2168,9 @@ export class LinkedInProfileScraper {
         '.featured-recommendation'
       ];
 
-      // Check if we have health metrics to use
-      const useHealthMetrics = this.selectorVerifier.getHealthMetrics().size > 0;
-
-      // Get the most effective selectors based on health metrics if available
-      const effectiveTextSelectors = useHealthMetrics ?
-        this.selectorVerifier.getWorkingSelectors(categories.text) : textSelectors;
-
-      const effectiveAuthorSelectors = useHealthMetrics ?
-        this.selectorVerifier.getWorkingSelectors(categories.author) : authorSelectors;
-
       // Extract text with retry logic and track selector effectiveness
       let text = '';
-      for (const selector of effectiveTextSelectors.length > 0 ? effectiveTextSelectors : textSelectors) {
+      for (const selector of textSelectors) {
         try {
           const element = await item.findElement(By.css(selector));
           text = await element.getText() || '';
@@ -1897,7 +2196,7 @@ export class LinkedInProfileScraper {
 
       // Extract author name with retry logic
       let authorName = '';
-      for (const selector of effectiveAuthorSelectors.length > 0 ? effectiveAuthorSelectors : authorSelectors) {
+      for (const selector of authorSelectors) {
         try {
           const element = await item.findElement(By.css(selector));
           authorName = await element.getText() || '';
@@ -2100,10 +2399,10 @@ export class LinkedInProfileScraper {
       const experiences: Experience[] = [];
       const categories = {
         section: 'Experience Section',
-        item: 'Experience Item',
+        item: 'Experience Items',
         title: 'Experience Title',
         company: 'Experience Company',
-        dates: 'Experience Dates',
+        dates: 'Experience Date Range',
         description: 'Experience Description',
         location: 'Experience Location'
       };
@@ -2132,25 +2431,15 @@ export class LinkedInProfileScraper {
         'div.experience-item'
       ];
 
-      // Check if we have health metrics to use
-      const useHealthMetrics = this.selectorVerifier.getHealthMetrics().size > 0;
-
-      // Get the most effective selectors based on health metrics if available
-      const effectiveSectionSelectors = useHealthMetrics ?
-        this.selectorVerifier.getWorkingSelectors(categories.section) : experienceSectionSelectors;
-
-      const effectiveItemSelectors = useHealthMetrics ?
-        this.selectorVerifier.getWorkingSelectors(categories.item) : experienceItemSelectors;
-
-      for (const sectionSelector of effectiveSectionSelectors.length > 0 ? effectiveSectionSelectors : experienceSectionSelectors) {
+      // Try to find the Experience section with any of our selectors
+      for (const sectionSelector of experienceSectionSelectors) {
         try {
           const section = await driver.findElement(By.css(sectionSelector));
           if (await section.isDisplayed()) {
             // Record success for this section selector
             this.selectorVerifier.updateSelectorHealth(sectionSelector, categories.section, true);
 
-            const items = await section.findElements(By.css(effectiveItemSelectors.length > 0 ?
-              effectiveItemSelectors.join(',') : experienceItemSelectors.join(',')));
+            const items = await section.findElements(By.css(experienceItemSelectors.join(',')));
 
             for (const item of items) {
               try {
@@ -2661,23 +2950,37 @@ export class LinkedInProfileScraper {
   }
 
   /**
-   * Takes a screenshot and saves it to the data/screenshots directory
+   * Takes a screenshot and saves it to the specified directory
+   * Also optionally saves the HTML source for better debugging and XPath determination
    * @param driver WebDriver instance
-   * @param name Name identifier for the screenshot
+   * @param label Name identifier for the screenshot
+   * @param saveHtml Whether to save HTML source as well (default: true)
+   * @param directory Custom directory to save to (default: 'screenshots')
    */
-  private async takeScreenshot(driver: WebDriver, label: string): Promise<void> {
+  private async takeScreenshot(
+    driver: WebDriver,
+    label: string,
+    saveHtml = true,
+    directory = 'screenshots'
+  ): Promise<void> {
     try {
-      // Ensure the screenshots directory exists
-      const screenshotsDir = path.join(process.cwd(), 'data', 'screenshots');
-      await fs.mkdir(screenshotsDir, { recursive: true });
+      // Ensure the directory exists
+      const baseDir = path.join(process.cwd(), 'data');
+      const targetDir = path.join(baseDir, directory);
+      await fs.mkdir(targetDir, { recursive: true });
 
       // Create a timestamp with timezone information for better debugging
       const timestamp = new Date().toISOString().replace(/:/g, '_');
 
       // Get the current URL and create a URL-based identifier
       let urlIdentifier = '';
+      let currentUrl = '';
+      let pageTitle = '';
+
       try {
-        const currentUrl = await driver.getCurrentUrl();
+        currentUrl = await driver.getCurrentUrl();
+        pageTitle = await driver.getTitle();
+
         // Extract username from profile URL or use domain name
         const urlMatch = currentUrl.match(/linkedin\.com\/(in|pub)\/([^\/]+)/);
         if (urlMatch && urlMatch[2]) {
@@ -2698,25 +3001,219 @@ export class LinkedInProfileScraper {
 
       // Format: label_urlIdentifier_timestamp.png
       const filename = `${label}_${urlIdentifier}${timestamp}.png`;
-      const filePath = path.join(screenshotsDir, filename);
+      const filePath = path.join(targetDir, filename);
 
       // Take the screenshot
       const screenshot = await driver.takeScreenshot();
       await fs.writeFile(filePath, screenshot, 'base64');
 
-      logger.info(`Screenshot saved: ${filename}`);
+      logger.info(`Screenshot saved to ${filePath} (URL: ${currentUrl}, Title: ${pageTitle})`);
 
-      // Also save the HTML source for better debugging
-      try {
-        const html = await driver.getPageSource();
-        const htmlPath = path.join(screenshotsDir, `${label}_${urlIdentifier}${timestamp}.html`);
-        await fs.writeFile(htmlPath, html);
-        logger.info(`HTML source saved: ${path.basename(htmlPath)}`);
-      } catch (htmlError) {
-        logger.warn(`Could not save HTML source: ${htmlError instanceof Error ? htmlError.message : String(htmlError)}`);
+      // Also save the HTML source for better debugging and XPath determination if requested
+      if (saveHtml) {
+        try {
+          const html = await driver.getPageSource();
+          const htmlFilename = `${label}_${urlIdentifier}${timestamp}.html`;
+          const htmlPath = path.join(targetDir, htmlFilename);
+          await fs.writeFile(htmlPath, html);
+
+          // Create an enhanced HTML file with metadata for easier XPath determination
+          const enhancedHtmlFilename = `${label}_${urlIdentifier}${timestamp}_enhanced.html`;
+          const enhancedHtmlPath = path.join(targetDir, enhancedHtmlFilename);
+
+          // Add useful metadata to the HTML for debugging
+          const enhancedHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>LinkedIn Page Snapshot - ${pageTitle}</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .metadata {
+      background: #f0f0f0;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    .original-content {
+      border-top: 3px solid #0077b5;
+      padding-top: 10px;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 10px;
+      overflow: auto;
+      font-family: monospace;
+      border: 1px solid #ddd;
+    }
+    .tip {
+      background: #e1f5fe;
+      padding: 10px;
+      border-left: 4px solid #0288d1;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="metadata">
+    <h1>LinkedIn Page Snapshot</h1>
+    <p><strong>URL:</strong> ${currentUrl}</p>
+    <p><strong>Title:</strong> ${pageTitle}</p>
+    <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+    <p><strong>Screenshot:</strong> <a href="${filename}" target="_blank">${filename}</a></p>
+    <p><strong>Raw HTML:</strong> <a href="${htmlFilename}" target="_blank">${htmlFilename}</a></p>
+
+    <div class="tip">
+      <h3>XPath Testing Tips:</h3>
+      <p>To test XPath expressions in browser console:</p>
+      <pre>$x("//your/xpath/here")</pre>
+      <p>Common LinkedIn XPath patterns:</p>
+      <pre>
+// Profile name: //h1[contains(@class, 'text-heading-xlarge')]
+// Headline: //div[contains(@class, 'text-body-medium')][1]
+// About: //section[@id='about']//div[contains(@class, 'inline-show-more-text')]
+// Experience items: //section[@id='experience-section']//li
+// Skills: //section[@id='skills-section']//span[contains(@class, 'pv-skill-category-entity__name-text')]
+      </pre>
+    </div>
+  </div>
+
+  <div class="original-content">
+    <h2>Original Page Content Below:</h2>
+    ${html}
+  </div>
+</body>
+</html>`;
+
+          await fs.writeFile(enhancedHtmlPath, enhancedHtml);
+          logger.info(`Enhanced HTML saved to ${enhancedHtmlPath} for better XPath determination`);
+        } catch (htmlError) {
+          logger.warn(`Could not save HTML source: ${htmlError instanceof Error ? htmlError.message : String(htmlError)}`);
+        }
       }
     } catch (error) {
       logger.warn(`Error taking screenshot: ${error instanceof Error ? error.message : String(error)}`);
+
+      // Try to log basic driver information even if screenshot fails
+      try {
+        const url = await driver.getCurrentUrl();
+        const title = await driver.getTitle();
+        logger.warn(`Failed screenshot context - URL: ${url}, Title: ${title}`);
+      } catch (contextError) {
+        logger.warn('Could not retrieve driver context information');
+      }
+    }
+  }
+
+  /**
+   * Specialized method for taking a screenshot of an element with XPath context
+   * @param driver WebDriver instance
+   * @param element WebElement to screenshot
+   * @param label Name identifier for the screenshot
+   * @param xpath XPath used to find this element (for reference)
+   */
+  private async takeElementScreenshot(
+    driver: WebDriver,
+    element: WebElement,
+    label: string,
+    xpath?: string
+  ): Promise<void> {
+    try {
+      // Create a special directory for element screenshots
+      const targetDir = path.join(process.cwd(), 'data', 'element-screenshots');
+      await fs.mkdir(targetDir, { recursive: true });
+
+      // Create timestamp and identifier
+      const timestamp = new Date().toISOString().replace(/:/g, '_');
+      let urlIdentifier = '';
+
+      try {
+        const currentUrl = await driver.getCurrentUrl();
+        const urlParts = new URL(currentUrl);
+        urlIdentifier = urlParts.pathname.split('/').filter(Boolean).join('_') + '_';
+      } catch (error) {
+        urlIdentifier = 'unknown_';
+      }
+
+      // Get element text if available (for better identification)
+      let elementText = '';
+      try {
+        elementText = await element.getText();
+        if (elementText.length > 20) {
+          elementText = elementText.substring(0, 20) + '...';
+        }
+        elementText = elementText.replace(/[^a-zA-Z0-9_-]/g, '_');
+        if (elementText) {
+          elementText = '_' + elementText;
+        }
+      } catch (error) {
+        // Ignore errors getting text
+      }
+
+      // Filename format: element_label_xpathAvailable_elementText_timestamp.png
+      const xpathAvailable = xpath ? 'with-xpath_' : '';
+      const filename = `element_${label}_${xpathAvailable}${urlIdentifier}${elementText}_${timestamp}.png`;
+      const filePath = path.join(targetDir, filename);
+
+      // Take a screenshot
+      try {
+        // Try to highlight the element first
+        await driver.executeScript(
+          "arguments[0].style.border='3px solid red'; arguments[0].style.backgroundColor='rgba(255,0,0,0.1)'",
+          element
+        );
+
+        // Take screenshot of the page with highlighted element
+        const screenshot = await driver.takeScreenshot();
+        await fs.writeFile(filePath, screenshot, 'base64');
+
+        // Save element details for reference
+        if (xpath) {
+          const detailsPath = path.join(targetDir, `${filename}.txt`);
+          let details = `Element: ${label}\n`;
+          details += `XPath: ${xpath}\n`;
+          details += `Text: ${elementText}\n`;
+          details += `Timestamp: ${new Date().toISOString()}\n`;
+
+          try {
+            const tagName = await element.getTagName();
+            details += `Tag: ${tagName}\n`;
+          } catch (error) {
+            // Ignore errors
+          }
+
+          try {
+            const attributes = await driver.executeScript(
+              "let result = {}; " +
+              "let attrs = arguments[0].attributes; " +
+              "for(let i = 0; i < attrs.length; i++) { " +
+              "  result[attrs[i].name] = attrs[i].value; " +
+              "} " +
+              "return result;",
+              element
+            );
+            details += `Attributes: ${JSON.stringify(attributes, null, 2)}\n`;
+          } catch (error) {
+            // Ignore errors
+          }
+
+          await fs.writeFile(detailsPath, details);
+        }
+
+        // Remove the highlight
+        await driver.executeScript(
+          "arguments[0].style.border=''; arguments[0].style.backgroundColor=''",
+          element
+        );
+
+        logger.info(`Element screenshot saved to ${filePath}`);
+      } catch (error) {
+        logger.warn(`Error taking element screenshot: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    } catch (error) {
+      logger.warn(`Error preparing element screenshot: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -2783,6 +3280,294 @@ export class LinkedInProfileScraper {
       return text.trim() || undefined;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  /**
+   * Helper method to find elements by category using the SelectorVerifier
+   * @param driver WebDriver instance
+   * @param category Selector category
+   * @param multiple Whether to return multiple elements
+   * @returns Found element(s) or undefined
+   */
+  private async findElementsByCategory(
+    driver: WebDriver,
+    category: string,
+    multiple = false
+  ): Promise<WebElement | WebElement[] | undefined> {
+    try {
+      return await this.selectorVerifier.findElementByCategory(driver, category, multiple);
+    } catch (error) {
+      logger.warn(`Error finding elements by category ${category}: ${error instanceof Error ? error.message : String(error)}`);
+      return undefined;
+    }
+  }
+
+  /**
+   * Helper method for extracting text from an element
+   * @param element WebElement to extract text from
+   * @returns Text content or undefined
+   */
+  private async getElementText(element: WebElement | undefined): Promise<string | undefined> {
+    if (!element) return undefined;
+
+    try {
+      if (await element.isDisplayed()) {
+        const text = await element.getText();
+        return text && text.trim() ? text.trim() : undefined;
+      }
+    } catch (error) {
+      logger.debug(`Error getting element text: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Get text from the first matching element of a category
+   * @param driver WebDriver instance
+   * @param category Selector category
+   * @returns Text content or undefined
+   */
+  private async getTextByCategory(driver: WebDriver, category: string): Promise<string | undefined> {
+    const element = await this.findElementsByCategory(driver, category) as WebElement | undefined;
+    return await this.getElementText(element);
+  }
+
+  /**
+   * Get texts from all matching elements of a category
+   * @param driver WebDriver instance
+   * @param category Selector category
+   * @returns Array of text content
+   */
+  private async getTextsByCategory(driver: WebDriver, category: string): Promise<string[]> {
+    const elements = await this.findElementsByCategory(driver, category, true) as WebElement[] | undefined;
+
+    if (!elements || elements.length === 0) {
+      return [];
+    }
+
+    const result: string[] = [];
+
+    for (const element of elements) {
+      try {
+        if (await element.isDisplayed()) {
+          const text = await element.getText();
+          if (text && text.trim()) {
+            result.push(text.trim());
+          }
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Extract projects from the profile
+   * @param driver WebDriver instance
+   * @returns Array of projects
+   */
+  private async extractProjects(driver: WebDriver): Promise<any[]> {
+    try {
+      logger.info('Extracting projects data');
+
+      // Try to find the projects section
+      const projectsSection = await this.selectorVerifier.findElementByCategory(
+        driver,
+        'Projects Section',
+        false,
+        true // Take a screenshot for debugging
+      );
+
+      if (!projectsSection) {
+        logger.info('No projects section found');
+        return [];
+      }
+
+      // Find all project items
+      const projectElements = await this.selectorVerifier.findElementByCategory(
+        driver,
+        'Project Items',
+        true,
+        true
+      ) as WebElement[];
+
+      if (!projectElements || projectElements.length === 0) {
+        logger.info('No project items found');
+        return [];
+      }
+
+      logger.info(`Found ${projectElements.length} projects`);
+
+      // Extract data from each project
+      const projects = [];
+      for (const projectElement of projectElements) {
+        try {
+          // Extract project name
+          let name = '';
+          try {
+            const nameElement = await projectElement.findElement(By.xpath(".//span[contains(@class, 'project-name')]"));
+            name = await nameElement.getText();
+          } catch (error) {
+            // Try alternate selectors
+            try {
+              const nameElements = await projectElement.findElements(By.xpath(".//h3 | .//h4"));
+              if (nameElements.length > 0) {
+                name = await nameElements[0].getText();
+              }
+            } catch (innerError) {
+              // Ignore
+            }
+          }
+
+          // Extract dates
+          let dates = '';
+          try {
+            const dateElement = await projectElement.findElement(By.xpath(".//span[contains(@class, 'date-range')]"));
+            dates = await dateElement.getText();
+          } catch (error) {
+            // Ignore error
+          }
+
+          // Extract description
+          let description = '';
+          try {
+            const descElement = await projectElement.findElement(By.xpath(".//p[contains(@class, 'description')] | .//div[contains(@class, 'description')]"));
+            description = await descElement.getText();
+          } catch (error) {
+            // Ignore error
+          }
+
+          projects.push({
+            name,
+            dates,
+            description
+          });
+        } catch (error) {
+          logger.warn(`Error extracting project data: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      return projects;
+    } catch (error) {
+      logger.warn(`Error in extractProjects: ${error instanceof Error ? error.message : String(error)}`);
+      return [];
+    }
+  }
+
+  /**
+   * Login to LinkedIn
+   * @param driver WebDriver instance
+   * @param account LinkedIn account credentials
+   * @returns Whether login was successful
+   */
+  private async login(driver: WebDriver, account: ILinkedInAccount): Promise<boolean> {
+    try {
+      // Extract email and password from account
+      const email = account.email || '';
+      const password = (account as LinkedInAccountWithPassword).password || account.getPassword?.() || '';
+
+      // Navigate to LinkedIn login page
+      await driver.get('https://www.linkedin.com/login');
+      logger.info('Navigating to LinkedIn login page: https://www.linkedin.com/login');
+
+      // Take screenshot of login page
+      await this.takeScreenshot(driver, 'login-page-initial');
+
+      // Check if we're on the login page
+      const currentUrl = await driver.getCurrentUrl();
+      logger.info(`Checking if on login page. Current URL: ${currentUrl}`);
+
+      if (currentUrl.includes('/login') || currentUrl.includes('/checkpoint')) {
+        logger.info('URL contains /login or /checkpoint, confirming we are on login page');
+
+        // Handle standard login flow
+        logger.info('On standard login page, proceeding with normal login flow');
+
+        // Find the username field
+        const usernameInput = await driver.findElement(By.id('username'));
+        await usernameInput.clear();
+        await usernameInput.sendKeys(email);
+
+        // Find the password field
+        const passwordInput = await driver.findElement(By.id('password'));
+        await passwordInput.clear();
+        await passwordInput.sendKeys(password);
+
+        // Take screenshot before clicking login
+        await this.takeScreenshot(driver, 'login-page-filled');
+
+        // Click the login button
+        const signInButton = await driver.findElement(By.css('button[type="submit"]'));
+        await signInButton.click();
+
+        // Wait for navigation
+        await driver.sleep(5000);
+
+        // Take screenshot after login attempt
+        await this.takeScreenshot(driver, 'post-login');
+
+        // Check if we're logged in
+        const newUrl = await driver.getCurrentUrl();
+        logger.info(`Post-login URL: ${newUrl}`);
+
+        if (!newUrl.includes('/login') && !newUrl.includes('/checkpoint')) {
+          logger.info('Login successful');
+          return true;
+        } else {
+          // Check for security verification
+          const pageSource = await driver.getPageSource();
+
+          if (pageSource.includes('security verification') ||
+              pageSource.includes('unusual activity') ||
+              pageSource.includes('verify your identity')) {
+            logger.warn('Security verification required. Please handle this manually.');
+            // Take additional screenshot
+            await this.takeScreenshot(driver, 'security-verification-required');
+            // Wait for potential manual intervention
+            await driver.sleep(30000);
+            return true; // Optimistically assume user handled verification
+          }
+
+          logger.warn('Login failed. Still on login page.');
+          return false;
+        }
+      } else if (currentUrl.includes('linkedin.com')) {
+        // Already logged in
+        logger.info('Already logged into LinkedIn');
+        return true;
+      } else {
+        logger.warn(`Unexpected URL after login attempt: ${currentUrl}`);
+        return false;
+      }
+    } catch (error) {
+      logger.error(`Error during LinkedIn login: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+
+  /**
+   * Generate a unique metadata ID for a profile
+   * @param profileUrl LinkedIn profile URL
+   * @returns Metadata ID
+   */
+  private generateMetadataId(profileUrl: string): string {
+    try {
+      // Try to extract the LinkedIn username/ID from the URL
+      const matches = profileUrl.match(/linkedin\.com\/(in|pub)\/([^\/\?]+)/i);
+      if (matches && matches[2]) {
+        const username = matches[2].toLowerCase();
+        return `linkedin_${username}_${Date.now()}`;
+      }
+
+      // Fallback: create a hash of the full URL
+      return `linkedin_profile_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    } catch (error) {
+      // Handle any errors by returning a timestamp-based ID
+      return `linkedin_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
     }
   }
 }
