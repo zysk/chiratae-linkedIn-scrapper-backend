@@ -176,7 +176,7 @@ options.addArguments('--disable-gpu');
 options.addArguments("--remote-allow-origins=*");
 options.addArguments('--window-size=1920,1080');
 
-const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+const chromeDriverPath = path.join(process.cwd(), process.platform === 'win32' ? "chromedriver.exe" : "chromedriver");
 const serviceBuilder = new chrome.ServiceBuilder(chromeDriverPath);
 
 export const driver = new Promise((resolve, reject) => {

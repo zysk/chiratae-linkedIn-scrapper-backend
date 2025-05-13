@@ -165,7 +165,7 @@ export const linkedInLogin = async (req, res, next) => {
             }
         }
 
-        const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+        const chromeDriverPath = path.join(process.cwd(), process.platform === "win32" ? "chromedriver.exe" : "chromedriver");
         const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
         if (req.body.proxyId) {
@@ -803,7 +803,16 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
             await driver.get(`${currentUrl}/details/experience/`);
             await driver.sleep(randomIntFromInterval(1000, 15000));
             try {
-                let experienceFound = await driver.wait(until.elementLocated(By.xpath(`//div[@class="scaffold-finite-scroll__content"]`)), 5000);
+                let experienceFound = await driver.wait(
+                    until.elementLocated(
+                        By.xpath(`//div[@class="artdeco-card pv-profile-card break-words
+
+
+
+            mt2"]`)
+                    ),
+                    5000
+                );
 
                 if (experienceFound) {
                     if (randomBoolean()) {
@@ -821,6 +830,8 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             let value = "";
                             let year = "";
                             try {
+                                console.info(">>>>>>>>>> Experience Checkpoint 1 <<<<<<<<<<<");
+
                                 let checkElementHasAnchorTag = await driver.findElement(
                                     By.xpath(
                                         `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
@@ -829,9 +840,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 );
 
                                 if (checkElementHasAnchorTag) {
+                                    console.info(">>>>>>>>>> Experience Checkpoint 2 <<<<<<<<<<<");
                                     let commonCompanyValue = "";
 
                                     try {
+                                        console.info(">>>>>>>>>> Experience Checkpoint 3 <<<<<<<<<<<");
                                         commonCompanyValue = await driver
                                             .findElement(
                                                 By.xpath(
@@ -841,6 +854,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                             )
                                             .getText();
                                     } catch (error) {
+                                        console.info(">>>>>>>>>> Experience Checkpoint 4 <<<<<<<<<<<");
                                         seleniumErrorHandler();
                                     }
 
@@ -852,10 +866,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                     );
 
                                     if (checkInnerElementOfAnchorTag && checkInnerElementOfAnchorTag.length > 0) {
+                                        console.info(">>>>>>>>>> Experience Checkpoint 5 <<<<<<<<<<<");
                                         for (let a = 0; a < checkInnerElementOfAnchorTag.length; a++) {
                                             companyvalue = commonCompanyValue;
 
                                             try {
+                                                console.info(`>>>>>>>>>> Experience Checkpoint 6 - ${a} <<<<<<<<<<<`);
                                                 value = await driver
                                                     .findElement(
                                                         By.xpath(
@@ -866,10 +882,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                                     )
                                                     .getText();
                                             } catch (error) {
+                                                console.info(`>>>>>>>>>> Experience Checkpoint 7 - ${a} <<<<<<<<<<<`);
                                                 seleniumErrorHandler();
                                             }
 
                                             try {
+                                                console.info(`>>>>>>>>>> Experience Checkpoint 8 - ${a} <<<<<<<<<<<`);
                                                 year = await driver
                                                     .findElement(
                                                         By.xpath(
@@ -880,6 +898,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                                     )
                                                     .getText();
                                             } catch (error) {
+                                                console.info(`>>>>>>>>>> Experience Checkpoint 9 - ${a} <<<<<<<<<<<`);
                                                 seleniumErrorHandler();
                                             }
 
@@ -889,6 +908,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 }
                             } catch (err) {
                                 try {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 10 - ${k} <<<<<<<<<<<`);
                                     companyvalue = await driver
                                         .findElement(
                                             By.xpath(
@@ -898,10 +918,12 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                         )
                                         .getText();
                                 } catch (error) {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 11 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
 
                                 try {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 12 - ${k} <<<<<<<<<<<`);
                                     value = await driver
                                         .findElement(
                                             By.xpath(
@@ -911,9 +933,11 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                         )
                                         .getText();
                                 } catch (error) {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 13 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
                                 try {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 14 - ${k} <<<<<<<<<<<`);
                                     year = await driver
                                         .findElement(
                                             By.xpath(
@@ -923,6 +947,7 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                         )
                                         .getText();
                                 } catch (error) {
+                                    console.info(`>>>>>>>>>> Experience Checkpoint 15 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
                                 experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });
@@ -1034,7 +1059,7 @@ export const searchLinkedin = async (req, res, next) => {
             }
         }
 
-        const chromeDriverPath = path.join(process.cwd(), "chromedriver"); // or wherever you've your geckodriver
+        const chromeDriverPath = path.join(process.cwd(), process.platform === "win32" ? "chromedriver.exe" : "chromedriver");
         const serviceBuilder = new ServiceBuilder(chromeDriverPath);
 
         let driver = await new Builder()

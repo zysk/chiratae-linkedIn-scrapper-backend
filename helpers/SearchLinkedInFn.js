@@ -31,7 +31,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
 
         let campaignArr = await Campaign.find({ status: generalModelStatuses.CREATED, isSearched: false, processing: false }).lean().exec();
 
-        let totalResults = "";
+        let totalResults = 0;
         if (!campaignArr.length) {
             return true;
         }
@@ -207,15 +207,16 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                 await driver.executeScript(`window.scrollTo(0, 4500)`);
 
                                 // ? getting total results
-                                try {
-                                    totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
-                                    console.log("TOTAL RESULTS - 1111", totalResults)
+                                // try {
+                                //     totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
+                                //     console.log("TOTAL RESULTS - 1111", totalResults)
 
-                                    await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults });
-                                } catch (error) {
-                                    console.error(error);
-                                    seleniumErrorHandler();
-                                }
+                                //     await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults });
+                                // } catch (error) {
+                                //     console.log("error in next button 222");
+                                //     console.error(error);
+                                //     seleniumErrorHandler();
+                                // }
 
                                 // ? locating next button
                                 try {
@@ -223,15 +224,17 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     if (nextbutton) {
                                         let nextbuttonText = await driver.findElement(By.xpath(`//button[@aria-label="Next"]//span[text()='Next']`)).isEnabled();
                                         while (nextbuttonText) {
-                                            try {
-                                                let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)), 5000);
-                                                if (resultText) {
-                                                    // ? getting value of total results
-                                                    // console.log(">>>>>>>>>", resultText);
-                                                }
-                                            } catch (error) {
-                                                console.error(error);
-                                            }
+                                            // try {
+                                            //     let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)), 5000);
+                                            //     if (resultText) {
+                                            //         // ? getting value of total results
+                                            //         // console.log(">>>>>>>>>", resultText);
+                                            //     }
+                                            // } catch (error) {
+                                            //     console.log("error in next button 111");
+
+                                            //     console.error(error);
+                                            // }
 
                                             // ? scrolling the page to bottom because linked in does not load the whole page until its scrolled
                                             await driver.executeScript(`window.scrollTo(0, 4500)`);
@@ -242,10 +245,12 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             // ? locating results div
                                             try {
                                                 let resultElement = await driver.wait(
-                                                    until.elementsLocated(By.xpath(`//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]`)),
+                                                    until.elementsLocated(By.xpath(`//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]`)),
                                                     5000
                                                 );
+                                                console.info("resultElement", resultElement.length);
                                                 if (resultElement) {
+
                                                     // console.log(resultElement.length, "resultElement.length");
                                                     // ? looping through the results
                                                     for (let i = 0; i < resultElement.length; i++) {
@@ -254,7 +259,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let name = await driver
                                                             .findElement(
                                                                 By.xpath(
-                                                                    `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
+                                                                    `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
                                                                         i + 1
                                                                     }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
                                                                 )
@@ -267,7 +272,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let linkValue = await driver
                                                             .findElement(
                                                                 By.xpath(
-                                                                    `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
+                                                                    `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
                                                                         i + 1
                                                                     }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                                 )
@@ -309,7 +314,11 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             } catch (err) {
                                                 seleniumErrorHandler();
                                             }
+                                            totalResults = totalResults + resultsArr.length;
+                                            console.log("TOTAL RESULTS - ", totalResults);
                                         }
+                                        console.log("TOTAL RESULTS - 1111", totalResults);
+                                        await Campaign.findByIdAndUpdate(campaignObj._id, { totalResults: totalResults });
                                     }
                                 } catch (err) {
                                     // ? scrolling the page to bottom because linked in does not load the whole page until its scrolled
@@ -318,21 +327,22 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     // ? waiting for the elements to load
                                     await driver.sleep(randomIntFromInterval(1000, 2000));
 
-                                    try {
-                                        let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)), 5000);
-                                        if (resultText) {
-                                            // ? getting value of total results
-                                            totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
-                                            console.log("TOTAL RESULTS - 2222", totalResults)
-                                        }
-                                    } catch (error) {
-                                        console.error(error);
-                                        seleniumErrorHandler();
-                                    }
+                                    // try {
+                                    //     let resultText = await driver.wait(until.elementLocated(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)), 5000);
+                                    //     if (resultText) {
+                                    //         // ? getting value of total results
+                                    //         totalResults = await driver.findElement(By.xpath(`//div[@class="search-results-container"]/div/h2/div`)).getText();
+                                    //         console.log("TOTAL RESULTS - 2222", totalResults)
+                                    //     }
+                                    // } catch (error) {
+                                    //     console.log("error in next button 333");
+                                    //     console.error(error);
+                                    //     seleniumErrorHandler();
+                                    // }
                                     // ? locating results div
                                     try {
-                                        //ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]
-                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"]`)), 5000);
+                                        //ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]
+                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]`)), 5000);
                                         // console.log("runnnnn till herereeeeeeeeeeeeerererer");
                                         if (resultElement) {
                                             // console.log(">>>>>>>>>>>>>>>>> resultElement", resultElement.length);
@@ -343,7 +353,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let name = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
+                                                            `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
                                                         )
@@ -356,7 +366,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let linkValue = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="tPkmdXdAzHJwzfGrixFLTtSfyZEEmsWftJ list-style-none"]/li[@class="RkLdVCTMJkLBiQMtfVjNwlgHzFLabzKJEJY"][${
+                                                            `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                         )
