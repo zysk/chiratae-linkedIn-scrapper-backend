@@ -39,9 +39,12 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
         console.log(`DB connected`);
     }
 });
+mongoose.set("strictQuery", true);
 // mongoose.set("debug", true)
 
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+    url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+});
 
 redisClient.on("connect", async () => {
     console.log("Redis connected");
