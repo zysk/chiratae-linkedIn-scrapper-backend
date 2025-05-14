@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+npm-debug.log
+Dockerfile
+.dockerignore
+.eslintrc.js
+.prettierrc
+.prettierignore
+commitlint.config.js
+
+# Source control
+.husky
+.git
+.gitignore
+test*
+.cursor*
+jenkins*
+*.tsbuildinfo
+.vscode
+
+# Environment and config
+.env
+
+# Testing and documentation
+tests/
+coverage/
+docs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+README.md
+.todo.md
+
+# Build outputs
+dist/
+build/
