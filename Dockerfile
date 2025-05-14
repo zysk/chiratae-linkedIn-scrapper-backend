@@ -48,14 +48,13 @@ COPY --from=builder /app/dist ./
 
 # Copy other necessary files
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.env.prod ./.env
 COPY --from=builder /app/chromedriver* ./
 
 # Make chromedriver executable
 RUN chmod +x ./chromedriver*
 
 # Only expose application port
-EXPOSE 5500
+EXPOSE 3000
 
 # Run the application with Node.js
 CMD ["node", "bin/www.js"]
