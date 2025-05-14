@@ -496,7 +496,7 @@ export const sendLinkedInCaptchaInput = async (req, res, next) => {
         // let debug = lastSelenium.capabilities.map_["goog:chromeOptions"].debuggerAddress
 
         // let options = new chrome.Options();
-        // if (process.env.NODE_ENV == "prod") {
+        // if (process.env.NODE_ENV == "production") {
         //     options.addArguments("--headless");
         // }
         // options.setPageLoadStrategy(PageLoadStrategy.EAGER)
@@ -1038,7 +1038,7 @@ export const searchLinkedin = async (req, res, next) => {
 
         let options = new chrome.Options();
         options.addArguments("--no-sandbox");
-        if (process.env.NODE_ENV == "prod") {
+        if (process.env.NODE_ENV == "production") {
             options.addArguments("--headless=new");
         }
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);

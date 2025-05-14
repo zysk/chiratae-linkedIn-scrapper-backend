@@ -43,13 +43,18 @@ mongoose.connect(CONFIG.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: t
 
 const redisClient = redis.createClient();
 
-redisClient.on("connect", () => {
+redisClient.on("connect", async () => {
     console.log("Redis connected");
-    redisClient.set("isFree", "true", (err) => (err ? console.error("Error setting key in Redis:", err) : console.log("Key set successfully in Redis")));
+    try {
+        await redisClient.set("isFree", "true");
+        console.log("Key set successfully in Redis");
+    } catch (err) {
+        console.error("Error setting key in Redis:", err);
+    }
 });
 
 redisClient.on("error", (err) => console.error("Redis connection error:", err));
-redisClient.connect();
+redisClient.connect().catch((err) => console.error("Redis connection failed:", err));
 
 app.use(express.json({ limit: "100mb" })); // parses the incoming json requests
 app.use(express.urlencoded({ extended: false, limit: "100mb", parameterLimit: 10000000 }));
@@ -168,7 +173,7 @@ export const cronFunc = async () => {
  */
 const options = new chrome.Options();
 options.addArguments("--no-sandbox");
-if (process.env.NODE_ENV == "prod") {
+if (process.env.NODE_ENV == "production") {
 	options.addArguments("--headless=new");
 }
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
