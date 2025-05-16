@@ -244,10 +244,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                             await driver.sleep(randomIntFromInterval(1000, 2000));
                                             // ? locating results div
                                             try {
-                                                let resultElement = await driver.wait(
-                                                    until.elementsLocated(By.xpath(`//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]`)),
-                                                    5000
-                                                );
+                                                let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@role="list"][1]/li`)), 5000);
                                                 console.info("resultElement", resultElement.length);
                                                 if (resultElement) {
 
@@ -257,13 +254,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let obj = {};
                                                         // ? locating name of the users
                                                         let name = await driver
-                                                            .findElement(
-                                                                By.xpath(
-                                                                    `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
-                                                                        i + 1
-                                                                    }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
-                                                                )
-                                                            )
+                                                            .findElement(By.xpath(`//ul[@role="list"][1]/li[${i + 1}]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`))
                                                             .getText();
                                                         if (name) {
                                                             obj.name = name?.split("\n")[0];
@@ -272,7 +263,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                         let linkValue = await driver
                                                             .findElement(
                                                                 By.xpath(
-                                                                    `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
+                                                                    `//ul[@role="list"][1]/li[${
                                                                         i + 1
                                                                     }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                                 )
@@ -341,8 +332,8 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                     // }
                                     // ? locating results div
                                     try {
-                                        //ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]
-                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"]`)), 5000);
+                                        //ul[@role="list"][1]/li
+                                        let resultElement = await driver.wait(until.elementsLocated(By.xpath(`//ul[@role="list"][1]/li`)), 5000);
                                         // console.log("runnnnn till herereeeeeeeeeeeeerererer");
                                         if (resultElement) {
                                             // console.log(">>>>>>>>>>>>>>>>> resultElement", resultElement.length);
@@ -353,7 +344,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let name = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
+                                                            `//ul[@role="list"][1]/li[${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a/span/span[@aria-hidden="true"]`
                                                         )
@@ -366,7 +357,7 @@ export const searchLinkedInFn = async (redisClientParam) => {
                                                 let linkValue = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//ul[@class="gTDIyHBPmKwpiRabJJISySbQsZbzQbZaEMUfHc list-style-none"]/li[@class="gVMlFhukxqiDqUMTsQnPBUPYdugKqSvYftxps"][${
+                                                            `//ul[@role="list"][1]/li[${
                                                                 i + 1
                                                             }]/div/div/div/div[2]/div/div/div[@class="display-flex"]/span/span/a`
                                                         )
