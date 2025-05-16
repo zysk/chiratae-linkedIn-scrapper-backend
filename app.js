@@ -179,6 +179,11 @@ options.addArguments("--no-sandbox");
 if (process.env.NODE_ENV == "production") {
 	options.addArguments("--headless=new");
 }
+options.addArguments("--silent");  // Add this line
+options.addArguments("--log-level=3");
+options.addArguments("--disable-logging");
+options.addArguments("--disable-dev-shm-usage");
+options.excludeSwitches(["enable-logging"]); // This will disable logging in console
 options.setPageLoadStrategy(PageLoadStrategy.EAGER)
 options.addArguments('--disable-gpu');
 options.addArguments("--remote-allow-origins=*");
