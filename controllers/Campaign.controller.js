@@ -830,8 +830,6 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                             let value = "";
                             let year = "";
                             try {
-                                console.info(">>>>>>>>>> Experience Checkpoint 1 <<<<<<<<<<<");
-
                                 let checkElementHasAnchorTag = await driver.findElement(
                                     By.xpath(
                                         `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
@@ -840,65 +838,54 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 );
 
                                 if (checkElementHasAnchorTag) {
-                                    console.info(">>>>>>>>>> Experience Checkpoint 2 <<<<<<<<<<<");
                                     let commonCompanyValue = "";
 
                                     try {
-                                        console.info(">>>>>>>>>> Experience Checkpoint 3 <<<<<<<<<<<");
                                         commonCompanyValue = await driver
                                             .findElement(
                                                 By.xpath(
-                                                    `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                    }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a/div[@class="display-flex flex-wrap align-items-center full-height"]/div/div/div/span[@aria-hidden="true"]`
+                                                    `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span/span[@aria-hidden="true"]`
                                                 )
                                             )
                                             .getText();
                                     } catch (error) {
-                                        console.info(">>>>>>>>>> Experience Checkpoint 4 <<<<<<<<<<<");
                                         seleniumErrorHandler();
                                     }
 
                                     let checkInnerElementOfAnchorTag = await driver.findElements(
                                         By.xpath(
-                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li`
+                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][2]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/div/div/div/div/span[@aria-hidden="true"]`
                                         )
                                     );
+                                    //div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/div/div/div/div/span
 
                                     if (checkInnerElementOfAnchorTag && checkInnerElementOfAnchorTag.length > 0) {
-                                        console.info(">>>>>>>>>> Experience Checkpoint 5 <<<<<<<<<<<");
                                         for (let a = 0; a < checkInnerElementOfAnchorTag.length; a++) {
                                             companyvalue = commonCompanyValue;
 
                                             try {
-                                                console.info(`>>>>>>>>>> Experience Checkpoint 6 - ${a} <<<<<<<<<<<`);
                                                 value = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[2]/ul/li/div[@class="pvs-list__container"]/div/div[@class="scaffold-finite-scroll__content"]/ul/li[${a + 1
-                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/div/div/div/div/span[@aria-hidden="true"]`
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a/div[@class="display-flex flex-wrap align-items-center full-height"]/div/div/div/span[@aria-hidden="true"]`
                                                         )
                                                     )
                                                     .getText();
+                                                    //div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][2]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span/span[@aria-hidden="true"]
                                             } catch (error) {
-                                                console.info(`>>>>>>>>>> Experience Checkpoint 7 - ${a} <<<<<<<<<<<`);
                                                 seleniumErrorHandler();
                                             }
 
                                             try {
-                                                console.info(`>>>>>>>>>> Experience Checkpoint 8 - ${a} <<<<<<<<<<<`);
                                                 year = await driver
                                                     .findElement(
                                                         By.xpath(
-                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                            }]/div/div/div/div[2]/ul/li/div[@class="pvs-list__container"]/div/div/ul/li[${a + 1
-                                                            }]/div/div/div[@class="display-flex flex-column full-width align-self-center"]/div[@class="display-flex flex-row justify-space-between"]/a/span/span[@class="pvs-entity__caption-wrapper"]`
+                                                            `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span[2]/span[@aria-hidden="true"]`
                                                         )
                                                     )
                                                     .getText();
+                                                    //div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span[2]/span[@aria-hidden="true"]
                                             } catch (error) {
-                                                console.info(`>>>>>>>>>> Experience Checkpoint 9 - ${a} <<<<<<<<<<<`);
                                                 seleniumErrorHandler();
                                             }
 
@@ -908,46 +895,37 @@ export const linkedInProfileScrapping = async (redisClientParam) => {
                                 }
                             } catch (err) {
                                 try {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 10 - ${k} <<<<<<<<<<<`);
                                     companyvalue = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span[@class="t-14 t-normal"]/span[@aria-hidden="true"]`
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span/span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 11 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
 
                                 try {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 12 - ${k} <<<<<<<<<<<`);
                                     value = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/div/div/div/div//span[@aria-hidden="true"]`
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/a/div[@class="display-flex flex-wrap align-items-center full-height"]/div/div/div/span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 13 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
                                 try {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 14 - ${k} <<<<<<<<<<<`);
                                     year = await driver
                                         .findElement(
                                             By.xpath(
-                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1
-                                                }]/div/div/div/div[@class="display-flex flex-row justify-space-between"]/div/span/span[@class="pvs-entity__caption-wrapper"]`
+                                                `//div[@class="scaffold-finite-scroll__content"]/ul/li[@class="pvs-list__paged-list-item artdeco-list__item pvs-list__item--line-separated pvs-list__item--one-column"][${k + 1}]/div/div/div[@class="display-flex flex-column align-self-center flex-grow-1"]/div/a/span[2]/span[@aria-hidden="true"]`
                                             )
                                         )
                                         .getText();
                                 } catch (error) {
-                                    console.info(`>>>>>>>>>> Experience Checkpoint 15 - ${k} <<<<<<<<<<<`);
                                     seleniumErrorHandler();
                                 }
                                 experienceValueArr.push({ company: companyvalue, companyDetail: value, year: year });

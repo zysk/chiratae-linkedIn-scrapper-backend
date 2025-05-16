@@ -107,8 +107,8 @@ export const cronFunc = async () => {
         let isFree = await redisClient.get("isFree");
         isFree = isFree == "true";
         // console.log(isFree, "isFree")
+        let noUsersLeft = false;
         if (isFree) {
-            let noUsersLeft = false;
             let noCampaignsLeft = false;
 
 			try {
